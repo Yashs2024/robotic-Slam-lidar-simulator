@@ -18,8 +18,10 @@ export class Renderer {
 
     resizeCanvas() {
         const container = document.querySelector('.canvas-container');
-        const width = container.clientWidth;
-        const height = container.clientHeight;
+        // If container is hidden (display: none), clientWidth/Height are 0.
+        // Fall back to window calculations (sidebar is 320px).
+        const width = container.clientWidth || (window.innerWidth - 320);
+        const height = container.clientHeight || window.innerHeight;
 
         this.realWorldCanvas.width = width;
         this.realWorldCanvas.height = height;

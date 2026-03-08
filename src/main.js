@@ -102,7 +102,8 @@ const instructionsBuild = document.getElementById('instructionsBuild');
 const realWorldCanvas = document.getElementById('realWorldCanvas');
 const slamCanvas = document.getElementById('slamCanvas');
 
-
+const btnToggleSidebar = document.getElementById('btnToggleSidebar');
+const sidebarPanel = document.querySelector('.sidebar');
 function resetSimulation() {
   mapper.clear();
   renderer.resetFog();
@@ -138,6 +139,12 @@ function setupEventListeners() {
   // Tutorial
   btnTutorial.addEventListener('click', () => {
     tutorialManager.start();
+  });
+
+  // Sidebar Toggle
+  btnToggleSidebar.addEventListener('click', () => {
+    sidebarPanel.classList.toggle('collapsed');
+    btnToggleSidebar.classList.toggle('open');
   });
 
   // Keyboard
@@ -479,9 +486,42 @@ function handleFrontierExploration() {
 }
 
 
-// ---- Main Game Loop ----
-function animate() {
-  requestAnimationFrame(animate);
+// ---- Page Transition Logic ----
+const landingPage = document.getElementById('landingPage');
+const loginPage = document.getElementById('loginPage');
+const appSimulator = document.getElementById('app');
+const btnGetStarted = document.getElementById('btnGetStarted');
+const loginForm = document.getElementById('loginForm');
+
+let isSimulatorRunning = false;
+
+if (btnGetStarted) {
+  btnGetStarted.addEventListener('click', () => {
+    landingPage.style.display = 'none';
+    loginPage.style.display = 'flex';
+  });
+}
+
+if (loginForm) {
+  loginForm.addEventListener('submit', (e) => {
+    e.preventDefault(); // Prevent page reload
+    loginPage.style.display = 'none';
+    appSimulator.style.display = 'flex'; // Use flex to maintain sidebar/canvas layout
+
+    // Start the simulator loop only now
+    if (!isSimulatorRunning) {
+      isSimulatorRunning = true;
+      lastTime = performance.now();
+      requestAnimationFrame(gameLoop);
+    }
+  });
+}
+
+// ---- Main Loop ----
+let lastTime = 0;
+function gameLoop(timestamp) {
+  if (!isSimulatorRunning) return;
+  requestAnimationFrame(gameLoop); // Changed from animate to gameLoop
 
   // 1. Process Input
   robot.applyInput(keys);
@@ -584,5 +624,3 @@ setupEventListeners();
 lidar.setParameters(parseInt(rayDensitySlider.value), parseInt(noiseSlider.value));
 robot.setSpeedMultiplier(parseInt(speedSlider.value));
 robot.setDrift(parseInt(driftSlider.value));
-
-animate();

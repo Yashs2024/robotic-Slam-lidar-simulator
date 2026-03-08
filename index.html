@@ -15,7 +15,102 @@
 </head>
 
 <body>
-  <div id="app">
+  <!-- Premium Landing Page -->
+  <div id="landingPage" class="full-page premium-bg">
+    <div class="grid-overlay"></div>
+    <div class="glow-orb primary"></div>
+    <div class="glow-orb secondary"></div>
+
+    <div class="landing-content split-layout">
+      <!-- Left: Text content -->
+      <div class="text-content">
+        <div class="badge">v2.0 Now Available</div>
+        <h1 class="hero-title">Master <span class="text-gradient">SLAM</span><br />Algorithms</h1>
+        <p class="hero-desc">Experience autonomous navigation, real-time mapping, and advanced pathfinding algorithms
+          visualized beautifully.</p>
+
+        <div class="hero-features">
+          <div class="feature"><span class="icon">🎯</span> Particle Filter</div>
+          <div class="feature"><span class="icon">🚗</span> 3 Drive Models</div>
+          <div class="feature"><span class="icon">⚡</span> A* / Dijkstra / Bug2</div>
+        </div>
+
+        <button id="btnGetStarted" class="primary-btn glow-hover">
+          Launch Simulator <span class="arrow">→</span>
+        </button>
+      </div>
+
+      <!-- Right: Animated Visual -->
+      <div class="visual-content">
+        <div class="robot-container">
+          <!-- Animated Lidar Scan Ring -->
+          <div class="scan-ring"></div>
+          <div class="scan-ring delayed"></div>
+
+          <!-- Abstract SVG Robot -->
+          <svg class="floating-robot" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <linearGradient id="robotGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#3b82f6" />
+                <stop offset="100%" stop-color="#8b5cf6" />
+              </linearGradient>
+              <filter id="glow">
+                <feGaussianBlur stdDeviation="5" result="coloredBlur" />
+                <feMerge>
+                  <feMergeNode in="coloredBlur" />
+                  <feMergeNode in="SourceGraphic" />
+                </feMerge>
+              </filter>
+            </defs>
+            <!-- Lidar Dome -->
+            <path d="M70 80 Q100 40 130 80" fill="none" stroke="#60a5fa" stroke-width="6" stroke-linecap="round" />
+            <!-- Sensor Eye -->
+            <circle cx="100" cy="70" r="10" fill="#60a5fa" filter="url(#glow)">
+              <animate attributeName="opacity" values="0.5;1;0.5" dur="2s" repeatCount="indefinite" />
+            </circle>
+            <!-- Main Chassis -->
+            <rect x="50" y="80" width="100" height="70" rx="20" fill="url(#robotGrad)" filter="url(#glow)" />
+            <!-- Wheels -->
+            <rect x="40" y="100" width="20" height="40" rx="5" fill="#1e293b" />
+            <rect x="140" y="100" width="20" height="40" rx="5" fill="#1e293b" />
+            <!-- Connection Lines -->
+            <line x1="80" y1="120" x2="120" y2="120" stroke="#0f172a" stroke-width="4" />
+          </svg>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Login Page -->
+  <div id="loginPage" class="full-page" style="display: none;">
+    <div class="auth-card">
+      <div class="glow-orb small"></div>
+      <h2>Welcome Back</h2>
+      <p>Sign in to access your simulations</p>
+      <form id="loginForm">
+        <div class="input-group">
+          <label>Email</label>
+          <input type="email" value="yash@example.com" class="auth-input" required />
+        </div>
+        <div class="input-group">
+          <label>Password</label>
+          <input type="password" value="password123" class="auth-input" required />
+        </div>
+        <button type="submit" id="btnLogin" class="primary-btn w-full">Sign In</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Main Simulator -->
+  <div id="app" style="display: none;">
+    <!-- Sidebar Toggle Button -->
+    <button id="btnToggleSidebar" class="sidebar-toggle-btn open" title="Toggle Sidebar">
+      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="15 18 9 12 15 6"></polyline>
+      </svg>
+    </button>
+
     <!-- Sidebar Control Panel -->
     <aside class="sidebar">
       <header>
