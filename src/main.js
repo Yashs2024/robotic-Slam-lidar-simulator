@@ -9,6 +9,11 @@ import { FrontierExplorer } from './FrontierExplorer.js';
 import { StatsTracker } from './StatsTracker.js';
 import { DynamicObstacles } from './DynamicObstacles.js';
 import { SoundManager } from './SoundManager.js';
+import { ParticleFilter } from './ParticleFilter.js';
+import { TutorialManager } from './TutorialManager.js';
+import { Dijkstra } from './Dijkstra.js';
+import { BugAlgorithm } from './BugAlgorithm.js';
+import { SensorVisualizer } from './SensorVisualizer.js';
 
 // ---- Application State ----
 const keys = { w: false, a: false, s: false, d: false };
@@ -35,11 +40,17 @@ const robot = new Robot(renderer.realWorldCanvas.width / 2, renderer.realWorldCa
 const lidar = new Lidar();
 const mapper = new Mapper(renderer.realWorldCanvas.width, renderer.realWorldCanvas.height, 10);
 const astar = new AStar(mapper);
+const dijkstra = new Dijkstra(mapper);
+const bugAlgorithm = new BugAlgorithm(mapper);
+let currentPathfinder = astar;
 const chartManager = new ChartManager('lidarChart', lidar.maxRange);
 const frontierExplorer = new FrontierExplorer(mapper);
 const statsTracker = new StatsTracker();
 const dynamicObstacles = new DynamicObstacles(renderer.realWorldCanvas.width, renderer.realWorldCanvas.height);
 const soundManager = new SoundManager();
+const particleFilter = new ParticleFilter(200);
+const tutorialManager = new TutorialManager();
+const sensorVisualizer = new SensorVisualizer();
 
 // Initialise the Fog of War canvas
 renderer.initFogCanvas(renderer.slamCanvas.width, renderer.slamCanvas.height);
@@ -66,6 +77,10 @@ const btnDriveMode = document.getElementById('btnDriveMode');
 const btnBuildMode = document.getElementById('btnBuildMode');
 const btnAutoExplore = document.getElementById('btnAutoExplore');
 const btnDynamicObs = document.getElementById('btnDynamicObs');
+const btnParticleFilter = document.getElementById('btnParticleFilter');
+const particleCountSlider = document.getElementById('particleCountSlider');
+const particleCountValue = document.getElementById('particleCountValue');
+const particleCountGroup = document.getElementById('particleCountGroup');
 const btnSoundOff = document.getElementById('btnSoundOff');
 const btnSoundOn = document.getElementById('btnSoundOn');
 
@@ -76,6 +91,10 @@ const presetSelect = document.getElementById('presetSelect');
 const btnExportMap = document.getElementById('btnExportMap');
 const btnImportMap = document.getElementById('btnImportMap');
 const importFileInput = document.getElementById('importFileInput');
+const btnTutorial = document.getElementById('btnTutorial');
+const algorithmSelect = document.getElementById('algorithmSelect');
+const pathComputeTime = document.getElementById('pathComputeTime');
+const driveModelSelect = document.getElementById('driveModelSelect');
 
 const instructionsDrive = document.getElementById('instructionsDrive');
 const instructionsBuild = document.getElementById('instructionsBuild');
@@ -87,8 +106,11 @@ const slamCanvas = document.getElementById('slamCanvas');
 function resetSimulation() {
   mapper.clear();
   renderer.resetFog();
-  robot.x = renderer.realWorldCanvas.width / 2;
-  robot.y = renderer.realWorldCanvas.height / 2;
+
+  // Find a spawn position that doesn't collide with walls
+  const spawn = environment.findSafeSpawn(robot.radius);
+  robot.x = spawn.x;
+  robot.y = spawn.y;
   robot.theta = 0;
   robot.believedX = robot.x;
   robot.believedY = robot.y;
@@ -104,10 +126,20 @@ function resetSimulation() {
 
   // Regenerate dynamic obstacles for the new map
   dynamicObstacles.generate();
+
+  // Reset particle filter if active
+  if (particleFilter.enabled) {
+    particleFilter.init(robot.x, robot.y, 0);
+  }
 }
 
 
 function setupEventListeners() {
+  // Tutorial
+  btnTutorial.addEventListener('click', () => {
+    tutorialManager.start();
+  });
+
   // Keyboard
   window.addEventListener('keydown', (e) => {
     if (interactionMode !== 'drive') return;
@@ -238,6 +270,29 @@ function setupEventListeners() {
     }
   });
 
+  // Particle Filter Toggle
+  btnParticleFilter.addEventListener('click', () => {
+    const nowEnabled = !particleFilter.enabled;
+    particleFilter.setEnabled(nowEnabled);
+    if (nowEnabled) {
+      btnParticleFilter.classList.add('active');
+      btnParticleFilter.textContent = '⏹️ Stop Particles';
+      particleCountGroup.style.display = 'flex';
+      particleFilter.init(robot.x, robot.y, robot.theta);
+    } else {
+      btnParticleFilter.classList.remove('active');
+      btnParticleFilter.textContent = '🎯 Particle Filter';
+      particleCountGroup.style.display = 'none';
+    }
+  });
+
+  particleCountSlider.addEventListener('input', (e) => {
+    const val = parseInt(e.target.value);
+    particleCountValue.textContent = `${val}`;
+    particleFilter.setCount(val);
+    particleFilter.init(robot.x, robot.y, robot.theta);
+  });
+
   // Sound Toggle
   btnSoundOn.addEventListener('click', () => {
     soundManager.setEnabled(true);
@@ -263,6 +318,32 @@ function setupEventListeners() {
   btnClearCustom.addEventListener('click', () => {
     environment.clearCustomWalls();
     mapper.clear();
+  });
+
+  // ── Drive Model Selector ──
+  driveModelSelect.addEventListener('change', (e) => {
+    robot.setDriveModel(e.target.value);
+    // Update instructions per model
+    const drives = {
+      differential: 'W/S: Forward/Back · A/D: Turn Left/Right',
+      ackermann: 'W/S: Accelerate/Brake · A/D: Steer Left/Right',
+      holonomic: 'W/S: Forward/Back · A/D: Strafe Left/Right'
+    };
+    instructionsDrive.textContent = drives[e.target.value] || drives.differential;
+  });
+
+  // ── Algorithm Selector ──
+  algorithmSelect.addEventListener('change', (e) => {
+    const algo = e.target.value;
+    switch (algo) {
+      case 'dijkstra': currentPathfinder = dijkstra; break;
+      case 'bug2': currentPathfinder = bugAlgorithm; break;
+      default: currentPathfinder = astar; break;
+    }
+    pathComputeTime.textContent = '';
+    robot.path = null;
+    robot.forwardSpeed = 0;
+    robot.turnSpeed = 0;
   });
 
   // ── Environment Presets ──
@@ -317,7 +398,10 @@ function setupEventListeners() {
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top;
 
-    const path = astar.findPath(robot.x, robot.y, x, y);
+    const t0 = performance.now();
+    const path = currentPathfinder.findPath(robot.x, robot.y, x, y);
+    const dt = (performance.now() - t0).toFixed(1);
+    pathComputeTime.textContent = `${currentPathfinder.name || 'A*'} · ${dt}ms`;
     if (path.length > 0) {
       robot.setPath(path);
       if (autoExploreActive) {
@@ -379,7 +463,7 @@ function handleFrontierExploration() {
   frontierTarget = target;
 
   if (target) {
-    const path = astar.findPath(robot.x, robot.y, target.x, target.y);
+    const path = currentPathfinder.findPath(robot.x, robot.y, target.x, target.y);
     if (path.length > 0) {
       robot.setPath(path);
     } else {
@@ -417,6 +501,13 @@ function animate() {
   // 5. Sensor Update (LiDAR Raycasting)
   const scanHits = lidar.scan(robot, environment);
 
+  // 5b. Particle Filter update
+  if (particleFilter.enabled) {
+    particleFilter.predict(robot.forwardSpeed, robot.turnSpeed);
+    particleFilter.update(scanHits, environment);
+    particleFilter.resample();
+  }
+
   // 6. Sound: sweep tick (every 6 frames for subtle effect)
   sweepSoundCounter++;
   if (sweepSoundCounter >= 6) {
@@ -429,6 +520,9 @@ function animate() {
 
   // 8. Update Live Chart
   chartManager.updateData(scanHits);
+
+  // 8b. Update Sensor HUD
+  sensorVisualizer.update(robot, scanHits);
 
   // 9. Update Stats
   statsTracker.update(robot, mapper, hitWall);
@@ -454,6 +548,11 @@ function animate() {
     renderer.drawPath(robot.path, renderer.realWorldCtx);
     renderer.drawRobot(robot, renderer.realWorldCtx);
     renderer.drawBelievedRobot(robot, renderer.realWorldCtx);
+
+    // Draw particle cloud
+    if (particleFilter.enabled) {
+      renderer.drawParticles(particleFilter.getParticles(), renderer.realWorldCtx);
+    }
 
     if (isBuilding && buildStart && buildCurrent) {
       renderer.drawBuildLine(buildStart, buildCurrent, renderer.realWorldCtx);

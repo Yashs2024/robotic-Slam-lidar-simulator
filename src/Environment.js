@@ -252,4 +252,68 @@ export class Environment {
     getWalls() {
         return this.baseWalls.concat(this.customWalls, this.dynamicWalls);
     }
+
+    /**
+     * Find a spawn position that doesn't collide with any wall.
+     * Starts at the center and searches outward in expanding rings.
+     */
+    findSafeSpawn(robotRadius = 20) {
+        const walls = this.getWalls();
+        const cx = this.width / 2;
+        const cy = this.height / 2;
+
+        const isColliding = (px, py) => {
+            for (const wall of walls) {
+                if (this._circleLineIntersect(px, py, robotRadius + 5, wall.start, wall.end)) {
+                    return true;
+                }
+            }
+            return false;
+        };
+
+        // Try center first
+        if (!isColliding(cx, cy)) {
+            return { x: cx, y: cy };
+        }
+
+        // Search outward in expanding rings
+        const inset = 50 + robotRadius;
+        for (let radius = 30; radius < Math.max(this.width, this.height) / 2; radius += 20) {
+            const steps = Math.max(8, Math.floor(radius / 10));
+            for (let i = 0; i < steps; i++) {
+                const angle = (i / steps) * Math.PI * 2;
+                const px = cx + Math.cos(angle) * radius;
+                const py = cy + Math.sin(angle) * radius;
+
+                // Stay within boundaries
+                if (px < inset || px > this.width - inset || py < inset || py > this.height - inset) {
+                    continue;
+                }
+
+                if (!isColliding(px, py)) {
+                    return { x: px, y: py };
+                }
+            }
+        }
+
+        // Fallback: return top-left safe area
+        return { x: inset, y: inset };
+    }
+
+    /** Circle–line-segment intersection (same logic as Robot) */
+    _circleLineIntersect(cx, cy, r, p1, p2) {
+        const dx = p2.x - p1.x;
+        const dy = p2.y - p1.y;
+        const lenSq = dx * dx + dy * dy;
+        let t = 0;
+        if (lenSq !== 0) {
+            t = ((cx - p1.x) * dx + (cy - p1.y) * dy) / lenSq;
+            t = Math.max(0, Math.min(1, t));
+        }
+        const closestX = p1.x + t * dx;
+        const closestY = p1.y + t * dy;
+        const distX = cx - closestX;
+        const distY = cy - closestY;
+        return (distX * distX + distY * distY) < (r * r);
+    }
 }

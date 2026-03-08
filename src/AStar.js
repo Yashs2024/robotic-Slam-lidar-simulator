@@ -1,6 +1,7 @@
 export class AStar {
     constructor(mapper) {
         this.mapper = mapper;
+        this.name = 'A*';
     }
 
     heuristic(node, goal) {

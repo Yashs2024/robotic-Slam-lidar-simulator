@@ -16,10 +16,17 @@ export class Robot {
         // Control variables
         this.forwardSpeed = 0;
         this.turnSpeed = 0;
+        this.strafeSpeed = 0; // For holonomic only
 
         // Tunable Max Values
         this.maxSpeed = 5;
         this.maxTurn = 0.05;
+
+        // Drive model: 'differential', 'ackermann', 'holonomic'
+        this.driveModel = 'differential';
+        this.steeringAngle = 0;  // For Ackermann
+        this.wheelbase = 30;     // For Ackermann (virtual axle distance)
+        this.maxSteeringAngle = Math.PI / 5; // 36° max steering for Ackermann
 
         // Path following state
         this.path = null;
@@ -37,6 +44,14 @@ export class Robot {
 
     setDrift(amount) {
         this.driftAmount = amount;
+    }
+
+    setDriveModel(model) {
+        this.driveModel = model;
+        this.forwardSpeed = 0;
+        this.turnSpeed = 0;
+        this.strafeSpeed = 0;
+        this.steeringAngle = 0;
     }
 
     resetTrails() {
@@ -90,11 +105,35 @@ export class Robot {
             this.autonomousDrive();
         }
 
-        // Differential drive kinematic update
-        this.theta += this.turnSpeed;
+        let nextX, nextY;
 
-        let nextX = this.x + Math.cos(this.theta) * this.forwardSpeed;
-        let nextY = this.y + Math.sin(this.theta) * this.forwardSpeed;
+        switch (this.driveModel) {
+            case 'ackermann': {
+                // Car-like kinematics: no turn-in-place, steering angle based
+                if (Math.abs(this.forwardSpeed) > 0.01) {
+                    const turnRadius = this.wheelbase / Math.tan(Math.abs(this.steeringAngle) + 0.001);
+                    const angularVelocity = this.forwardSpeed / turnRadius * Math.sign(this.steeringAngle);
+                    this.theta += angularVelocity;
+                }
+                nextX = this.x + Math.cos(this.theta) * this.forwardSpeed;
+                nextY = this.y + Math.sin(this.theta) * this.forwardSpeed;
+                break;
+            }
+            case 'holonomic': {
+                // Omnidirectional: forward + strafe, no forced rotation for movement
+                this.theta += this.turnSpeed;
+                nextX = this.x + Math.cos(this.theta) * this.forwardSpeed + Math.cos(this.theta + Math.PI / 2) * this.strafeSpeed;
+                nextY = this.y + Math.sin(this.theta) * this.forwardSpeed + Math.sin(this.theta + Math.PI / 2) * this.strafeSpeed;
+                break;
+            }
+            default: {
+                // Differential drive (original)
+                this.theta += this.turnSpeed;
+                nextX = this.x + Math.cos(this.theta) * this.forwardSpeed;
+                nextY = this.y + Math.sin(this.theta) * this.forwardSpeed;
+                break;
+            }
+        }
 
         // Collision Detection
         let hitWall = false;
@@ -193,13 +232,38 @@ export class Robot {
         }
 
         if (isManual || !this.path) {
-            this.forwardSpeed = 0;
-            this.turnSpeed = 0;
-
-            if (keys['w']) this.forwardSpeed = this.maxSpeed;
-            if (keys['s']) this.forwardSpeed = -this.maxSpeed;
-            if (keys['a']) this.turnSpeed = -this.maxTurn;
-            if (keys['d']) this.turnSpeed = this.maxTurn;
+            switch (this.driveModel) {
+                case 'ackermann': {
+                    this.forwardSpeed = 0;
+                    this.steeringAngle *= 0.9; // Auto-center steering
+                    if (keys['w']) this.forwardSpeed = this.maxSpeed;
+                    if (keys['s']) this.forwardSpeed = -this.maxSpeed * 0.5;
+                    if (keys['a']) this.steeringAngle = Math.max(-this.maxSteeringAngle, this.steeringAngle - 0.03);
+                    if (keys['d']) this.steeringAngle = Math.min(this.maxSteeringAngle, this.steeringAngle + 0.03);
+                    this.turnSpeed = 0; // Not used in ackermann
+                    break;
+                }
+                case 'holonomic': {
+                    this.forwardSpeed = 0;
+                    this.strafeSpeed = 0;
+                    this.turnSpeed = 0;
+                    if (keys['w']) this.forwardSpeed = this.maxSpeed;
+                    if (keys['s']) this.forwardSpeed = -this.maxSpeed;
+                    if (keys['a']) this.strafeSpeed = -this.maxSpeed;
+                    if (keys['d']) this.strafeSpeed = this.maxSpeed;
+                    break;
+                }
+                default: {
+                    // Differential
+                    this.forwardSpeed = 0;
+                    this.turnSpeed = 0;
+                    if (keys['w']) this.forwardSpeed = this.maxSpeed;
+                    if (keys['s']) this.forwardSpeed = -this.maxSpeed;
+                    if (keys['a']) this.turnSpeed = -this.maxTurn;
+                    if (keys['d']) this.turnSpeed = this.maxTurn;
+                    break;
+                }
+            }
         }
     }
 }

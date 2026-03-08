@@ -243,6 +243,34 @@ section h3 {
   box-shadow: 0 0 16px rgba(168, 85, 247, 0.3);
 }
 
+/* ── Particle Filter Button ── */
+.particle-btn {
+  width: 100%;
+  padding: 0.65rem;
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(16, 185, 129, 0.05));
+  color: #10b981;
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+
+.particle-btn:hover {
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.25), rgba(16, 185, 129, 0.1));
+  border-color: #10b981;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.15);
+}
+
+.particle-btn.active {
+  background: linear-gradient(135deg, #10b981, #059669);
+  color: #fff;
+  border-color: #10b981;
+  box-shadow: 0 0 16px rgba(16, 185, 129, 0.3);
+}
+
 /* ── Instructions ── */
 .instructions p {
   font-size: 0.85rem;
@@ -389,4 +417,273 @@ footer {
 
 .canvas-container>canvas.hidden {
   display: none;
+}
+
+/* ── Tutorial Start Button ── */
+.tutorial-start-btn {
+  width: 100%;
+  padding: 0.55rem;
+  margin-top: 0.5rem;
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.15), rgba(99, 102, 241, 0.05));
+  color: #818cf8;
+  border: 1px solid rgba(99, 102, 241, 0.3);
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+
+.tutorial-start-btn:hover {
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.3), rgba(99, 102, 241, 0.1));
+  border-color: #818cf8;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.2);
+}
+
+/* ── Tutorial Overlay ── */
+.tutorial-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(2px);
+}
+
+.tutorial-overlay.active {
+  display: block;
+}
+
+.tutorial-tooltip {
+  position: fixed;
+  z-index: 10001;
+  width: 340px;
+  max-width: 90vw;
+  background: rgba(26, 29, 36, 0.95);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(129, 140, 248, 0.3);
+  border-radius: 12px;
+  padding: 1.25rem;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5), 0 0 20px rgba(99, 102, 241, 0.1);
+  color: var(--text-main);
+  animation: tooltipFadeIn 0.3s ease;
+}
+
+@keyframes tooltipFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.tutorial-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.tutorial-step-indicator {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  background: rgba(255, 255, 255, 0.05);
+  padding: 0.15rem 0.5rem;
+  border-radius: 10px;
+}
+
+.tutorial-close {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  font-size: 1rem;
+  cursor: pointer;
+  padding: 0.2rem 0.4rem;
+  border-radius: 4px;
+  transition: all 0.2s;
+}
+
+.tutorial-close:hover {
+  color: white;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.tutorial-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #fff;
+  margin-bottom: 0.5rem;
+}
+
+.tutorial-desc {
+  font-size: 0.85rem;
+  line-height: 1.6;
+  color: var(--text-muted);
+  margin-bottom: 1rem;
+}
+
+.tutorial-desc strong {
+  color: #818cf8;
+  font-weight: 600;
+}
+
+.tutorial-nav {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.tutorial-nav-btn {
+  flex: 1;
+  padding: 0.5rem;
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text-muted);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.tutorial-nav-btn:hover {
+  color: white;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.tutorial-nav-next {
+  background: rgba(99, 102, 241, 0.15) !important;
+  color: #818cf8 !important;
+  border-color: rgba(99, 102, 241, 0.3) !important;
+}
+
+.tutorial-nav-next:hover {
+  background: rgba(99, 102, 241, 0.3) !important;
+  color: white !important;
+}
+
+/* ── Tutorial Highlight Ring ── */
+.tutorial-highlight-ring {
+  position: fixed;
+  z-index: 10000;
+  border: 2px solid #818cf8;
+  border-radius: 8px;
+  box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.2), 0 0 20px rgba(99, 102, 241, 0.3);
+  pointer-events: none;
+  animation: tutorialPulse 2s ease-in-out infinite;
+  display: none;
+}
+
+@keyframes tutorialPulse {
+
+  0%,
+  100% {
+    box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.2), 0 0 20px rgba(99, 102, 241, 0.3);
+  }
+
+  50% {
+    box-shadow: 0 0 0 8px rgba(99, 102, 241, 0.1), 0 0 30px rgba(99, 102, 241, 0.4);
+  }
+}
+
+/* ── Sensor HUD Overlay ── */
+.sensor-hud {
+  position: absolute;
+  bottom: 12px;
+  right: 12px;
+  z-index: 50;
+  width: 200px;
+  background: rgba(15, 17, 21, 0.85);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  padding: 0.75rem;
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+  font-variant-numeric: tabular-nums;
+}
+
+.sensor-hud-title {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #fff;
+  margin-bottom: 0.5rem;
+  letter-spacing: 0.02em;
+}
+
+.sensor-hud-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem;
+}
+
+.sensor-hud-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.sensor-hud-label {
+  font-size: 0.6rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: rgba(148, 163, 184, 0.6);
+  margin-bottom: 0.1rem;
+}
+
+.sensor-hud-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.25rem;
+}
+
+.sensor-hud-row span:last-child {
+  color: #60a5fa;
+  font-weight: 500;
+}
+
+.sensor-hud-divider {
+  height: 1px;
+  background: rgba(255, 255, 255, 0.06);
+  margin: 0.4rem 0;
+}
+
+/* ── Compass ── */
+.sensor-compass {
+  position: relative;
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(0, 0, 0, 0.3);
+  margin: 0.25rem auto 0;
+}
+
+.compass-needle {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 2px;
+  height: 20px;
+  background: linear-gradient(to top, transparent, #ef4444);
+  transform-origin: bottom center;
+  transform: translate(-50%, -100%) rotate(0rad);
+  transition: transform 0.15s ease;
+  border-radius: 1px;
+}
+
+.compass-dist {
+  position: absolute;
+  bottom: -16px;
+  width: 100%;
+  text-align: center;
+  font-size: 0.6rem;
+  color: #ef4444;
+  font-weight: 500;
 }

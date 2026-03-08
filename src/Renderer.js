@@ -47,16 +47,85 @@ export class Renderer {
         ctx.translate(x, y);
         ctx.rotate(theta);
 
-        // Draw robot body
-        ctx.beginPath();
-        ctx.arc(0, 0, radius, 0, Math.PI * 2);
-        ctx.fillStyle = '#3b82f6';
-        ctx.fill();
-        ctx.lineWidth = 2;
-        ctx.strokeStyle = '#60a5fa';
-        ctx.stroke();
+        const model = robot.driveModel || 'differential';
 
-        // Draw heading indicator
+        switch (model) {
+            case 'ackermann': {
+                // Car shape — rounded rectangle
+                const w = radius * 2.2;
+                const h = radius * 1.4;
+                const r = 5;
+                ctx.beginPath();
+                ctx.moveTo(-w / 2 + r, -h / 2);
+                ctx.lineTo(w / 2 - r, -h / 2);
+                ctx.quadraticCurveTo(w / 2, -h / 2, w / 2, -h / 2 + r);
+                ctx.lineTo(w / 2, h / 2 - r);
+                ctx.quadraticCurveTo(w / 2, h / 2, w / 2 - r, h / 2);
+                ctx.lineTo(-w / 2 + r, h / 2);
+                ctx.quadraticCurveTo(-w / 2, h / 2, -w / 2, h / 2 - r);
+                ctx.lineTo(-w / 2, -h / 2 + r);
+                ctx.quadraticCurveTo(-w / 2, -h / 2, -w / 2 + r, -h / 2);
+                ctx.closePath();
+                ctx.fillStyle = '#f59e0b';
+                ctx.fill();
+                ctx.lineWidth = 2;
+                ctx.strokeStyle = '#fbbf24';
+                ctx.stroke();
+
+                // Draw "wheels" at corners
+                const wheelW = 6, wheelH = 3;
+                ctx.fillStyle = '#78350f';
+                ctx.fillRect(w / 2 - 8, -h / 2 - wheelH, wheelW, wheelH * 2);
+                ctx.fillRect(w / 2 - 8, h / 2 - wheelH, wheelW, wheelH * 2);
+                ctx.fillRect(-w / 2 + 2, -h / 2 - wheelH, wheelW, wheelH * 2);
+                ctx.fillRect(-w / 2 + 2, h / 2 - wheelH, wheelW, wheelH * 2);
+                break;
+            }
+            case 'holonomic': {
+                // Hexagon shape
+                const sides = 6;
+                ctx.beginPath();
+                for (let i = 0; i < sides; i++) {
+                    const angle = (i / sides) * Math.PI * 2;
+                    const px = Math.cos(angle) * radius;
+                    const py = Math.sin(angle) * radius;
+                    if (i === 0) ctx.moveTo(px, py);
+                    else ctx.lineTo(px, py);
+                }
+                ctx.closePath();
+                ctx.fillStyle = '#8b5cf6';
+                ctx.fill();
+                ctx.lineWidth = 2;
+                ctx.strokeStyle = '#a78bfa';
+                ctx.stroke();
+
+                // Draw 4 direction arrows inside
+                ctx.strokeStyle = 'rgba(255,255,255,0.4)';
+                ctx.lineWidth = 1.5;
+                const arrowLen = radius * 0.6;
+                for (let i = 0; i < 4; i++) {
+                    const a = (i / 4) * Math.PI * 2;
+                    ctx.beginPath();
+                    ctx.moveTo(0, 0);
+                    ctx.lineTo(Math.cos(a) * arrowLen, Math.sin(a) * arrowLen);
+                    ctx.stroke();
+                }
+                break;
+            }
+            default: {
+                // Differential — circle (original)
+                ctx.beginPath();
+                ctx.arc(0, 0, radius, 0, Math.PI * 2);
+                ctx.fillStyle = '#3b82f6';
+                ctx.fill();
+                ctx.lineWidth = 2;
+                ctx.strokeStyle = '#60a5fa';
+                ctx.stroke();
+                break;
+            }
+        }
+
+        // Draw heading indicator (all models)
         ctx.beginPath();
         ctx.moveTo(0, 0);
         ctx.lineTo(radius + 10, 0);
@@ -289,5 +358,48 @@ export class Renderer {
     drawFogOverlay(ctx = this.slamCtx) {
         if (!this.fogCanvas) return;
         ctx.drawImage(this.fogCanvas, 0, 0);
+    }
+
+    // ──────────────────────────────────────────
+    //  Particle Filter Visualization
+    // ──────────────────────────────────────────
+
+    drawParticles(particles, ctx) {
+        if (!particles || particles.length === 0) return;
+
+        ctx.save();
+
+        // Find max weight for normalization
+        let maxWeight = 0;
+        for (const p of particles) {
+            if (p.weight > maxWeight) maxWeight = p.weight;
+        }
+        if (maxWeight === 0) maxWeight = 1;
+
+        for (const p of particles) {
+            const normalizedWeight = p.weight / maxWeight;
+
+            // Color: interpolate from red (low weight) to green (high weight)
+            const r = Math.floor(255 * (1 - normalizedWeight));
+            const g = Math.floor(255 * normalizedWeight);
+            const alpha = 0.3 + normalizedWeight * 0.7;
+
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, 3, 0, Math.PI * 2);
+            ctx.fillStyle = `rgba(${r}, ${g}, 80, ${alpha})`;
+            ctx.fill();
+
+            // Draw tiny heading indicator for top-weighted particles
+            if (normalizedWeight > 0.5) {
+                ctx.beginPath();
+                ctx.moveTo(p.x, p.y);
+                ctx.lineTo(p.x + Math.cos(p.theta) * 8, p.y + Math.sin(p.theta) * 8);
+                ctx.strokeStyle = `rgba(${r}, ${g}, 80, ${alpha * 0.6})`;
+                ctx.lineWidth = 1;
+                ctx.stroke();
+            }
+        }
+
+        ctx.restore();
     }
 }

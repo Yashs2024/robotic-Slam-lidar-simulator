@@ -21,6 +21,7 @@
       <header>
         <h1>SLAM Simulator</h1>
         <p class="subtitle">Interactive Robotics Education</p>
+        <button id="btnTutorial" class="tutorial-start-btn">📖 Start Tutorial</button>
       </header>
 
       <!-- Performance Stats Dashboard -->
@@ -60,6 +61,15 @@
         </div>
 
         <div class="control-group">
+          <label for="driveModelSelect">Drive Model</label>
+          <select id="driveModelSelect" class="preset-select">
+            <option value="differential">⚙️ Differential (Tank)</option>
+            <option value="ackermann">🚗 Ackermann (Car)</option>
+            <option value="holonomic">🔷 Holonomic (Omni)</option>
+          </select>
+        </div>
+
+        <div class="control-group">
           <label for="rayDensitySlider">LiDAR Ray Density</label>
           <input type="range" id="rayDensitySlider" min="30" max="360" value="90" step="10">
           <span id="rayDensityValue" class="value-display">90 Rays</span>
@@ -73,6 +83,16 @@
       </section>
 
       <section class="views">
+        <h3>Pathfinding Algorithm</h3>
+        <select id="algorithmSelect" class="preset-select">
+          <option value="astar">⚡ A* (Heuristic)</option>
+          <option value="dijkstra">🔍 Dijkstra (Optimal)</option>
+          <option value="bug2">🐛 Bug2 (Wall-Follow)</option>
+        </select>
+        <span id="pathComputeTime" class="value-display" style="margin-top:0.25rem;"></span>
+      </section>
+
+      <section class="views">
         <h3>Interaction Mode</h3>
         <div class="button-group">
           <button id="btnDriveMode" class="active">Drive Mode</button>
@@ -80,6 +100,12 @@
         </div>
         <button id="btnAutoExplore" class="auto-explore-btn">🧭 Auto Explore</button>
         <button id="btnDynamicObs" class="dynamic-obs-btn">🔮 Dynamic Obstacles</button>
+        <button id="btnParticleFilter" class="particle-btn">🎯 Particle Filter</button>
+        <div class="control-group" id="particleCountGroup" style="display:none;">
+          <label for="particleCountSlider">Particle Count</label>
+          <input type="range" id="particleCountSlider" min="50" max="500" value="200" step="25">
+          <span id="particleCountValue" class="value-display">200</span>
+        </div>
       </section>
 
       <section class="views">
