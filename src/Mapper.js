@@ -12,6 +12,12 @@ export class Mapper {
         this.grid.fill(0);
     }
 
+    resize(canvasWidth, canvasHeight) {
+        this.cols = Math.ceil(canvasWidth / this.cellSize);
+        this.rows = Math.ceil(canvasHeight / this.cellSize);
+        this.grid = new Array(this.cols * this.rows).fill(0);
+    }
+
     // Core SLAM Concept: Update Grid Beliefs based on Sensor Reading
     updateMap(robot, scanHits) {
         scanHits.forEach(hit => {

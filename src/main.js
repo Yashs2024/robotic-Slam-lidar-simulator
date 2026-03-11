@@ -508,6 +508,21 @@ if (loginForm) {
     loginPage.style.display = 'none';
     appSimulator.style.display = 'flex'; // Use flex to maintain sidebar/canvas layout
 
+    // Now that #app is visible, resize canvases to fit the actual container
+    renderer.resizeCanvas();
+
+    // Re-initialize environment and robot with the correct canvas dimensions
+    const w = renderer.realWorldCanvas.width;
+    const h = renderer.realWorldCanvas.height;
+    environment.resize(w, h);
+    mapper.resize(w, h);
+    dynamicObstacles.resize(w, h);
+    renderer.initFogCanvas(w, h);
+    robot.x = w / 2;
+    robot.y = h / 2;
+    robot.believedX = robot.x;
+    robot.believedY = robot.y;
+
     // Start the simulator loop only now
     if (!isSimulatorRunning) {
       isSimulatorRunning = true;

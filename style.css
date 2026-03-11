@@ -402,7 +402,8 @@ kbd {
   align-items: center;
   justify-content: center;
   text-align: center;
-  overflow: hidden;
+  overflow-y: auto;
+  overflow-x: hidden;
 }
 
 /* ── Premium Landing ── */
@@ -411,7 +412,7 @@ kbd {
 }
 
 .grid-overlay {
-  position: absolute;
+  position: fixed;
   top: 0;
   left: 0;
   right: 0;
@@ -444,8 +445,9 @@ kbd {
   text-align: left;
   max-width: 1200px;
   width: 90%;
-  gap: 4rem;
+  gap: 3rem;
   z-index: 2;
+  padding: 2rem 0;
 }
 
 .text-content {
@@ -462,23 +464,23 @@ kbd {
 
 .badge {
   display: inline-block;
-  padding: 0.4rem 1rem;
+  padding: 0.35rem 0.85rem;
   background: rgba(59, 130, 246, 0.1);
   border: 1px solid rgba(59, 130, 246, 0.3);
   color: #60a5fa;
   border-radius: 20px;
-  font-size: 0.85rem;
+  font-size: 0.8rem;
   font-weight: 600;
   letter-spacing: 0.05em;
   text-transform: uppercase;
-  margin-bottom: 2rem;
+  margin-bottom: 1.25rem;
 }
 
 .hero-title {
-  font-size: 4.5rem;
+  font-size: clamp(2.2rem, 5vw, 4.5rem);
   font-weight: 800;
   line-height: 1.1;
-  margin-bottom: 1.5rem;
+  margin-bottom: 1rem;
   letter-spacing: -0.02em;
   color: #f8fafc;
 }
@@ -491,17 +493,18 @@ kbd {
 }
 
 .hero-desc {
-  font-size: 1.2rem;
+  font-size: clamp(0.95rem, 1.5vw, 1.2rem);
   color: #94a3b8;
   line-height: 1.7;
-  margin-bottom: 2.5rem;
+  margin-bottom: 1.5rem;
   font-weight: 300;
 }
 
 .hero-features {
   display: flex;
-  gap: 1.5rem;
-  margin-bottom: 3rem;
+  gap: 1.25rem;
+  margin-bottom: 2rem;
+  flex-wrap: wrap;
 }
 
 .feature {
@@ -509,20 +512,20 @@ kbd {
   align-items: center;
   gap: 0.5rem;
   color: #cbd5e1;
-  font-size: 0.95rem;
+  font-size: 0.9rem;
   font-weight: 500;
 }
 
 .feature .icon {
-  font-size: 1.2rem;
+  font-size: 1.1rem;
 }
 
 .primary-btn {
   background: linear-gradient(135deg, #3b82f6, #8b5cf6);
   color: white;
   border: none;
-  padding: 1rem 2.5rem;
-  font-size: 1.1rem;
+  padding: 0.9rem 2rem;
+  font-size: 1.05rem;
   font-weight: 600;
   border-radius: 8px;
   cursor: pointer;
@@ -544,6 +547,80 @@ kbd {
 
 .primary-btn:hover .arrow {
   transform: translateX(5px);
+}
+
+/* ── Landing Page Responsive ── */
+@media (max-height: 700px) {
+  .landing-content.split-layout {
+    padding: 1rem 0;
+    gap: 2rem;
+  }
+
+  .badge {
+    margin-bottom: 0.75rem;
+  }
+
+  .hero-title {
+    font-size: clamp(1.8rem, 4vw, 3rem);
+    margin-bottom: 0.75rem;
+  }
+
+  .hero-desc {
+    margin-bottom: 1rem;
+    font-size: 0.95rem;
+  }
+
+  .hero-features {
+    margin-bottom: 1.25rem;
+    gap: 1rem;
+  }
+
+  .robot-container {
+    width: 280px;
+    height: 280px;
+  }
+
+  .floating-robot {
+    width: 180px;
+    height: 180px;
+  }
+}
+
+@media (max-width: 900px) {
+  .landing-content.split-layout {
+    flex-direction: column;
+    text-align: center;
+    gap: 2rem;
+    padding: 2rem 0;
+  }
+
+  .text-content {
+    max-width: 100%;
+  }
+
+  .hero-features {
+    justify-content: center;
+  }
+
+  .primary-btn {
+    margin: 0 auto;
+  }
+
+  .robot-container {
+    width: 250px;
+    height: 250px;
+  }
+
+  .floating-robot {
+    width: 170px;
+    height: 170px;
+  }
+}
+
+@media (max-width: 900px) and (max-height: 700px) {
+  .visual-content {
+    display: none;
+  }
 }
 
 /* ── Robot SVG & Animations ── */

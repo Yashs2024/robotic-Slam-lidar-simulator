@@ -13,10 +13,12 @@ export class Lidar {
 
     scan(robot, environment) {
         const hits = [];
-        const angleStep = (Math.PI * 2) / this.numRays;
+        const fov = Math.PI; // 180° field of view
+        const angleStep = fov / this.numRays;
+        const startAngle = robot.theta - fov / 2; // Center the arc on the robot's heading
 
         for (let i = 0; i < this.numRays; i++) {
-            const rayAngle = robot.theta + (i * angleStep);
+            const rayAngle = startAngle + (i * angleStep);
 
             // Ray start and max end point
             const p1 = { x: robot.x, y: robot.y };

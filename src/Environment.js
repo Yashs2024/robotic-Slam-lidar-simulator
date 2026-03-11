@@ -12,6 +12,12 @@ export class Environment {
         this.dynamicWalls = walls;
     }
 
+    resize(width, height) {
+        this.width = width;
+        this.height = height;
+        this.generateRandomMap();
+    }
+
     generateRandomMap() {
         this.baseWalls = [];
         const inset = 50;

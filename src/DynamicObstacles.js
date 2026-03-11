@@ -23,6 +23,11 @@ export class DynamicObstacles {
         }
     }
 
+    resize(width, height) {
+        this.width = width;
+        this.height = height;
+    }
+
     /**
      * Generate a set of dynamic obstacles for the current map.
      * Call after loading a preset or generating a map.

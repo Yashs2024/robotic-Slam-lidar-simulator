@@ -11,13 +11,13 @@ export class TutorialManager {
                 title: '🤖 Welcome to SLAM!',
                 description: 'SLAM stands for <strong>Simultaneous Localization and Mapping</strong>. The robot must build a map of its environment while simultaneously figuring out where it is in that map. Let\'s explore how it works!',
                 highlight: '#realWorldCanvas',
-                position: 'left'
+                position: 'center'
             },
             {
                 title: '📡 LiDAR Sensor',
-                description: 'The red rays shooting from the robot are <strong>LiDAR beams</strong>. LiDAR (Light Detection and Ranging) measures distances by casting rays in all directions. Where a ray hits a wall, it reports the distance. This is how the robot "sees" its environment.',
+                description: 'The red rays shooting from the robot are <strong>LiDAR beams</strong>. LiDAR (Light Detection and Ranging) measures distances by casting rays in a forward arc. Where a ray hits a wall, it reports the distance. This is how the robot "sees" its environment.',
                 highlight: '#realWorldCanvas',
-                position: 'left'
+                position: 'center'
             },
             {
                 title: '🗺️ Occupancy Grid Mapping',
@@ -39,10 +39,10 @@ export class TutorialManager {
                 position: 'right'
             },
             {
-                title: '🛤️ A* Pathfinding',
-                description: 'When the robot needs to reach a goal, it uses the <strong>A* algorithm</strong> to find the shortest obstacle-free path through the occupancy grid. Click anywhere on the SLAM Map to set a goal — the green dashed line shows the planned path.',
-                highlight: '#slamCanvas',
-                position: 'left'
+                title: '🛤️ Pathfinding Algorithms',
+                description: 'When the robot needs to reach a goal, it uses pathfinding algorithms like <strong>A*</strong>, <strong>Dijkstra</strong>, or <strong>Bug2</strong> to find the shortest obstacle-free path through the occupancy grid. Click anywhere on the SLAM Map to set a goal.',
+                highlight: '#algorithmSelect',
+                position: 'right'
             },
             {
                 title: '📊 Live Sensor Data',
@@ -71,8 +71,8 @@ export class TutorialManager {
             {
                 title: '✅ You\'re Ready!',
                 description: 'You now understand the core concepts of SLAM! Try experimenting with different settings, maps, and features. The best way to learn robotics is by <strong>playing</strong> with it. Happy exploring! 🚀',
-                highlight: '#realWorldCanvas',
-                position: 'left'
+                highlight: null,
+                position: 'center'
             }
         ];
 
@@ -150,9 +150,40 @@ export class TutorialManager {
         }
     }
 
+    /** Execute tutorial step actions (like switching views) */
+    _executeAction(action) {
+        if (!action) return;
+
+        switch (action) {
+            case 'clickSlamMap': {
+                const btn = document.getElementById('btnSlamMap');
+                if (btn) btn.click();
+                break;
+            }
+            case 'clickRealWorld': {
+                const btn = document.getElementById('btnRealWorld');
+                if (btn) btn.click();
+                break;
+            }
+            case 'clickBuildMode': {
+                const btn = document.getElementById('btnBuildMode');
+                if (btn) btn.click();
+                break;
+            }
+            case 'clickDriveMode': {
+                const btn = document.getElementById('btnDriveMode');
+                if (btn) btn.click();
+                break;
+            }
+        }
+    }
+
     _renderStep() {
         const step = this.steps[this.currentStep];
         const total = this.steps.length;
+
+        // Execute any step action first (e.g. switch to SLAM map view)
+        this._executeAction(step.action);
 
         // Update text
         document.getElementById('tutorialTitle').textContent = step.title;
@@ -166,31 +197,51 @@ export class TutorialManager {
         nextBtn.textContent = this.currentStep === total - 1 ? 'Finish ✓' : 'Next →';
 
         // Highlight target element
-        const target = document.querySelector(step.highlight);
+        const target = step.highlight ? document.querySelector(step.highlight) : null;
         if (target) {
-            const rect = target.getBoundingClientRect();
+            // Scroll sidebar element into view if needed
+            const sidebar = document.querySelector('.sidebar');
+            if (sidebar && sidebar.contains(target)) {
+                target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
 
-            // Position highlight ring
-            this.highlightRing.style.display = 'block';
-            this.highlightRing.style.left = `${rect.left - 6}px`;
-            this.highlightRing.style.top = `${rect.top - 6}px`;
-            this.highlightRing.style.width = `${rect.width + 12}px`;
-            this.highlightRing.style.height = `${rect.height + 12}px`;
+            // Wait a frame for scroll to settle before positioning
+            requestAnimationFrame(() => {
+                const rect = target.getBoundingClientRect();
 
-            // Position tooltip
-            this._positionTooltip(rect, step.position);
+                // Position highlight ring
+                this.highlightRing.style.display = 'block';
+                this.highlightRing.style.left = `${rect.left - 6}px`;
+                this.highlightRing.style.top = `${rect.top - 6}px`;
+                this.highlightRing.style.width = `${rect.width + 12}px`;
+                this.highlightRing.style.height = `${rect.height + 12}px`;
+
+                // Position tooltip
+                this._positionTooltip(rect, step.position);
+            });
         } else {
             this.highlightRing.style.display = 'none';
-            // Center the tooltip
-            this.tooltip.style.left = '50%';
-            this.tooltip.style.top = '50%';
-            this.tooltip.style.transform = 'translate(-50%, -50%)';
+            // Center the tooltip on screen
+            this._centerTooltip();
         }
+    }
+
+    _centerTooltip() {
+        const tooltip = this.tooltip;
+        tooltip.style.left = '50%';
+        tooltip.style.top = '50%';
+        tooltip.style.transform = 'translate(-50%, -50%)';
     }
 
     _positionTooltip(targetRect, position) {
         const tooltip = this.tooltip;
         const margin = 20;
+
+        // For center position or large elements (like the canvas), center the tooltip on screen
+        if (position === 'center') {
+            this._centerTooltip();
+            return;
+        }
 
         // Reset transform
         tooltip.style.transform = 'none';
@@ -205,18 +256,38 @@ export class TutorialManager {
             tooltip.style.left = `${targetRect.left - margin}px`;
             tooltip.style.top = `${targetRect.top + targetRect.height / 2}px`;
             tooltip.style.transform = 'translate(-100%, -50%)';
+        } else if (position === 'bottom') {
+            tooltip.style.left = `${targetRect.left + targetRect.width / 2}px`;
+            tooltip.style.top = `${targetRect.bottom + margin}px`;
+            tooltip.style.transform = 'translateX(-50%)';
         }
 
-        // Clamp to viewport
+        // Clamp to viewport so tooltip never goes off-screen
         requestAnimationFrame(() => {
             const tooltipRect = tooltip.getBoundingClientRect();
-            if (tooltipRect.top < 10) {
-                tooltip.style.top = '10px';
-                tooltip.style.transform = position === 'left' ? 'translateX(-100%)' : 'none';
+            const vw = window.innerWidth;
+            const vh = window.innerHeight;
+            const pad = 10;
+
+            // Horizontal clamping
+            if (tooltipRect.left < pad) {
+                tooltip.style.left = `${pad}px`;
+                tooltip.style.transform = 'none';
             }
-            if (tooltipRect.bottom > window.innerHeight - 10) {
-                tooltip.style.top = `${window.innerHeight - tooltipRect.height - 10}px`;
-                tooltip.style.transform = position === 'left' ? 'translateX(-100%)' : 'none';
+            if (tooltipRect.right > vw - pad) {
+                tooltip.style.left = `${vw - tooltipRect.width - pad}px`;
+                tooltip.style.transform = 'none';
+            }
+
+            // Vertical clamping
+            const newTooltipRect = tooltip.getBoundingClientRect();
+            if (newTooltipRect.top < pad) {
+                tooltip.style.top = `${pad}px`;
+                tooltip.style.transform = 'none';
+            }
+            if (newTooltipRect.bottom > vh - pad) {
+                tooltip.style.top = `${vh - newTooltipRect.height - pad}px`;
+                tooltip.style.transform = 'none';
             }
         });
     }
