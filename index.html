@@ -24,30 +24,30 @@
     <div class="landing-content split-layout">
       <!-- Left: Text content -->
       <div class="text-content">
-        <div class="badge">v2.0 Now Available</div>
+        <div class="badge">v3.0 — Advanced Robotics</div>
         <h1 class="hero-title">Master <span class="text-gradient">SLAM</span><br />Algorithms</h1>
         <p class="hero-desc">Experience autonomous navigation, real-time mapping, and advanced pathfinding algorithms
           visualized beautifully.</p>
 
         <div class="hero-features">
-          <div class="feature"><span class="icon">🎯</span> Particle Filter</div>
-          <div class="feature"><span class="icon">🚗</span> 3 Drive Models</div>
-          <div class="feature"><span class="icon">⚡</span> A* / Dijkstra / Bug2</div>
+          <div class="feature"><span class="icon">🧮</span> Bayesian Mapping</div>
+          <div class="feature"><span class="icon">🌐</span> 3D Point Cloud</div>
+          <div class="feature"><span class="icon">🔗</span> Loop Closure</div>
         </div>
 
-        <button id="btnGetStarted" class="primary-btn glow-hover">
-          Launch Simulator <span class="arrow">→</span>
-        </button>
+        <div class="hero-cta-row">
+          <button id="btnGetStarted" class="primary-btn glow-hover">
+            Launch Simulator <span class="arrow">→</span>
+          </button>
+          <a href="#features-section" class="secondary-link-btn">Explore Features ↓</a>
+        </div>
       </div>
 
       <!-- Right: Animated Visual -->
       <div class="visual-content">
         <div class="robot-container">
-          <!-- Animated Lidar Scan Ring -->
           <div class="scan-ring"></div>
           <div class="scan-ring delayed"></div>
-
-          <!-- Abstract SVG Robot -->
           <svg class="floating-robot" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
             <defs>
               <linearGradient id="robotGrad" x1="0%" y1="0%" x2="100%" y2="100%">
@@ -62,22 +62,194 @@
                 </feMerge>
               </filter>
             </defs>
-            <!-- Lidar Dome -->
             <path d="M70 80 Q100 40 130 80" fill="none" stroke="#60a5fa" stroke-width="6" stroke-linecap="round" />
-            <!-- Sensor Eye -->
             <circle cx="100" cy="70" r="10" fill="#60a5fa" filter="url(#glow)">
               <animate attributeName="opacity" values="0.5;1;0.5" dur="2s" repeatCount="indefinite" />
             </circle>
-            <!-- Main Chassis -->
             <rect x="50" y="80" width="100" height="70" rx="20" fill="url(#robotGrad)" filter="url(#glow)" />
-            <!-- Wheels -->
             <rect x="40" y="100" width="20" height="40" rx="5" fill="#1e293b" />
             <rect x="140" y="100" width="20" height="40" rx="5" fill="#1e293b" />
-            <!-- Connection Lines -->
             <line x1="80" y1="120" x2="120" y2="120" stroke="#0f172a" stroke-width="4" />
           </svg>
         </div>
       </div>
+    </div>
+
+    <!-- ── Features Showcase Section ── -->
+    <div id="features-section" class="features-showcase">
+      <div class="features-header">
+        <div class="section-badge">All Features</div>
+        <h2 class="features-title">Everything You Need to <span class="text-gradient">Learn Robotics</span></h2>
+        <p class="features-subtitle">A professional-grade simulator packed with real-world SLAM algorithms, interactive
+          controls, and stunning visualizations.</p>
+      </div>
+
+      <div class="feature-category">
+        <h3 class="category-title"><span class="cat-dot slam"></span>Core SLAM</h3>
+        <div class="features-grid">
+          <div class="feature-card">
+            <div class="feature-card-icon">📡</div>
+            <h4>LiDAR Sensor Simulation</h4>
+            <p>180° forward-facing LiDAR with adjustable ray density, sensor noise, and real-time distance measurements
+              in metres.</p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-card-icon">🧮</div>
+            <h4>Bayesian Log-Odds Grid</h4>
+            <p>Professional-grade occupancy mapping using Bayesian probability. Watch cells gain confidence with
+              gradient shading as the robot scans.</p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-card-icon">📈</div>
+            <h4>Odometry Drift</h4>
+            <p>Simulate real-world wheel encoder errors. The believed position diverges from ground truth — the
+              fundamental challenge of localization.</p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-card-icon">🔗</div>
+            <h4>Loop Closure Detection</h4>
+            <p>Scan-matching keyframe system detects revisited areas and corrects accumulated drift — the defining
+              feature of real SLAM.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="feature-category">
+        <h3 class="category-title"><span class="cat-dot nav"></span>Navigation & Control</h3>
+        <div class="features-grid">
+          <div class="feature-card">
+            <div class="feature-card-icon">⚡</div>
+            <h4>A* Pathfinding</h4>
+            <p>Heuristic shortest path through the occupancy grid with wall proximity penalties for safe navigation.</p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-card-icon">🔍</div>
+            <h4>Dijkstra's Algorithm</h4>
+            <p>Guaranteed optimal path without heuristics. Compare with A* to understand the speed vs. optimality
+              tradeoff.</p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-card-icon">🐛</div>
+            <h4>Bug2 Wall-Following</h4>
+            <p>A reactive algorithm that follows walls to reach goals. Works without a map — perfect for unknown
+              environments.</p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-card-icon">🧭</div>
+            <h4>Frontier Exploration</h4>
+            <p>Autonomous exploration that finds boundaries between known and unknown space, mapping everything
+              systematically.</p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-card-icon">🚗</div>
+            <h4>3 Drive Models</h4>
+            <p>Differential (tank), Ackermann (car-like), and Holonomic (omnidirectional) — each with unique kinematics.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div class="feature-category">
+        <h3 class="category-title"><span class="cat-dot adv"></span>Advanced Systems</h3>
+        <div class="features-grid">
+          <div class="feature-card">
+            <div class="feature-card-icon">🎯</div>
+            <h4>Particle Filter (MCL)</h4>
+            <p>Monte Carlo Localization with adjustable particle count. Watch hypotheses converge as the robot gathers
+              evidence.</p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-card-icon">🔮</div>
+            <h4>Dynamic Obstacles</h4>
+            <p>Moving walls, sliding doors, and orbiting objects test the SLAM system's ability to handle changing
+              environments.</p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-card-icon">🌫️</div>
+            <h4>Fog of War</h4>
+            <p>Unexplored areas remain hidden on the SLAM map, revealing only what the robot has scanned — just like
+              reality.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="feature-category">
+        <h3 class="category-title"><span class="cat-dot tools"></span>Tools & Visualization</h3>
+        <div class="features-grid">
+          <div class="feature-card">
+            <div class="feature-card-icon">🌐</div>
+            <h4>3D LiDAR Point Cloud</h4>
+            <p>Interactive Three.js visualization with distance-colored points, orbit camera, and live scan rays in 3D
+              space.</p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-card-icon">📊</div>
+            <h4>Live Sensor Charts</h4>
+            <p>Real-time polar chart of LiDAR distances plus a Sensor HUD showing pose, min/max distances, and compass.
+            </p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-card-icon">🏗️</div>
+            <h4>Map Builder & Presets</h4>
+            <p>Draw custom walls or load preset environments — Maze, Warehouse, Office, L-Shape, Open Field.
+              Export/import as JSON.</p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-card-icon">📖</div>
+            <h4>Interactive Tutorial</h4>
+            <p>Guided 11-step walkthrough teaching every SLAM concept with auto-scrolling, view switching, and clear
+              explanations.</p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-card-icon">🔊</div>
+            <h4>Sound Effects</h4>
+            <p>Subtle audio feedback for LiDAR sweeps, collisions, goal reached, and exploration complete.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="features-cta">
+        <button class="primary-btn glow-hover features-launch-btn"
+          onclick="document.getElementById('btnGetStarted').click()">
+          Start Exploring Now <span class="arrow">→</span>
+        </button>
+      </div>
+
+      <!-- ── Footer ── -->
+      <footer class="landing-footer">
+        <div class="footer-content">
+          <p class="creator-text">
+            Created by <strong>Yash Surve</strong><br>
+            <span class="subtitle">An Automation and Robotics Engineering student from MESWCOE</span>
+          </p>
+          <div class="social-links">
+            <a href="mailto:yashusurve2005@gmail.com" class="social-link" title="Email Me">
+              <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none"
+                stroke-linecap="round" stroke-linejoin="round">
+                <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+                <polyline points="22,6 12,13 2,6"></polyline>
+              </svg>
+            </a>
+            <a href="https://github.com/Yashs2024" target="_blank" rel="noopener noreferrer" class="social-link">
+              <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none"
+                stroke-linecap="round" stroke-linejoin="round">
+                <path
+                  d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22">
+                </path>
+              </svg>
+            </a>
+            <a href="https://www.linkedin.com/in/yash-surve-3b6a72253" target="_blank" rel="noopener noreferrer"
+              class="social-link">
+              <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none"
+                stroke-linecap="round" stroke-linejoin="round">
+                <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"></path>
+                <rect x="2" y="9" width="4" height="12"></rect>
+                <circle cx="4" cy="4" r="2"></circle>
+              </svg>
+            </a>
+          </div>
+        </div>
+      </footer>
     </div>
   </div>
 
@@ -247,6 +419,13 @@
         </div>
       </section>
 
+      <section class="chart-container">
+        <h3>Robot Dynamics (v, w)</h3>
+        <div class="chart-wrapper">
+          <canvas id="dynamicsChart"></canvas>
+        </div>
+      </section>
+
       <!-- Environment Presets & Map Tools -->
       <section class="map-tools">
         <h3>Environment Presets</h3>
@@ -281,6 +460,44 @@
     </main>
   </div>
 
+  <!-- Feature card scroll animation -->
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            // Stagger the cards within this grid
+            const cards = entry.target.querySelectorAll('.feature-card');
+            cards.forEach((card, i) => {
+              setTimeout(() => card.classList.add('visible'), i * 80);
+            });
+            observer.unobserve(entry.target);
+          }
+        });
+      }, { threshold: 0.15 });
+
+      document.querySelectorAll('.features-grid').forEach(grid => observer.observe(grid));
+
+      // Also animate the header
+      const headerObs = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            entry.target.style.opacity = '1';
+            entry.target.style.transform = 'translateY(0)';
+            headerObs.unobserve(entry.target);
+          }
+        });
+      }, { threshold: 0.3 });
+
+      const fh = document.querySelector('.features-header');
+      if (fh) {
+        fh.style.opacity = '0';
+        fh.style.transform = 'translateY(20px)';
+        fh.style.transition = 'all 0.6s ease';
+        headerObs.observe(fh);
+      }
+    });
+  </script>
   <script type="module" src="./src/main.js"></script>
 </body>
 

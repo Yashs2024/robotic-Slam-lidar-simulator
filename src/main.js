@@ -5,6 +5,7 @@ import { Lidar } from './Lidar.js';
 import { Mapper } from './Mapper.js';
 import { AStar } from './AStar.js';
 import { ChartManager } from './ChartManager.js';
+import { DynamicsChartManager } from './DynamicsChartManager.js'; // Added
 import { FrontierExplorer } from './FrontierExplorer.js';
 import { StatsTracker } from './StatsTracker.js';
 import { DynamicObstacles } from './DynamicObstacles.js';
@@ -39,13 +40,14 @@ let sweepSoundCounter = 0;
 const renderer = new Renderer();
 const environment = new Environment(renderer.realWorldCanvas.width, renderer.realWorldCanvas.height);
 const robot = new Robot(renderer.realWorldCanvas.width / 2, renderer.realWorldCanvas.height / 2);
-const lidar = new Lidar();
 const mapper = new Mapper(renderer.realWorldCanvas.width, renderer.realWorldCanvas.height, 10);
 const astar = new AStar(mapper);
 const dijkstra = new Dijkstra(mapper);
 const bugAlgorithm = new BugAlgorithm(mapper);
 let currentPathfinder = astar;
+const lidar = new Lidar();
 const chartManager = new ChartManager('lidarChart', lidar.maxRange);
+const dynamicsChartManager = new DynamicsChartManager('dynamicsChart'); // Added
 const frontierExplorer = new FrontierExplorer(mapper);
 const statsTracker = new StatsTracker();
 const dynamicObstacles = new DynamicObstacles(renderer.realWorldCanvas.width, renderer.realWorldCanvas.height);
@@ -593,8 +595,9 @@ function gameLoop(timestamp) {
   // 7. SLAM Mapping
   mapper.updateMap(robot, scanHits);
 
-  // 8. Update Live Chart
+  // 8. Update Live Charts
   chartManager.updateData(scanHits);
+  dynamicsChartManager.updateData(robot);
 
   // 8b. Update Sensor HUD
   sensorVisualizer.update(robot, scanHits);
