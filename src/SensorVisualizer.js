@@ -114,9 +114,9 @@ export class SensorVisualizer {
 
         const avgDist = totalDist / scanHits.length;
 
-        document.getElementById('hudMinDist').textContent = `${Math.round(minDist)}px`;
-        document.getElementById('hudMaxDist').textContent = `${Math.round(maxDist)}px`;
-        document.getElementById('hudAvgDist').textContent = `${Math.round(avgDist)}px`;
+        document.getElementById('hudMinDist').textContent = `${(minDist / 100).toFixed(1)}m`;
+        document.getElementById('hudMaxDist').textContent = `${(maxDist / 100).toFixed(1)}m`;
+        document.getElementById('hudAvgDist').textContent = `${(avgDist / 100).toFixed(1)}m`;
         document.getElementById('hudHitRatio').textContent = `${hitCount}/${scanHits.length}`;
 
         // Compass — rotate needle to point at closest obstacle
@@ -125,6 +125,6 @@ export class SensorVisualizer {
         if (needle) {
             needle.style.transform = `rotate(${relAngle}rad)`;
         }
-        document.getElementById('hudCompassDist').textContent = `${Math.round(minDist)}px`;
+        document.getElementById('hudCompassDist').textContent = `${(minDist / 100).toFixed(1)}m`;
     }
 }

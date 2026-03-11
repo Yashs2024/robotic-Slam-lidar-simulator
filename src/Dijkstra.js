@@ -27,12 +27,12 @@ export class Dijkstra {
             if (nextCol >= 0 && nextCol < this.mapper.cols && nextRow >= 0 && nextRow < this.mapper.rows) {
                 const index = nextCol + nextRow * this.mapper.cols;
 
-                if (this.mapper.grid[index] !== -1) {
+                if (this.mapper.grid[index] <= 0) {
                     // Diagonal corner-cutting check
                     if (Math.abs(dir.c) === 1 && Math.abs(dir.r) === 1) {
                         const idxH = (node.col + dir.c) + node.row * this.mapper.cols;
                         const idxV = node.col + (node.row + dir.r) * this.mapper.cols;
-                        if (this.mapper.grid[idxH] === -1 || this.mapper.grid[idxV] === -1) continue;
+                        if (this.mapper.grid[idxH] > 0 || this.mapper.grid[idxV] > 0) continue;
                     }
 
                     let penalty = 0;
@@ -41,7 +41,7 @@ export class Dijkstra {
                         for (let c = -checkRange; c <= checkRange; c++) {
                             const nc = nextCol + c, nr = nextRow + r;
                             if (nc >= 0 && nc < this.mapper.cols && nr >= 0 && nr < this.mapper.rows) {
-                                if (this.mapper.grid[nc + nr * this.mapper.cols] === -1) penalty += 5;
+                                if (this.mapper.grid[nc + nr * this.mapper.cols] > 0) penalty += 5;
                             }
                         }
                     }
@@ -60,7 +60,7 @@ export class Dijkstra {
         const goalRow = Math.floor(endY / this.mapper.cellSize);
 
         if (goalCol < 0 || goalCol >= this.mapper.cols || goalRow < 0 || goalRow >= this.mapper.rows) return [];
-        if (this.mapper.grid[goalCol + goalRow * this.mapper.cols] === -1) return [];
+        if (this.mapper.grid[goalCol + goalRow * this.mapper.cols] > 0) return [];
 
         const numNodes = this.mapper.cols * this.mapper.rows;
         const dist = new Float32Array(numNodes).fill(Infinity);

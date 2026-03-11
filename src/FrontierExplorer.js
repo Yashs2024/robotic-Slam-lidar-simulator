@@ -62,7 +62,7 @@ export class FrontierExplorer {
 
     /**
      * Scan the entire grid for frontier cells.
-     * A frontier cell is a FREE cell (state === 1) neighbouring at least one UNKNOWN cell (state === 0).
+     * A frontier cell is a FREE cell (log-odds < 0) neighbouring at least one UNKNOWN cell (log-odds === 0).
      */
     _detectFrontiers() {
         const { grid, cols, rows } = this.mapper;
@@ -71,7 +71,7 @@ export class FrontierExplorer {
         for (let r = 1; r < rows - 1; r++) {
             for (let c = 1; c < cols - 1; c++) {
                 const idx = c + r * cols;
-                if (grid[idx] !== 1) continue; // Only consider free cells
+                if (grid[idx] >= 0) continue; // Only consider free cells (negative log-odds)
 
                 // Check 4-connected neighbours for unknown cells
                 if (

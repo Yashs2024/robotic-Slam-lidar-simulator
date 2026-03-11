@@ -196,6 +196,7 @@
         <button id="btnAutoExplore" class="auto-explore-btn">🧭 Auto Explore</button>
         <button id="btnDynamicObs" class="dynamic-obs-btn">🔮 Dynamic Obstacles</button>
         <button id="btnParticleFilter" class="particle-btn">🎯 Particle Filter</button>
+        <button id="btnLoopClosure" class="loop-closure-btn">🔗 Loop Closure</button>
         <div class="control-group" id="particleCountGroup" style="display:none;">
           <label for="particleCountSlider">Particle Count</label>
           <input type="range" id="particleCountSlider" min="50" max="500" value="200" step="25">
@@ -221,6 +222,7 @@
         <div class="button-group">
           <button id="btnRealWorld" class="active">Real World</button>
           <button id="btnSlamMap">SLAM Map</button>
+          <button id="btn3DView">3D LiDAR</button>
         </div>
       </section>
 
@@ -275,6 +277,7 @@
       <canvas id="realWorldCanvas"></canvas>
       <!-- Canvas for the generated Occupancy Grid view (hidden by default initially) -->
       <canvas id="slamCanvas" class="hidden"></canvas>
+      <div id="pointCloudContainer" class="hidden"></div>
     </main>
   </div>
 

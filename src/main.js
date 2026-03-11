@@ -14,6 +14,8 @@ import { TutorialManager } from './TutorialManager.js';
 import { Dijkstra } from './Dijkstra.js';
 import { BugAlgorithm } from './BugAlgorithm.js';
 import { SensorVisualizer } from './SensorVisualizer.js';
+import { LoopClosureDetector } from './LoopClosureDetector.js';
+import { PointCloudViewer } from './PointCloudViewer.js';
 
 // ---- Application State ----
 const keys = { w: false, a: false, s: false, d: false };
@@ -51,6 +53,8 @@ const soundManager = new SoundManager();
 const particleFilter = new ParticleFilter(200);
 const tutorialManager = new TutorialManager();
 const sensorVisualizer = new SensorVisualizer();
+const loopClosureDetector = new LoopClosureDetector();
+const pointCloudViewer = new PointCloudViewer();
 
 // Initialise the Fog of War canvas
 renderer.initFogCanvas(renderer.slamCanvas.width, renderer.slamCanvas.height);
@@ -200,21 +204,23 @@ function setupEventListeners() {
   });
 
   // View Toggles
-  btnRealWorld.addEventListener('click', () => {
-    currentView = 'realWorld';
-    btnRealWorld.classList.add('active');
-    btnSlamMap.classList.remove('active');
-    realWorldCanvas.classList.remove('hidden');
-    slamCanvas.classList.add('hidden');
-  });
+  const btn3DView = document.getElementById('btn3DView');
+  const pointCloudContainer = document.getElementById('pointCloudContainer');
 
-  btnSlamMap.addEventListener('click', () => {
-    currentView = 'slam';
-    btnSlamMap.classList.add('active');
-    btnRealWorld.classList.remove('active');
-    slamCanvas.classList.remove('hidden');
-    realWorldCanvas.classList.add('hidden');
-  });
+  function switchView(view) {
+    currentView = view;
+    btnRealWorld.classList.toggle('active', view === 'realWorld');
+    btnSlamMap.classList.toggle('active', view === 'slam');
+    btn3DView.classList.toggle('active', view === '3d');
+    realWorldCanvas.classList.toggle('hidden', view !== 'realWorld');
+    slamCanvas.classList.toggle('hidden', view !== 'slam');
+    pointCloudContainer.classList.toggle('hidden', view !== '3d');
+    pointCloudViewer.setEnabled(view === '3d');
+  }
+
+  btnRealWorld.addEventListener('click', () => switchView('realWorld'));
+  btnSlamMap.addEventListener('click', () => switchView('slam'));
+  btn3DView.addEventListener('click', () => switchView('3d'));
 
   btnDriveMode.addEventListener('click', () => {
     interactionMode = 'drive';
@@ -290,6 +296,20 @@ function setupEventListeners() {
       btnParticleFilter.classList.remove('active');
       btnParticleFilter.textContent = '🎯 Particle Filter';
       particleCountGroup.style.display = 'none';
+    }
+  });
+
+  // Loop Closure Toggle
+  const btnLoopClosure = document.getElementById('btnLoopClosure');
+  btnLoopClosure.addEventListener('click', () => {
+    const nowEnabled = !loopClosureDetector.enabled;
+    loopClosureDetector.setEnabled(nowEnabled);
+    if (nowEnabled) {
+      btnLoopClosure.classList.add('active');
+      btnLoopClosure.textContent = '⏹️ Stop Loop Closure';
+    } else {
+      btnLoopClosure.classList.remove('active');
+      btnLoopClosure.textContent = '🔗 Loop Closure';
     }
   });
 
@@ -579,8 +599,23 @@ function gameLoop(timestamp) {
   // 8b. Update Sensor HUD
   sensorVisualizer.update(robot, scanHits);
 
+  // 8c. Loop Closure Detection
+  if (loopClosureDetector.enabled) {
+    loopClosureDetector.addKeyframe(robot, scanHits);
+    const closureResult = loopClosureDetector.checkForClosure(robot, scanHits);
+    if (closureResult.detected) {
+      loopClosureDetector.applyCorrection(robot, closureResult.correction);
+    }
+    loopClosureDetector.updateIndicator();
+  }
+
   // 9. Update Stats
   statsTracker.update(robot, mapper, hitWall);
+
+  // 9b. Update 3D Point Cloud
+  if (currentView === '3d') {
+    pointCloudViewer.update(robot, scanHits, renderer.realWorldCanvas.width, renderer.realWorldCanvas.height);
+  }
 
   // 10. Detect goal reached (path was active, now it's null)
   const pathActive = !!(robot.path && robot.pathIndex < robot.path.length);
@@ -607,6 +642,11 @@ function gameLoop(timestamp) {
     // Draw particle cloud
     if (particleFilter.enabled) {
       renderer.drawParticles(particleFilter.getParticles(), renderer.realWorldCtx);
+    }
+
+    // Draw loop closure indicator
+    if (loopClosureDetector.enabled) {
+      loopClosureDetector.drawIndicator(renderer.realWorldCtx, renderer.realWorldCanvas.width);
     }
 
     if (isBuilding && buildStart && buildCurrent) {

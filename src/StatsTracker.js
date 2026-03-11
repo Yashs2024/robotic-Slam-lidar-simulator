@@ -69,7 +69,7 @@ export class StatsTracker {
         const total = mapper.grid.length;
         let known = 0;
         for (let i = 0; i < total; i++) {
-            if (mapper.grid[i] !== 0) known++;
+            if (mapper.grid[i] !== 0) known++; // log-odds: 0 = unknown, non-zero = observed
         }
         const exploredPct = ((known / total) * 100).toFixed(1);
 
@@ -80,7 +80,7 @@ export class StatsTracker {
 
         // Update DOM
         if (this.elExplored) this.elExplored.textContent = `${exploredPct}%`;
-        if (this.elDistance) this.elDistance.textContent = `${Math.round(this.totalDistance)}px`;
+        if (this.elDistance) this.elDistance.textContent = `${(this.totalDistance / 100).toFixed(1)}m`;
         if (this.elCollisions) this.elCollisions.textContent = `${this.collisions}`;
         if (this.elTime) this.elTime.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
     }

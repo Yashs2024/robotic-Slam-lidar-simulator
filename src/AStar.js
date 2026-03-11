@@ -30,11 +30,11 @@ export class AStar {
             if (nextCol >= 0 && nextCol < this.mapper.cols && nextRow >= 0 && nextRow < this.mapper.rows) {
                 const index = nextCol + nextRow * this.mapper.cols;
 
-                if (this.mapper.grid[index] !== -1) {
+                if (this.mapper.grid[index] <= 0) {
                     if (Math.abs(dir.c) === 1 && Math.abs(dir.r) === 1) {
                         const idxHorizontal = (node.col + dir.c) + node.row * this.mapper.cols;
                         const idxVertical = node.col + (node.row + dir.r) * this.mapper.cols;
-                        if (this.mapper.grid[idxHorizontal] === -1 || this.mapper.grid[idxVertical] === -1) {
+                        if (this.mapper.grid[idxHorizontal] > 0 || this.mapper.grid[idxVertical] > 0) {
                             continue;
                         }
                     }
@@ -56,7 +56,7 @@ export class AStar {
                 const nextRow = row + r;
                 if (nextCol >= 0 && nextCol < this.mapper.cols && nextRow >= 0 && nextRow < this.mapper.rows) {
                     const index = nextCol + nextRow * this.mapper.cols;
-                    if (this.mapper.grid[index] === -1) {
+                    if (this.mapper.grid[index] > 0) {
                         penalty += 5;
                     }
                 }
@@ -72,7 +72,7 @@ export class AStar {
         const goalRow = Math.floor(endY / this.mapper.cellSize);
 
         if (goalCol < 0 || goalCol >= this.mapper.cols || goalRow < 0 || goalRow >= this.mapper.rows) return [];
-        if (this.mapper.grid[goalCol + goalRow * this.mapper.cols] === -1) return [];
+        if (this.mapper.grid[goalCol + goalRow * this.mapper.cols] > 0) return [];
 
         const startNode = { col: startCol, row: startRow, gScore: 0, fScore: 0 };
         startNode.fScore = this.heuristic(startNode, { col: goalCol, row: goalRow });
