@@ -11,6 +11,8 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
   <!-- Chart.js for Live Data -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- Nipple.js for Virtual Joysticks -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/nipplejs/0.10.1/nipplejs.min.js"></script>
   <link rel="stylesheet" href="./style.css">
 </head>
 
@@ -283,6 +285,15 @@
       </svg>
     </button>
 
+    <!-- Mobile UI Toggle Button -->
+    <button id="btnToggleMobileUI" class="mobile-toggle-btn" title="Toggle Mobile UI">
+      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect>
+        <line x1="12" y1="18" x2="12.01" y2="18"></line>
+      </svg>
+    </button>
+
     <!-- Sidebar Control Panel -->
     <aside class="sidebar">
       <header>
@@ -457,6 +468,10 @@
       <!-- Canvas for the generated Occupancy Grid view (hidden by default initially) -->
       <canvas id="slamCanvas" class="hidden"></canvas>
       <div id="pointCloudContainer" class="hidden"></div>
+      
+      <!-- Virtual Joystick Zones (Mobile UI Only) -->
+      <div id="joystickLeft" class="joystick-zone left-zone"></div>
+      <div id="joystickRight" class="joystick-zone right-zone"></div>
     </main>
   </div>
 

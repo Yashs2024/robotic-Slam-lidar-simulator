@@ -17,6 +17,7 @@ import { BugAlgorithm } from './BugAlgorithm.js';
 import { SensorVisualizer } from './SensorVisualizer.js';
 import { LoopClosureDetector } from './LoopClosureDetector.js';
 import { PointCloudViewer } from './PointCloudViewer.js';
+import { JoystickManager } from './JoystickManager.js';
 
 // ---- Application State ----
 const keys = { w: false, a: false, s: false, d: false };
@@ -57,6 +58,7 @@ const tutorialManager = new TutorialManager();
 const sensorVisualizer = new SensorVisualizer();
 const loopClosureDetector = new LoopClosureDetector();
 const pointCloudViewer = new PointCloudViewer();
+const joystickManager = new JoystickManager(keys);
 
 // Initialise the Fog of War canvas
 renderer.initFogCanvas(renderer.slamCanvas.width, renderer.slamCanvas.height);
@@ -109,6 +111,7 @@ const realWorldCanvas = document.getElementById('realWorldCanvas');
 const slamCanvas = document.getElementById('slamCanvas');
 
 const btnToggleSidebar = document.getElementById('btnToggleSidebar');
+const btnToggleMobileUI = document.getElementById('btnToggleMobileUI');
 const sidebarPanel = document.querySelector('.sidebar');
 function resetSimulation() {
   mapper.clear();
@@ -151,6 +154,25 @@ function setupEventListeners() {
   btnToggleSidebar.addEventListener('click', () => {
     sidebarPanel.classList.toggle('collapsed');
     btnToggleSidebar.classList.toggle('open');
+  });
+
+  // Mobile UI Toggle
+  btnToggleMobileUI.addEventListener('click', () => {
+    document.body.classList.toggle('mobile-mode');
+    btnToggleMobileUI.classList.toggle('active');
+    
+    // Resize canvasses after CSS transition
+    setTimeout(() => {
+      if (renderer && renderer.resizeCanvas) {
+        renderer.resizeCanvas();
+        const w = renderer.realWorldCanvas.width;
+        const h = renderer.realWorldCanvas.height;
+        environment.resize(w, h);
+        mapper.resize(w, h);
+        dynamicObstacles.resize(w, h);
+        renderer.initFogCanvas(w, h);
+      }
+    }, 400); // Wait for 0.4s sidebar animation
   });
 
   // Keyboard
@@ -679,6 +701,7 @@ function gameLoop(timestamp) {
 
 // Bootstrap
 setupEventListeners();
+joystickManager.init();
 lidar.setParameters(parseInt(rayDensitySlider.value), parseInt(noiseSlider.value));
 robot.setSpeedMultiplier(parseInt(speedSlider.value));
 robot.setDrift(parseInt(driftSlider.value));

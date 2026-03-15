@@ -481,7 +481,9 @@ kbd {
   max-width: 1200px;
   width: 90%;
   gap: 3rem;
-  z-index: 2;
+  z-index: 10;
+  position: relative;
+  pointer-events: auto;
   padding: 2rem 0;
   min-height: 100vh;
   margin: 0 auto;
@@ -558,6 +560,11 @@ kbd {
   font-size: 1.1rem;
 }
 
+.hero-cta-row {
+  position: relative;
+  z-index: 10;
+}
+
 .primary-btn {
   background: linear-gradient(135deg, #3b82f6, #8b5cf6);
   color: white;
@@ -572,6 +579,8 @@ kbd {
   display: flex;
   align-items: center;
   gap: 0.8rem;
+  position: relative;
+  z-index: 20;
 }
 
 .primary-btn:hover {
@@ -1035,16 +1044,18 @@ html {
 
 /* ── Auth Card ── */
 .auth-card {
-  background: rgba(15, 23, 42, 0.6);
+  background: rgba(15, 23, 42, 0.65);
   backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
   border: 1px solid rgba(255, 255, 255, 0.1);
-  padding: 3rem 2.5rem;
-  border-radius: 16px;
+  padding: 3rem;
+  border-radius: 20px;
   width: 100%;
   max-width: 400px;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
   position: relative;
-  z-index: 1;
+  overflow: hidden;
+  z-index: 10;
 }
 
 .auth-card h2 {
@@ -1495,3 +1506,102 @@ footer {
   color: #ef4444;
   font-weight: 500;
 }
+
+/* ── Mobile UI Toggle Button ── */
+.mobile-toggle-btn {
+  position: absolute;
+  top: 1.25rem;
+  right: 1.25rem;
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background-color: rgba(15, 23, 42, 0.65);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 20;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  transition: transform 0.2s, background-color 0.2s;
+}
+
+.mobile-toggle-btn:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.mobile-toggle-btn.active {
+  background-color: rgba(59, 130, 246, 0.3);
+  color: #60a5fa;
+  border-color: rgba(96, 165, 250, 0.5);
+}
+
+/* ── Virtual Joysticks ── */
+.joystick-zone {
+  position: absolute;
+  bottom: 20px;
+  width: 120px;
+  height: 120px;
+  z-index: 40;
+  display: none;
+}
+
+.joystick-zone.left-zone {
+  left: 20px;
+}
+
+.joystick-zone.right-zone {
+  right: 20px;
+}
+
+/* Mobile UI Mode Overrides */
+body.mobile-mode .joystick-zone {
+  display: block;
+}
+
+body.mobile-mode .sidebar {
+  transform: translateX(-120%);
+  opacity: 0;
+  pointer-events: none;
+}
+
+body.mobile-mode .sidebar-toggle-btn {
+  display: none;
+}
+
+body.mobile-mode .sensor-hud {
+  top: 70px;
+  bottom: auto;
+  right: 12px;
+}
+
+/* ── Mobile Responsiveness ── */
+@media (max-width: 768px) {
+  .sidebar {
+    width: 280px;
+    min-width: 280px;
+  }
+  
+  .sensor-hud {
+    top: 70px;
+    bottom: auto;
+    right: 12px;
+  }
+
+  .joystick-zone {
+    width: 100px;
+    height: 100px;
+    bottom: 30px;
+  }
+  
+  .joystick-zone.left-zone {
+    left: 10px;
+  }
+  
+  .joystick-zone.right-zone {
+    right: 10px;
+  }
+}
