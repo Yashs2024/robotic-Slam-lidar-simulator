@@ -41,6 +41,9 @@
           <button id="btnGetStarted" class="primary-btn glow-hover">
             Launch Simulator <span class="arrow">→</span>
           </button>
+          <button id="btnDonate" class="donate-btn">
+            <span class="icon">💖</span> Support Project
+          </button>
           <a href="#features-section" class="secondary-link-btn">Explore Features ↓</a>
         </div>
       </div>
@@ -513,6 +516,19 @@
       }
     });
   </script>
+
+  <!-- Donation Modal -->
+  <div id="donateModal" class="full-page donate-overlay" style="display: none;">
+    <div class="auth-card donate-card text-center relative-box">
+      <button class="modal-close" id="btnDonateClose">&times;</button>
+      <h2 style="margin-bottom: 0.5rem; font-size: 1.8rem; font-weight: 700;">Support the Project</h2>
+      <p style="color: #94a3b8; font-size: 0.95rem; margin-bottom: 1.5rem;">If you find this simulator helpful, consider supporting its development!</p>
+      <div class="donate-image-container">
+        <img src="./donate.jpeg" alt="Donate QR Code" class="donate-image" />
+      </div>
+    </div>
+  </div>
+
   <script type="module" src="./src/main.js"></script>
 </body>
 

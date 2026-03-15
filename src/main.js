@@ -539,12 +539,35 @@ const loginForm = document.getElementById('loginForm');
 
 let isSimulatorRunning = false;
 
-if (btnGetStarted) {
-  btnGetStarted.addEventListener('click', () => {
-    landingPage.style.display = 'none';
-    loginPage.style.display = 'flex';
+  if (btnGetStarted) {
+    btnGetStarted.addEventListener('click', () => {
+      landingPage.style.display = 'none';
+      loginPage.style.display = 'flex';
+    });
+  }
+  
+  const btnDonate = document.getElementById('btnDonate');
+  const donateModal = document.getElementById('donateModal');
+  const btnDonateClose = document.getElementById('btnDonateClose');
+  
+  if (btnDonate) {
+    btnDonate.addEventListener('click', () => {
+      donateModal.style.display = 'flex';
+    });
+  }
+  
+  if (btnDonateClose) {
+    btnDonateClose.addEventListener('click', () => {
+      donateModal.style.display = 'none';
+    });
+  }
+  
+  // Close if clicked outside
+  window.addEventListener('click', (e) => {
+    if (e.target === donateModal) {
+      donateModal.style.display = 'none';
+    }
   });
-}
 
 if (loginForm) {
   loginForm.addEventListener('submit', (e) => {
