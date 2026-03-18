@@ -11,7 +11,7 @@ export class Lidar {
         this.noisePercent = noisePercent;
     }
 
-    scan(robot, environment) {
+    scan(robot, environment, dynamicHumans = null) {
         const hits = [];
         const fov = Math.PI; // 180° field of view
         const angleStep = fov / this.numRays;
@@ -37,10 +37,26 @@ export class Lidar {
                     const dist = this.distance(p1, intersection);
                     if (dist < minDistance) {
                         minDistance = dist;
-                        closestIntersection = { x: intersection.x, y: intersection.y, distance: dist, angle: rayAngle, hit: true };
+                        closestIntersection = { x: intersection.x, y: intersection.y, distance: dist, angle: rayAngle, hit: true, type: 'wall' };
                     }
                 }
             });
+
+            // Check intersection with dynamic humans (circles)
+            if (dynamicHumans) {
+                dynamicHumans.getHumans().forEach(human => {
+                    const intersections = this.getLineCircleIntersections(p1, p2, human.x, human.y, human.radius);
+                    if (intersections) {
+                        intersections.forEach(intersection => {
+                            const dist = this.distance(p1, intersection);
+                            if (dist < minDistance) {
+                                minDistance = dist;
+                                closestIntersection = { x: intersection.x, y: intersection.y, distance: dist, angle: rayAngle, hit: true, type: 'human' };
+                            }
+                        });
+                    }
+                });
+            }
 
             // If no hit, we return the max range
             if (!closestIntersection) {
@@ -108,6 +124,36 @@ export class Lidar {
             };
         }
         return null;
+    }
+
+    // Math helper for Line-Circle Intersection (Ray against Humans)
+    getLineCircleIntersections(p1, p2, cx, cy, r) {
+        const dx = p2.x - p1.x;
+        const dy = p2.y - p1.y;
+        
+        const A = dx * dx + dy * dy;
+        const B = 2 * (dx * (p1.x - cx) + dy * (p1.y - cy));
+        const C = (p1.x - cx) * (p1.x - cx) + (p1.y - cy) * (p1.y - cy) - r * r;
+
+        const det = B * B - 4 * A * C;
+        if (A <= 0.0000001 || det < 0) {
+            return null; // No intersection
+        } else if (det === 0) {
+            // One intersection tangent
+            const t = -B / (2 * A);
+            if (t >= 0 && t <= 1) {
+                return [{ x: p1.x + t * dx, y: p1.y + t * dy }];
+            }
+            return null;
+        } else {
+            // Two intersections (entering and exiting circle)
+            const t1 = (-B + Math.sqrt(det)) / (2 * A);
+            const t2 = (-B - Math.sqrt(det)) / (2 * A);
+            const intersections = [];
+            if (t1 >= 0 && t1 <= 1) intersections.push({ x: p1.x + t1 * dx, y: p1.y + t1 * dy });
+            if (t2 >= 0 && t2 <= 1) intersections.push({ x: p1.x + t2 * dx, y: p1.y + t2 * dy });
+            return intersections.length > 0 ? intersections : null;
+        }
     }
 
     distance(p1, p2) {

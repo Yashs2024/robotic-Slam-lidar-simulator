@@ -64,7 +64,7 @@ export class Robot {
         this.pathIndex = 0;
     }
 
-    autonomousDrive() {
+    autonomousDrive(dynamicHumans = null) {
         if (!this.path || this.pathIndex >= this.path.length) {
             this.path = null;
             return;
@@ -85,7 +85,43 @@ export class Robot {
             }
         }
 
-        const targetTheta = Math.atan2(dy, dx);
+        let targetTheta = Math.atan2(dy, dx);
+        let speedMult = 1.0;
+
+        // --- Local Collision Avoidance ---
+        if (dynamicHumans) {
+            const avoidanceRadius = this.radius * 3.0; // Distance to start swerving
+            const criticalRadius = this.radius * 1.5;  // Distance to emergency stop
+
+            for (const human of dynamicHumans.getHumans()) {
+                const hx = human.x - this.x;
+                const hy = human.y - this.y;
+                const hDist = Math.sqrt(hx * hx + hy * hy);
+                
+                if (hDist < avoidanceRadius) {
+                    const hAngle = Math.atan2(hy, hx);
+                    
+                    // Is the human roughly in front of us?
+                    let angleToHuman = hAngle - targetTheta;
+                    while (angleToHuman > Math.PI) angleToHuman -= Math.PI * 2;
+                    while (angleToHuman < -Math.PI) angleToHuman += Math.PI * 2;
+
+                    if (Math.abs(angleToHuman) < Math.PI / 1.5) { // Within 120deg front cone
+                        if (hDist < criticalRadius) {
+                            // Too close, stop and wait
+                            speedMult = 0;
+                            break;
+                        } else {
+                            // Steer away
+                            const avoidanceForce = (avoidanceRadius - hDist) / avoidanceRadius;
+                            // Steer in the opposite direction of where the human is
+                            targetTheta += Math.sign(-angleToHuman || 1) * avoidanceForce * 1.5;
+                            speedMult = 0.5; // Slow down while swerving
+                        }
+                    }
+                }
+            }
+        }
 
         let angleDiff = targetTheta - this.theta;
         while (angleDiff > Math.PI) angleDiff -= Math.PI * 2;
@@ -96,13 +132,13 @@ export class Robot {
         if (Math.abs(angleDiff) > 0.5) {
             this.forwardSpeed = 0;
         } else {
-            this.forwardSpeed = this.maxSpeed * 0.8;
+            this.forwardSpeed = this.maxSpeed * 0.8 * speedMult;
         }
     }
 
-    update(environment) {
+    update(environment, dynamicHumans = null) {
         if (this.path) {
-            this.autonomousDrive();
+            this.autonomousDrive(dynamicHumans);
         }
 
         let nextX, nextY;

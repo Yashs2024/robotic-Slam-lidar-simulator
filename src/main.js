@@ -18,6 +18,7 @@ import { SensorVisualizer } from './SensorVisualizer.js';
 import { LoopClosureDetector } from './LoopClosureDetector.js';
 import { PointCloudViewer } from './PointCloudViewer.js';
 import { JoystickManager } from './JoystickManager.js';
+import { DynamicHumans } from './DynamicHumans.js';
 
 // ---- Application State ----
 const keys = { w: false, a: false, s: false, d: false };
@@ -52,6 +53,7 @@ const dynamicsChartManager = new DynamicsChartManager('dynamicsChart'); // Added
 const frontierExplorer = new FrontierExplorer(mapper);
 const statsTracker = new StatsTracker();
 const dynamicObstacles = new DynamicObstacles(renderer.realWorldCanvas.width, renderer.realWorldCanvas.height);
+const dynamicHumans = new DynamicHumans(renderer.realWorldCanvas.width, renderer.realWorldCanvas.height);
 const soundManager = new SoundManager();
 const particleFilter = new ParticleFilter(200);
 const tutorialManager = new TutorialManager();
@@ -85,6 +87,7 @@ const btnDriveMode = document.getElementById('btnDriveMode');
 const btnBuildMode = document.getElementById('btnBuildMode');
 const btnAutoExplore = document.getElementById('btnAutoExplore');
 const btnDynamicObs = document.getElementById('btnDynamicObs');
+const btnDynamicHumans = document.getElementById('btnDynamicHumans');
 const btnParticleFilter = document.getElementById('btnParticleFilter');
 const particleCountSlider = document.getElementById('particleCountSlider');
 const particleCountValue = document.getElementById('particleCountValue');
@@ -136,6 +139,9 @@ function resetSimulation() {
 
   // Regenerate dynamic obstacles for the new map
   dynamicObstacles.generate();
+  if (dynamicHumans.enabled) {
+    dynamicHumans.generate();
+  }
 
   // Reset particle filter if active
   if (particleFilter.enabled) {
@@ -160,7 +166,7 @@ function setupEventListeners() {
   btnToggleMobileUI.addEventListener('click', () => {
     document.body.classList.toggle('mobile-mode');
     btnToggleMobileUI.classList.toggle('active');
-    
+
     // Resize canvasses after CSS transition
     setTimeout(() => {
       if (renderer && renderer.resizeCanvas) {
@@ -170,6 +176,7 @@ function setupEventListeners() {
         environment.resize(w, h);
         mapper.resize(w, h);
         dynamicObstacles.resize(w, h);
+        dynamicHumans.resize(w, h);
         renderer.initFogCanvas(w, h);
       }
     }, 400); // Wait for 0.4s sidebar animation
@@ -306,6 +313,21 @@ function setupEventListeners() {
       environment.setDynamicWalls([]);
     }
   });
+
+  // Dynamic Humans Toggle
+  if (btnDynamicHumans) {
+    btnDynamicHumans.addEventListener('click', () => {
+      const nowEnabled = !dynamicHumans.enabled;
+      dynamicHumans.setEnabled(nowEnabled);
+      if (nowEnabled) {
+        btnDynamicHumans.classList.add('active');
+        btnDynamicHumans.textContent = '⏹️ Stop Workers';
+      } else {
+        btnDynamicHumans.classList.remove('active');
+        btnDynamicHumans.textContent = '👷‍♂️ Moving Workers';
+      }
+    });
+  }
 
   // Particle Filter Toggle
   btnParticleFilter.addEventListener('click', () => {
@@ -539,35 +561,35 @@ const loginForm = document.getElementById('loginForm');
 
 let isSimulatorRunning = false;
 
-  if (btnGetStarted) {
-    btnGetStarted.addEventListener('click', () => {
-      landingPage.style.display = 'none';
-      loginPage.style.display = 'flex';
-    });
-  }
-  
-  const btnDonate = document.getElementById('btnDonate');
-  const donateModal = document.getElementById('donateModal');
-  const btnDonateClose = document.getElementById('btnDonateClose');
-  
-  if (btnDonate) {
-    btnDonate.addEventListener('click', () => {
-      donateModal.style.display = 'flex';
-    });
-  }
-  
-  if (btnDonateClose) {
-    btnDonateClose.addEventListener('click', () => {
-      donateModal.style.display = 'none';
-    });
-  }
-  
-  // Close if clicked outside
-  window.addEventListener('click', (e) => {
-    if (e.target === donateModal) {
-      donateModal.style.display = 'none';
-    }
+if (btnGetStarted) {
+  btnGetStarted.addEventListener('click', () => {
+    landingPage.style.display = 'none';
+    loginPage.style.display = 'flex';
   });
+}
+
+const btnDonate = document.getElementById('btnDonate');
+const donateModal = document.getElementById('donateModal');
+const btnDonateClose = document.getElementById('btnDonateClose');
+
+if (btnDonate) {
+  btnDonate.addEventListener('click', () => {
+    donateModal.style.display = 'flex';
+  });
+}
+
+if (btnDonateClose) {
+  btnDonateClose.addEventListener('click', () => {
+    donateModal.style.display = 'none';
+  });
+}
+
+// Close if clicked outside
+window.addEventListener('click', (e) => {
+  if (e.target === donateModal) {
+    donateModal.style.display = 'none';
+  }
+});
 
 if (loginForm) {
   loginForm.addEventListener('submit', (e) => {
@@ -613,7 +635,8 @@ function gameLoop(timestamp) {
   environment.setDynamicWalls(dynamicObstacles.getWalls());
 
   // 3. Update Physics (returns true if wall collision)
-  const hitWall = robot.update(environment);
+  if (dynamicHumans.enabled) dynamicHumans.update(environment);
+  const hitWall = robot.update(environment, dynamicHumans);
 
   // 4. Sound: collision bump
   if (hitWall) {
@@ -621,7 +644,7 @@ function gameLoop(timestamp) {
   }
 
   // 5. Sensor Update (LiDAR Raycasting)
-  const scanHits = lidar.scan(robot, environment);
+  const scanHits = lidar.scan(robot, environment, dynamicHumans);
 
   // 5b. Particle Filter update
   if (particleFilter.enabled) {
@@ -681,6 +704,7 @@ function gameLoop(timestamp) {
   if (currentView === 'realWorld') {
     renderer.drawEnvironment(environment, renderer.realWorldCtx);
     renderer.drawDynamicObstacles(dynamicObstacles, renderer.realWorldCtx);
+    renderer.drawHumans(dynamicHumans, renderer.realWorldCtx);
     lidar.drawRays(scanHits, robot, renderer.realWorldCtx);
     renderer.drawTrail(robot.trueTrail, '#3b82f6', renderer.realWorldCtx);
     renderer.drawPath(robot.path, renderer.realWorldCtx);
