@@ -17,5 +17,18 @@
     "react": "^19.2.4",
     "react-dom": "^19.2.4",
     "three": "^0.183.1"
-  }
+  },
+  "description": "<div align=\"center\">",
+  "main": "index.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Yashs2024/Slam-lidar-simulator.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Yashs2024/Slam-lidar-simulator/issues"
+  },
+  "homepage": "https://github.com/Yashs2024/Slam-lidar-simulator#readme"
 }

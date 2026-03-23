@@ -554,17 +554,41 @@ function handleFrontierExploration() {
 
 // ---- Page Transition Logic ----
 const landingPage = document.getElementById('landingPage');
-const loginPage = document.getElementById('loginPage');
 const appSimulator = document.getElementById('app');
 const btnGetStarted = document.getElementById('btnGetStarted');
-const loginForm = document.getElementById('loginForm');
 
 let isSimulatorRunning = false;
 
+function launchSimulator() {
+  if (landingPage) landingPage.style.display = 'none';
+  appSimulator.style.display = 'flex'; // Use flex to maintain sidebar/canvas layout
+
+  // Now that #app is visible, resize canvases to fit the actual container
+  renderer.resizeCanvas();
+
+  // Re-initialize environment and robot with the correct canvas dimensions
+  const w = renderer.realWorldCanvas.width;
+  const h = renderer.realWorldCanvas.height;
+  environment.resize(w, h);
+  mapper.resize(w, h);
+  dynamicObstacles.resize(w, h);
+  renderer.initFogCanvas(w, h);
+  robot.x = w / 2;
+  robot.y = h / 2;
+  robot.believedX = robot.x;
+  robot.believedY = robot.y;
+
+  // Start the simulator loop only now
+  if (!isSimulatorRunning) {
+    isSimulatorRunning = true;
+    lastTime = performance.now();
+    requestAnimationFrame(gameLoop);
+  }
+}
+
 if (btnGetStarted) {
   btnGetStarted.addEventListener('click', () => {
-    landingPage.style.display = 'none';
-    loginPage.style.display = 'flex';
+    launchSimulator();
   });
 }
 
@@ -590,36 +614,6 @@ window.addEventListener('click', (e) => {
     donateModal.style.display = 'none';
   }
 });
-
-if (loginForm) {
-  loginForm.addEventListener('submit', (e) => {
-    e.preventDefault(); // Prevent page reload
-    loginPage.style.display = 'none';
-    appSimulator.style.display = 'flex'; // Use flex to maintain sidebar/canvas layout
-
-    // Now that #app is visible, resize canvases to fit the actual container
-    renderer.resizeCanvas();
-
-    // Re-initialize environment and robot with the correct canvas dimensions
-    const w = renderer.realWorldCanvas.width;
-    const h = renderer.realWorldCanvas.height;
-    environment.resize(w, h);
-    mapper.resize(w, h);
-    dynamicObstacles.resize(w, h);
-    renderer.initFogCanvas(w, h);
-    robot.x = w / 2;
-    robot.y = h / 2;
-    robot.believedX = robot.x;
-    robot.believedY = robot.y;
-
-    // Start the simulator loop only now
-    if (!isSimulatorRunning) {
-      isSimulatorRunning = true;
-      lastTime = performance.now();
-      requestAnimationFrame(gameLoop);
-    }
-  });
-}
 
 // ---- Main Loop ----
 let lastTime = 0;
@@ -706,7 +700,7 @@ function gameLoop(timestamp) {
     renderer.drawDynamicObstacles(dynamicObstacles, renderer.realWorldCtx);
     renderer.drawHumans(dynamicHumans, renderer.realWorldCtx);
     lidar.drawRays(scanHits, robot, renderer.realWorldCtx);
-    renderer.drawTrail(robot.trueTrail, '#3b82f6', renderer.realWorldCtx);
+    renderer.drawTrail(robot.trueTrail, '#1E90FF', renderer.realWorldCtx);
     renderer.drawPath(robot.path, renderer.realWorldCtx);
     renderer.drawRobot(robot, renderer.realWorldCtx);
     renderer.drawBelievedRobot(robot, renderer.realWorldCtx);

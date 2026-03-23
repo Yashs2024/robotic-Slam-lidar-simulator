@@ -1,536 +1,443 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Educational SLAM & LiDAR Simulator</title>
-  <meta name="description"
-    content="Interactive browser-based SLAM & LiDAR simulator for robotics education. Features autonomous frontier exploration, A* pathfinding, occupancy grid mapping, and real-time sensor visualization." />
-  <!-- Use Google Fonts for a modern, sleek aesthetic -->
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
-  <!-- Chart.js for Live Data -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <!-- Nipple.js for Virtual Joysticks -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/nipplejs/0.10.1/nipplejs.min.js"></script>
-  <link rel="stylesheet" href="./style.css">
+  <title>TOTO Robotics Suite — Simulation Platform</title>
+  <meta name="description" content="Unified robotics simulation platform featuring SLAM, NEXUS kinematics engine, and HIVE industrial swarm logistics." />
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg:#050810;--bg2:#080d1a;--cyan:#00F5FF;--violet:#9B5DE5;--amber:#F59E0B;--green:#10B981;
+      --glass:rgba(10,15,30,0.65);--glass-b:rgba(0,245,255,0.15);--glass-bv:rgba(155,93,229,0.2);
+      --text:#E0E6ED;--muted:#64748b;--font-hd:'Orbitron',sans-serif;--font-body:'Inter',sans-serif;
+    }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    html{scroll-behavior:smooth}
+    body{background:var(--bg);color:var(--text);font-family:var(--font-body);overflow-x:hidden}
+    .hidden{display:none!important}
+    .gradient-text{background:linear-gradient(135deg,var(--cyan),var(--violet));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+
+    /* Animated BG */
+    .premium-bg{position:relative;background:radial-gradient(ellipse 80% 60% at 50% -10%,rgba(0,245,255,0.08) 0%,transparent 60%),radial-gradient(ellipse 60% 50% at 80% 80%,rgba(155,93,229,0.07) 0%,transparent 60%),var(--bg)}
+    .grid-overlay{position:absolute;inset:0;pointer-events:none;background-image:linear-gradient(rgba(0,245,255,0.04) 1px,transparent 1px),linear-gradient(90deg,rgba(0,245,255,0.04) 1px,transparent 1px);background-size:60px 60px;animation:gridDrift 20s linear infinite}
+    @keyframes gridDrift{from{background-position:0 0}to{background-position:60px 60px}}
+    .glow-orb{position:absolute;border-radius:50%;pointer-events:none;filter:blur(80px);animation:orbFloat 8s ease-in-out infinite alternate}
+    .glow-orb.a{width:400px;height:400px;background:rgba(0,245,255,0.06);top:-100px;left:-100px}
+    .glow-orb.b{width:300px;height:300px;background:rgba(155,93,229,0.07);bottom:10%;right:-80px;animation-delay:-4s}
+    @keyframes orbFloat{from{transform:translate(0,0)}to{transform:translate(30px,20px)}}
+
+    /* Screen transitions */
+    .screen{min-height:100vh;transition:opacity 0.5s ease}
+
+    /* ═══ NAVBAR ═══ */
+    .navbar{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:center;justify-content:space-between;padding:0 40px;height:64px;background:rgba(5,8,16,0.88);backdrop-filter:blur(16px);border-bottom:1px solid rgba(0,245,255,0.08)}
+    .nav-brand{font-family:var(--font-hd);font-size:1.2rem;letter-spacing:4px;color:var(--text)}
+    .nav-brand span{color:var(--cyan)}
+    .nav-links{display:flex;gap:24px;align-items:center}
+    .nav-links a{color:var(--muted);font-size:0.8rem;letter-spacing:1px;text-decoration:none;transition:color 0.2s}
+    .nav-links a:hover{color:var(--cyan)}
+    .nav-btn{background:linear-gradient(135deg,rgba(0,245,255,0.15),rgba(155,93,229,0.15));border:1px solid var(--cyan);color:var(--cyan);font-family:var(--font-hd);font-size:0.65rem;letter-spacing:2px;padding:8px 20px;cursor:pointer;transition:all 0.3s;text-decoration:none}
+    .nav-btn:hover{box-shadow:0 0 20px rgba(0,245,255,0.3);transform:translateY(-1px)}
+
+    /* ═══ HERO ═══ */
+    .hero{display:flex;align-items:center;justify-content:center;min-height:100vh;padding:100px 48px 60px;gap:60px;flex-wrap:wrap;position:relative;overflow:hidden}
+    .hero-text{max-width:600px;flex:1;min-width:320px}
+    .hero-badge{display:inline-block;color:var(--cyan);border:1px solid rgba(0,245,255,0.3);background:rgba(0,245,255,0.05);font-family:var(--font-hd);font-size:0.55rem;letter-spacing:3px;padding:6px 16px;border-radius:20px;margin-bottom:28px}
+    .hero-title{font-family:var(--font-hd);font-size:clamp(2.2rem,5vw,4rem);font-weight:900;line-height:1.1;letter-spacing:2px;margin-bottom:20px}
+    .hero-sub{font-size:1.05rem;color:var(--muted);line-height:1.8;margin-bottom:36px;max-width:480px}
+    .hero-cta{display:flex;gap:16px;flex-wrap:wrap}
+    .btn-lg{padding:14px 32px;font-family:var(--font-hd);font-size:0.75rem;letter-spacing:2px;cursor:pointer;transition:all 0.3s;border-radius:4px}
+    .btn-cyan{background:linear-gradient(135deg,rgba(0,245,255,0.15),rgba(155,93,229,0.1));border:1px solid var(--cyan);color:var(--cyan)}
+    .btn-cyan:hover{box-shadow:0 0 30px rgba(0,245,255,0.3);transform:translateY(-2px)}
+    .btn-ghost{background:transparent;border:1px solid rgba(255,255,255,0.12);color:var(--muted)}
+    .btn-ghost:hover{border-color:var(--cyan);color:var(--cyan)}
+
+    /* 3D Robot Visual */
+    .hero-visual{flex:1;min-width:300px;max-width:500px;display:flex;align-items:center;justify-content:center;position:relative}
+    .robot-scene{width:380px;height:380px;position:relative;perspective:800px}
+    .robot-body{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;animation:robotHover 4s ease-in-out infinite}
+    @keyframes robotHover{0%,100%{transform:translateY(0) rotateY(0deg)}50%{transform:translateY(-15px) rotateY(5deg)}}
+    .robot-svg{width:240px;height:240px;filter:drop-shadow(0 0 40px rgba(0,245,255,0.3))}
+    .orbit-ring{position:absolute;border-radius:50%;border:1px solid;animation:spinRing linear infinite}
+    .ring-1{inset:20px;border-color:rgba(0,245,255,0.15);animation-duration:12s}
+    .ring-2{inset:0;border-color:rgba(155,93,229,0.1);animation-duration:18s;animation-direction:reverse}
+    @keyframes spinRing{from{transform:rotateX(65deg) rotateZ(0deg)}to{transform:rotateX(65deg) rotateZ(360deg)}}
+    .orbit-dot{position:absolute;width:8px;height:8px;border-radius:50%;animation:dotPulse 2s infinite}
+    @keyframes dotPulse{0%,100%{opacity:1;box-shadow:0 0 6px currentColor}50%{opacity:0.4}}
+    .scan-line{position:absolute;left:50%;top:10%;height:80%;width:2px;background:linear-gradient(to bottom,transparent,var(--cyan),transparent);opacity:0.3;animation:scanMove 3s ease-in-out infinite;transform-origin:top}
+    @keyframes scanMove{0%,100%{transform:translateX(-60px)}50%{transform:translateX(60px)}}
+
+    /* ═══ STATS BAR ═══ */
+    .stats-bar{display:flex;justify-content:center;gap:60px;padding:48px 20px;border-top:1px solid rgba(255,255,255,0.05);border-bottom:1px solid rgba(255,255,255,0.05);background:rgba(255,255,255,0.01);flex-wrap:wrap}
+    .stat-item{text-align:center}
+    .stat-num{font-family:var(--font-hd);font-size:2.2rem;font-weight:900;display:block}
+    .stat-lbl{font-size:0.65rem;letter-spacing:2px;color:var(--muted);margin-top:4px;display:block}
+
+    /* ═══ SIMULATORS OVERVIEW ═══ */
+    .overview{padding:80px 48px;max-width:1200px;margin:0 auto}
+    .section-label{font-family:var(--font-hd);font-size:0.6rem;letter-spacing:4px;color:var(--cyan);text-align:center;margin-bottom:12px}
+    .section-title{font-family:var(--font-hd);font-size:clamp(1.4rem,3vw,2rem);font-weight:700;text-align:center;margin-bottom:12px}
+    .section-sub{color:var(--muted);text-align:center;font-size:0.9rem;max-width:520px;margin:0 auto 56px}
+    .sim-overview-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:24px}
+
+    .ov-card{background:var(--glass);border:1px solid var(--glass-b);backdrop-filter:blur(16px);border-radius:16px;padding:32px;transition:all 0.4s cubic-bezier(0.175,0.885,0.32,1.275);position:relative;overflow:hidden}
+    .ov-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;opacity:0;transition:opacity 0.3s}
+    .ov-card:hover{transform:translateY(-8px)}
+    .ov-card:hover::before{opacity:1}
+    .ov-card.c1::before{background:linear-gradient(90deg,transparent,var(--cyan),transparent)}
+    .ov-card.c1:hover{border-color:rgba(0,245,255,0.35);box-shadow:0 16px 48px rgba(0,245,255,0.08)}
+    .ov-card.c2::before{background:linear-gradient(90deg,transparent,var(--violet),transparent)}
+    .ov-card.c2{border-color:rgba(155,93,229,0.15)}
+    .ov-card.c2:hover{border-color:rgba(155,93,229,0.4);box-shadow:0 16px 48px rgba(155,93,229,0.08)}
+    .ov-card.c3::before{background:linear-gradient(90deg,transparent,var(--amber),transparent)}
+    .ov-card.c3{border-color:rgba(245,159,11,0.15)}
+    .ov-card.c3:hover{border-color:rgba(245,159,11,0.4);box-shadow:0 16px 48px rgba(245,159,11,0.08)}
+
+    .ov-icon{width:56px;height:56px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:1.8rem;margin-bottom:20px}
+    .ic1{background:rgba(0,245,255,0.1);border:1px solid rgba(0,245,255,0.2)}
+    .ic2{background:rgba(155,93,229,0.1);border:1px solid rgba(155,93,229,0.2)}
+    .ic3{background:rgba(245,159,11,0.1);border:1px solid rgba(245,159,11,0.2)}
+    .ov-name{font-family:var(--font-hd);font-size:1.1rem;letter-spacing:2px;margin-bottom:10px}
+    .ov-desc{color:var(--muted);font-size:0.82rem;line-height:1.7;margin-bottom:20px}
+    .ov-tags{display:flex;flex-wrap:wrap;gap:6px}
+    .ov-tag{font-size:0.65rem;padding:3px 10px;border-radius:20px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);color:var(--muted)}
+
+    /* ═══ TECH SECTION ═══ */
+    .tech-strip{display:flex;justify-content:center;gap:40px;flex-wrap:wrap;padding:48px 20px;border-top:1px solid rgba(255,255,255,0.05)}
+    .tech-chip{display:flex;align-items:center;gap:10px;background:var(--glass);border:1px solid var(--glass-b);border-radius:10px;padding:12px 20px;backdrop-filter:blur(10px)}
+    .tech-chip .tc-icon{font-size:1.3rem}
+    .tech-chip .tc-label{font-family:var(--font-hd);font-size:0.55rem;letter-spacing:2px;color:var(--cyan)}
+    .tech-chip .tc-sub{font-size:0.7rem;color:var(--muted)}
+
+    /* ═══ CTA SECTION ═══ */
+    .cta-section{padding:80px 20px;text-align:center;position:relative}
+    .cta-section .cta-title{font-family:var(--font-hd);font-size:clamp(1.5rem,3vw,2.2rem);font-weight:700;margin-bottom:16px}
+    .cta-section .cta-sub{color:var(--muted);font-size:0.95rem;margin-bottom:36px}
+    .btn-xl{padding:16px 48px;font-family:var(--font-hd);font-size:0.85rem;letter-spacing:3px;cursor:pointer;border:1px solid var(--cyan);color:var(--cyan);background:linear-gradient(135deg,rgba(0,245,255,0.15),rgba(155,93,229,0.15));transition:all 0.3s;border-radius:6px}
+    .btn-xl:hover{box-shadow:0 0 40px rgba(0,245,255,0.3),0 0 80px rgba(155,93,229,0.15);transform:translateY(-2px)}
+
+    /* Footer */
+    .landing-footer{text-align:center;padding:32px 20px;color:var(--muted);font-size:0.75rem;border-top:1px solid rgba(255,255,255,0.05)}
+    .landing-footer strong{color:var(--text)}
+
+    /* ═══ LOGIN SCREEN ═══ */
+    #screen-login{display:flex;align-items:center;justify-content:center;min-height:100vh}
+    .auth-card{background:var(--glass);border:1px solid var(--glass-b);backdrop-filter:blur(24px);border-radius:20px;padding:48px 44px;width:100%;max-width:420px;position:relative;box-shadow:0 0 60px rgba(0,245,255,0.06),0 40px 80px rgba(0,0,0,0.5)}
+    .auth-card::before{content:'';position:absolute;top:0;left:20%;right:20%;height:1px;background:linear-gradient(90deg,transparent,var(--cyan),transparent)}
+    .auth-logo{font-family:var(--font-hd);font-size:1rem;letter-spacing:6px;color:var(--cyan);text-align:center;margin-bottom:32px}
+    .auth-title{font-family:var(--font-hd);font-size:1.4rem;font-weight:700;text-align:center;margin-bottom:8px}
+    .auth-sub{color:var(--muted);font-size:0.85rem;text-align:center;margin-bottom:36px}
+    .input-group{margin-bottom:20px}
+    .input-group label{display:block;font-size:0.7rem;letter-spacing:2px;color:var(--muted);margin-bottom:8px;font-family:var(--font-hd)}
+    .auth-input{width:100%;background:rgba(0,0,0,0.4);border:1px solid rgba(0,245,255,0.15);border-radius:8px;padding:12px 16px;color:var(--text);font-family:var(--font-body);font-size:0.9rem;outline:none;transition:border-color 0.2s,box-shadow 0.2s}
+    .auth-input:focus{border-color:var(--cyan);box-shadow:0 0 0 3px rgba(0,245,255,0.08)}
+    .remember-row{display:flex;align-items:center;gap:10px;margin-bottom:24px}
+    .remember-row input[type="checkbox"]{accent-color:var(--cyan);width:14px;height:14px}
+    .remember-row label{font-size:0.8rem;color:var(--muted);cursor:pointer}
+    .auth-btn{width:100%;background:linear-gradient(135deg,rgba(0,245,255,0.2),rgba(155,93,229,0.2));border:1px solid var(--cyan);color:var(--cyan);font-family:var(--font-hd);font-size:0.8rem;letter-spacing:3px;padding:14px;cursor:pointer;border-radius:8px;transition:all 0.3s}
+    .auth-btn:hover{background:linear-gradient(135deg,rgba(0,245,255,0.3),rgba(155,93,229,0.3));box-shadow:0 0 30px rgba(0,245,255,0.25);transform:translateY(-1px)}
+    .auth-hint{margin-top:20px;text-align:center;font-size:0.75rem;color:var(--muted)}
+    .auth-hint code{background:rgba(0,245,255,0.07);border:1px solid rgba(0,245,255,0.15);border-radius:4px;padding:2px 8px;color:var(--cyan);letter-spacing:1px}
+    .back-link{display:block;text-align:center;margin-top:24px;font-size:0.8rem;color:var(--muted);cursor:pointer;transition:color 0.2s;background:none;border:none}
+    .back-link:hover{color:var(--cyan)}
+
+    /* ═══ HUB SCREEN ═══ */
+    .hub-nav{position:sticky;top:0;z-index:100;display:flex;align-items:center;justify-content:space-between;padding:0 48px;height:64px;background:rgba(5,8,16,0.9);backdrop-filter:blur(16px);border-bottom:1px solid rgba(0,245,255,0.08)}
+    .hub-brand{font-family:var(--font-hd);font-size:1.1rem;letter-spacing:4px}
+    .hub-brand span{color:var(--cyan)}
+    .hub-user-row{display:flex;align-items:center;gap:16px}
+    .hub-avatar{width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,rgba(0,245,255,0.3),rgba(155,93,229,0.3));border:1px solid var(--glass-b);display:flex;align-items:center;justify-content:center;font-family:var(--font-hd);font-size:0.75rem;color:var(--cyan)}
+    .hub-username{font-size:0.85rem;color:var(--muted)}
+    .logout-btn{background:transparent;border:1px solid rgba(255,255,255,0.1);color:var(--muted);font-family:var(--font-hd);font-size:0.65rem;letter-spacing:2px;padding:6px 16px;cursor:pointer;border-radius:6px;transition:all 0.2s}
+    .logout-btn:hover{border-color:rgba(255,100,100,0.4);color:#ff7777}
+    .hub-hero{padding:60px 48px 40px}
+    .hub-greeting{font-family:var(--font-hd);font-size:clamp(1.5rem,3vw,2.2rem);font-weight:700;margin-bottom:8px}
+    .hub-tagline{color:var(--muted);font-size:0.95rem}
+
+    .sim-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:28px;padding:0 48px 80px}
+    .sim-card{background:var(--glass);border-radius:20px;padding:36px;border:1px solid var(--glass-b);backdrop-filter:blur(20px);cursor:pointer;text-decoration:none;color:inherit;display:block;transition:all 0.4s cubic-bezier(0.175,0.885,0.32,1.275);position:relative;overflow:hidden}
+    .sim-card:hover{transform:translateY(-10px) scale(1.01)}
+    .sim-card.slam{border-color:rgba(0,245,255,0.2)}.sim-card.slam:hover{border-color:rgba(0,245,255,0.5);box-shadow:0 20px 60px rgba(0,245,255,0.12)}
+    .sim-card.nexus{border-color:rgba(155,93,229,0.2)}.sim-card.nexus:hover{border-color:rgba(155,93,229,0.5);box-shadow:0 20px 60px rgba(155,93,229,0.12)}
+    .sim-card.hive{border-color:rgba(245,159,11,0.2)}.sim-card.hive:hover{border-color:rgba(245,159,11,0.5);box-shadow:0 20px 60px rgba(245,159,11,0.10)}
+    .sim-top-bar{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px}
+    .sim-icon-wrap{width:52px;height:52px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:1.6rem}
+    .sim-status{display:flex;align-items:center;gap:6px;font-size:0.6rem;letter-spacing:2px}
+    .status-dot{width:6px;height:6px;border-radius:50%;animation:blink 2s infinite}
+    @keyframes blink{0%,100%{opacity:1}50%{opacity:0.3}}
+    .sim-name{font-family:var(--font-hd);font-size:1.2rem;font-weight:700;letter-spacing:2px;margin-bottom:8px}
+    .sim-desc{color:var(--muted);font-size:0.82rem;line-height:1.7;margin-bottom:20px}
+    .sim-features{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:24px}
+    .feat-tag{font-size:0.65rem;padding:3px 10px;border-radius:20px}
+    .ft-c{background:rgba(0,245,255,0.07);border:1px solid rgba(0,245,255,0.2);color:var(--cyan)}
+    .ft-v{background:rgba(155,93,229,0.07);border:1px solid rgba(155,93,229,0.2);color:var(--violet)}
+    .ft-a{background:rgba(245,159,11,0.07);border:1px solid rgba(245,159,11,0.2);color:var(--amber)}
+    .ft-g{background:rgba(16,185,129,0.07);border:1px solid rgba(16,185,129,0.2);color:var(--green)}
+    .sim-launch-btn{width:100%;padding:12px;font-family:var(--font-hd);font-size:0.7rem;letter-spacing:3px;border-radius:10px;cursor:pointer;transition:all 0.3s;display:flex;align-items:center;justify-content:center;gap:8px}
+    .lc{background:rgba(0,245,255,0.1);border:1px solid rgba(0,245,255,0.3);color:var(--cyan)}
+    .lv{background:rgba(155,93,229,0.1);border:1px solid rgba(155,93,229,0.3);color:var(--violet)}
+    .la{background:rgba(245,159,11,0.1);border:1px solid rgba(245,159,11,0.3);color:var(--amber)}
+    .sim-card:hover .sim-launch-btn{box-shadow:0 0 20px currentColor}
+    .hub-footer{padding:24px 48px;border-top:1px solid rgba(255,255,255,0.05);display:flex;align-items:center;justify-content:space-between;color:var(--muted);font-size:0.75rem;flex-wrap:wrap;gap:12px}
+  </style>
 </head>
-
 <body>
-  <!-- Premium Landing Page -->
-  <div id="landingPage" class="full-page premium-bg">
-    <div class="grid-overlay"></div>
-    <div class="glow-orb primary"></div>
-    <div class="glow-orb secondary"></div>
 
-    <div class="landing-content split-layout">
-      <!-- Left: Text content -->
-      <div class="text-content">
-        <div class="badge">v3.0 — Advanced Robotics</div>
-        <h1 class="hero-title">Master <span class="text-gradient">SLAM</span><br />Algorithms</h1>
-        <p class="hero-desc">Experience autonomous navigation, real-time mapping, and advanced pathfinding algorithms
-          visualized beautifully.</p>
+<!-- ═══════════════════════════════════════
+     SCREEN 1: LANDING PAGE
+═══════════════════════════════════════ -->
+<div id="screen-landing" class="screen premium-bg">
+  <div class="grid-overlay"></div>
+  <div class="glow-orb a"></div>
+  <div class="glow-orb b"></div>
 
-        <div class="hero-features">
-          <div class="feature"><span class="icon">🧮</span> Bayesian Mapping</div>
-          <div class="feature"><span class="icon">🌐</span> 3D Point Cloud</div>
-          <div class="feature"><span class="icon">🔗</span> Loop Closure</div>
-        </div>
+  <!-- Navbar -->
+  <nav class="navbar">
+    <div class="nav-brand"><span>TOTO</span> // SUITE</div>
+    <div class="nav-links">
+      <a href="#overview">Simulators</a>
+      <a href="#tech">Tech</a>
+      <a id="nav-login-btn" class="nav-btn" href="#login">SIGN IN →</a>
+    </div>
+  </nav>
 
-        <div class="hero-cta-row">
-          <button id="btnGetStarted" class="primary-btn glow-hover">
-            Launch Simulator <span class="arrow">→</span>
-          </button>
-          <button id="btnDonate" class="donate-btn">
-            <span class="icon">💖</span> Support Project
-          </button>
-          <a href="#features-section" class="secondary-link-btn">Explore Features ↓</a>
-        </div>
+  <!-- Hero -->
+  <section class="hero">
+    <div class="hero-text">
+      <div class="hero-badge">v3.0 — ROBOTICS SIMULATION PLATFORM</div>
+      <h1 class="hero-title">The Future of<br/><span class="gradient-text">Robotics Simulation</span></h1>
+      <p class="hero-sub">Three powerful engines in one unified platform. Master SLAM mapping, robotic arm kinematics, and industrial swarm logistics — all in your browser.</p>
+      <div class="hero-cta">
+        <button class="btn-lg btn-cyan" onclick="showScreen('screen-login')">GET STARTED →</button>
+        <a href="#overview" class="btn-lg btn-ghost">EXPLORE ↓</a>
       </div>
+    </div>
 
-      <!-- Right: Animated Visual -->
-      <div class="visual-content">
-        <div class="robot-container">
-          <div class="scan-ring"></div>
-          <div class="scan-ring delayed"></div>
-          <svg class="floating-robot" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+    <!-- 3D Robot Visual -->
+    <div class="hero-visual">
+      <div class="robot-scene">
+        <div class="orbit-ring ring-1"></div>
+        <div class="orbit-ring ring-2"></div>
+        <div class="scan-line"></div>
+        <div class="robot-body">
+          <svg class="robot-svg" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
             <defs>
-              <linearGradient id="robotGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" stop-color="#3b82f6" />
-                <stop offset="100%" stop-color="#8b5cf6" />
-              </linearGradient>
-              <filter id="glow">
-                <feGaussianBlur stdDeviation="5" result="coloredBlur" />
-                <feMerge>
-                  <feMergeNode in="coloredBlur" />
-                  <feMergeNode in="SourceGraphic" />
-                </feMerge>
-              </filter>
+              <linearGradient id="rg1" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#00F5FF"/><stop offset="100%" stop-color="#9B5DE5"/></linearGradient>
+              <linearGradient id="rg2" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#9B5DE5"/><stop offset="100%" stop-color="#00F5FF"/></linearGradient>
+              <filter id="glow"><feGaussianBlur stdDeviation="4" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+              <filter id="glow2"><feGaussianBlur stdDeviation="6" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
             </defs>
-            <path d="M70 80 Q100 40 130 80" fill="none" stroke="#60a5fa" stroke-width="6" stroke-linecap="round" />
-            <circle cx="100" cy="70" r="10" fill="#60a5fa" filter="url(#glow)">
-              <animate attributeName="opacity" values="0.5;1;0.5" dur="2s" repeatCount="indefinite" />
-            </circle>
-            <rect x="50" y="80" width="100" height="70" rx="20" fill="url(#robotGrad)" filter="url(#glow)" />
-            <rect x="40" y="100" width="20" height="40" rx="5" fill="#1e293b" />
-            <rect x="140" y="100" width="20" height="40" rx="5" fill="#1e293b" />
-            <line x1="80" y1="120" x2="120" y2="120" stroke="#0f172a" stroke-width="4" />
+            <!-- Head antenna -->
+            <line x1="100" y1="35" x2="100" y2="20" stroke="#00F5FF" stroke-width="2" filter="url(#glow)"/>
+            <circle cx="100" cy="16" r="4" fill="#00F5FF" filter="url(#glow)"><animate attributeName="opacity" values="0.4;1;0.4" dur="1.5s" repeatCount="indefinite"/></circle>
+            <!-- Head -->
+            <rect x="68" y="35" width="64" height="40" rx="12" fill="url(#rg1)" filter="url(#glow)"/>
+            <!-- Eyes -->
+            <circle cx="88" cy="52" r="6" fill="#050810"/><circle cx="88" cy="51" r="3" fill="#00F5FF" filter="url(#glow)"><animate attributeName="r" values="3;4;3" dur="2s" repeatCount="indefinite"/></circle>
+            <circle cx="112" cy="52" r="6" fill="#050810"/><circle cx="112" cy="51" r="3" fill="#00F5FF" filter="url(#glow)"><animate attributeName="r" values="3;4;3" dur="2s" begin="0.3s" repeatCount="indefinite"/></circle>
+            <!-- Mouth -->
+            <rect x="90" y="62" width="20" height="3" rx="1.5" fill="rgba(0,245,255,0.6)"><animate attributeName="width" values="20;14;20" dur="3s" repeatCount="indefinite"/><animate attributeName="x" values="90;93;90" dur="3s" repeatCount="indefinite"/></rect>
+            <!-- Neck -->
+            <rect x="94" y="75" width="12" height="10" rx="2" fill="#1a2035"/>
+            <!-- Body -->
+            <rect x="55" y="85" width="90" height="60" rx="16" fill="url(#rg2)" filter="url(#glow)"/>
+            <!-- Chest plate -->
+            <rect x="75" y="95" width="50" height="30" rx="8" fill="rgba(5,8,16,0.6)" stroke="rgba(0,245,255,0.3)" stroke-width="1"/>
+            <!-- Chest lights -->
+            <circle cx="90" cy="108" r="3" fill="#00F5FF"><animate attributeName="opacity" values="0.3;1;0.3" dur="1.2s" repeatCount="indefinite"/></circle>
+            <circle cx="100" cy="108" r="3" fill="#9B5DE5"><animate attributeName="opacity" values="1;0.3;1" dur="1.2s" repeatCount="indefinite"/></circle>
+            <circle cx="110" cy="108" r="3" fill="#F59E0B"><animate attributeName="opacity" values="0.3;1;0.3" dur="1.2s" begin="0.4s" repeatCount="indefinite"/></circle>
+            <!-- Arms -->
+            <rect x="35" y="90" width="18" height="45" rx="8" fill="#1a2035" stroke="rgba(0,245,255,0.2)" stroke-width="1"/>
+            <rect x="147" y="90" width="18" height="45" rx="8" fill="#1a2035" stroke="rgba(155,93,229,0.2)" stroke-width="1"/>
+            <!-- Arm joints -->
+            <circle cx="44" cy="92" r="5" fill="#0a0f1e" stroke="rgba(0,245,255,0.3)" stroke-width="1"/>
+            <circle cx="156" cy="92" r="5" fill="#0a0f1e" stroke="rgba(155,93,229,0.3)" stroke-width="1"/>
+            <!-- Hands -->
+            <circle cx="44" cy="140" r="7" fill="#0a0f1e" stroke="rgba(0,245,255,0.3)" stroke-width="1"/>
+            <circle cx="156" cy="140" r="7" fill="#0a0f1e" stroke="rgba(155,93,229,0.3)" stroke-width="1"/>
+            <!-- Legs -->
+            <rect x="70" y="145" width="22" height="35" rx="6" fill="#1a2035" stroke="rgba(0,245,255,0.15)" stroke-width="1"/>
+            <rect x="108" y="145" width="22" height="35" rx="6" fill="#1a2035" stroke="rgba(155,93,229,0.15)" stroke-width="1"/>
+            <!-- Feet -->
+            <rect x="64" y="178" width="34" height="10" rx="5" fill="url(#rg1)" opacity="0.7"/>
+            <rect x="102" y="178" width="34" height="10" rx="5" fill="url(#rg2)" opacity="0.7"/>
           </svg>
         </div>
+        <!-- Floating data particles -->
+        <div class="orbit-dot" style="top:15%;left:10%;color:var(--cyan);width:6px;height:6px;background:var(--cyan)"></div>
+        <div class="orbit-dot" style="top:70%;right:5%;color:var(--violet);width:8px;height:8px;background:var(--violet);animation-delay:-0.7s"></div>
+        <div class="orbit-dot" style="bottom:20%;left:20%;color:var(--amber);width:5px;height:5px;background:var(--amber);animation-delay:-1.4s"></div>
       </div>
     </div>
+  </section>
 
-    <!-- ── Features Showcase Section ── -->
-    <div id="features-section" class="features-showcase">
-      <div class="features-header">
-        <div class="section-badge">All Features</div>
-        <h2 class="features-title">Everything You Need to <span class="text-gradient">Learn Robotics</span></h2>
-        <p class="features-subtitle">A professional-grade simulator packed with real-world SLAM algorithms, interactive
-          controls, and stunning visualizations.</p>
-      </div>
-
-      <div class="feature-category">
-        <h3 class="category-title"><span class="cat-dot slam"></span>Core SLAM</h3>
-        <div class="features-grid">
-          <div class="feature-card">
-            <div class="feature-card-icon">📡</div>
-            <h4>LiDAR Sensor Simulation</h4>
-            <p>180° forward-facing LiDAR with adjustable ray density, sensor noise, and real-time distance measurements
-              in metres.</p>
-          </div>
-          <div class="feature-card">
-            <div class="feature-card-icon">🧮</div>
-            <h4>Bayesian Log-Odds Grid</h4>
-            <p>Professional-grade occupancy mapping using Bayesian probability. Watch cells gain confidence with
-              gradient shading as the robot scans.</p>
-          </div>
-          <div class="feature-card">
-            <div class="feature-card-icon">📈</div>
-            <h4>Odometry Drift</h4>
-            <p>Simulate real-world wheel encoder errors. The believed position diverges from ground truth — the
-              fundamental challenge of localization.</p>
-          </div>
-          <div class="feature-card">
-            <div class="feature-card-icon">🔗</div>
-            <h4>Loop Closure Detection</h4>
-            <p>Scan-matching keyframe system detects revisited areas and corrects accumulated drift — the defining
-              feature of real SLAM.</p>
-          </div>
-        </div>
-      </div>
-
-      <div class="feature-category">
-        <h3 class="category-title"><span class="cat-dot nav"></span>Navigation & Control</h3>
-        <div class="features-grid">
-          <div class="feature-card">
-            <div class="feature-card-icon">⚡</div>
-            <h4>A* Pathfinding</h4>
-            <p>Heuristic shortest path through the occupancy grid with wall proximity penalties for safe navigation.</p>
-          </div>
-          <div class="feature-card">
-            <div class="feature-card-icon">🔍</div>
-            <h4>Dijkstra's Algorithm</h4>
-            <p>Guaranteed optimal path without heuristics. Compare with A* to understand the speed vs. optimality
-              tradeoff.</p>
-          </div>
-          <div class="feature-card">
-            <div class="feature-card-icon">🐛</div>
-            <h4>Bug2 Wall-Following</h4>
-            <p>A reactive algorithm that follows walls to reach goals. Works without a map — perfect for unknown
-              environments.</p>
-          </div>
-          <div class="feature-card">
-            <div class="feature-card-icon">🧭</div>
-            <h4>Frontier Exploration</h4>
-            <p>Autonomous exploration that finds boundaries between known and unknown space, mapping everything
-              systematically.</p>
-          </div>
-          <div class="feature-card">
-            <div class="feature-card-icon">🚗</div>
-            <h4>3 Drive Models</h4>
-            <p>Differential (tank), Ackermann (car-like), and Holonomic (omnidirectional) — each with unique kinematics.
-            </p>
-          </div>
-        </div>
-      </div>
-
-      <div class="feature-category">
-        <h3 class="category-title"><span class="cat-dot adv"></span>Advanced Systems</h3>
-        <div class="features-grid">
-          <div class="feature-card">
-            <div class="feature-card-icon">🎯</div>
-            <h4>Particle Filter (MCL)</h4>
-            <p>Monte Carlo Localization with adjustable particle count. Watch hypotheses converge as the robot gathers
-              evidence.</p>
-          </div>
-          <div class="feature-card">
-            <div class="feature-card-icon">🔮</div>
-            <h4>Dynamic Obstacles</h4>
-            <p>Moving walls, sliding doors, and orbiting objects test the SLAM system's ability to handle changing
-              environments.</p>
-          </div>
-          <div class="feature-card">
-            <div class="feature-card-icon">🌫️</div>
-            <h4>Fog of War</h4>
-            <p>Unexplored areas remain hidden on the SLAM map, revealing only what the robot has scanned — just like
-              reality.</p>
-          </div>
-        </div>
-      </div>
-
-      <div class="feature-category">
-        <h3 class="category-title"><span class="cat-dot tools"></span>Tools & Visualization</h3>
-        <div class="features-grid">
-          <div class="feature-card">
-            <div class="feature-card-icon">🌐</div>
-            <h4>3D LiDAR Point Cloud</h4>
-            <p>Interactive Three.js visualization with distance-colored points, orbit camera, and live scan rays in 3D
-              space.</p>
-          </div>
-          <div class="feature-card">
-            <div class="feature-card-icon">📊</div>
-            <h4>Live Sensor Charts</h4>
-            <p>Real-time polar chart of LiDAR distances plus a Sensor HUD showing pose, min/max distances, and compass.
-            </p>
-          </div>
-          <div class="feature-card">
-            <div class="feature-card-icon">🏗️</div>
-            <h4>Map Builder & Presets</h4>
-            <p>Draw custom walls or load preset environments — Maze, Warehouse, Office, L-Shape, Open Field.
-              Export/import as JSON.</p>
-          </div>
-          <div class="feature-card">
-            <div class="feature-card-icon">📖</div>
-            <h4>Interactive Tutorial</h4>
-            <p>Guided 11-step walkthrough teaching every SLAM concept with auto-scrolling, view switching, and clear
-              explanations.</p>
-          </div>
-          <div class="feature-card">
-            <div class="feature-card-icon">🔊</div>
-            <h4>Sound Effects</h4>
-            <p>Subtle audio feedback for LiDAR sweeps, collisions, goal reached, and exploration complete.</p>
-          </div>
-        </div>
-      </div>
-
-      <div class="features-cta">
-        <button class="primary-btn glow-hover features-launch-btn"
-          onclick="document.getElementById('btnGetStarted').click()">
-          Start Exploring Now <span class="arrow">→</span>
-        </button>
-      </div>
-
-      <!-- ── Footer ── -->
-      <footer class="landing-footer">
-        <div class="footer-content">
-          <p class="creator-text">
-            Created by <strong>Yash Surve</strong><br>
-            <span class="subtitle">An Automation and Robotics Engineering student from MESWCOE</span>
-          </p>
-          <div class="social-links">
-            <a href="mailto:yashusurve2005@gmail.com" class="social-link" title="Email Me">
-              <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none"
-                stroke-linecap="round" stroke-linejoin="round">
-                <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
-                <polyline points="22,6 12,13 2,6"></polyline>
-              </svg>
-            </a>
-            <a href="https://github.com/Yashs2024" target="_blank" rel="noopener noreferrer" class="social-link">
-              <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none"
-                stroke-linecap="round" stroke-linejoin="round">
-                <path
-                  d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22">
-                </path>
-              </svg>
-            </a>
-            <a href="https://www.linkedin.com/in/yash-surve-3b6a72253" target="_blank" rel="noopener noreferrer"
-              class="social-link">
-              <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none"
-                stroke-linecap="round" stroke-linejoin="round">
-                <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"></path>
-                <rect x="2" y="9" width="4" height="12"></rect>
-                <circle cx="4" cy="4" r="2"></circle>
-              </svg>
-            </a>
-          </div>
-        </div>
-      </footer>
-    </div>
+  <!-- Stats -->
+  <div class="stats-bar">
+    <div class="stat-item"><span class="stat-num gradient-text">3</span><span class="stat-lbl">SIMULATORS</span></div>
+    <div class="stat-item"><span class="stat-num" style="color:var(--cyan)">20+</span><span class="stat-lbl">ALGORITHMS</span></div>
+    <div class="stat-item"><span class="stat-num" style="color:var(--violet)">6-DOF</span><span class="stat-lbl">ROBOT ARM</span></div>
+    <div class="stat-item"><span class="stat-num" style="color:var(--amber)">2.5D</span><span class="stat-lbl">ISOMETRIC ENGINE</span></div>
+    <div class="stat-item"><span class="stat-num" style="color:var(--green)">100%</span><span class="stat-lbl">BROWSER BASED</span></div>
   </div>
 
-  <!-- Login Page -->
-  <div id="loginPage" class="full-page" style="display: none;">
+  <!-- Simulators Overview -->
+  <section class="overview" id="overview">
+    <div class="section-label">THE PLATFORM</div>
+    <h2 class="section-title">Three Engines, <span class="gradient-text">One Platform</span></h2>
+    <p class="section-sub">Each simulator is a standalone environment built for education, research, and experimentation.</p>
+    <div class="sim-overview-grid">
+      <div class="ov-card c1">
+        <div class="ov-icon ic1">🤖</div>
+        <div class="ov-name">SLAM SIMULATOR</div>
+        <div class="ov-desc">Real-time LiDAR mapping with Bayesian occupancy grids, A* pathfinding, particle filters, loop closure, and autonomous frontier exploration.</div>
+        <div class="ov-tags"><span class="ov-tag">LiDAR Sensor</span><span class="ov-tag">Bayesian Grid</span><span class="ov-tag">A* / Dijkstra</span><span class="ov-tag">Particle Filter</span><span class="ov-tag">3D Point Cloud</span></div>
+      </div>
+      <div class="ov-card c2">
+        <div class="ov-icon ic2">⚙️</div>
+        <div class="ov-name">NEXUS ENGINE</div>
+        <div class="ov-desc">6-DOF robot arm with FK/IK solvers, LSPB trajectory planning, dynamic torque analysis, and Reynolds Boids swarm intelligence simulation.</div>
+        <div class="ov-tags"><span class="ov-tag">Forward Kinematics</span><span class="ov-tag">IK Solver</span><span class="ov-tag">LSPB Trajectory</span><span class="ov-tag">Boids Swarm</span><span class="ov-tag">Torque Charts</span></div>
+      </div>
+      <div class="ov-card c3">
+        <div class="ov-icon ic3">🏭</div>
+        <div class="ov-name">HIVE LOGISTICS</div>
+        <div class="ov-desc">Isometric 2.5D warehouse simulation with multi-robot task assignment, battery management, A* coordination, and operational analytics.</div>
+        <div class="ov-tags"><span class="ov-tag">Task Assignment</span><span class="ov-tag">A* Routing</span><span class="ov-tag">Battery Mgmt</span><span class="ov-tag">Live Analytics</span><span class="ov-tag">Isometric 2.5D</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Tech Strip -->
+  <div class="tech-strip" id="tech">
+    <div class="tech-chip"><span class="tc-icon">🧠</span><div><span class="tc-label">AI ALGORITHMS</span><br/><span class="tc-sub">A*, Dijkstra, MCL, Boids</span></div></div>
+    <div class="tech-chip"><span class="tc-icon">🌐</span><div><span class="tc-label">3D RENDERING</span><br/><span class="tc-sub">Three.js / Canvas 2D</span></div></div>
+    <div class="tech-chip"><span class="tc-icon">📊</span><div><span class="tc-label">LIVE ANALYTICS</span><br/><span class="tc-sub">Chart.js Real-time</span></div></div>
+    <div class="tech-chip"><span class="tc-icon">⚡</span><div><span class="tc-label">FAST ENGINE</span><br/><span class="tc-sub">60 FPS Simulation</span></div></div>
+  </div>
+
+  <!-- CTA -->
+  <section class="cta-section">
+    <h2 class="cta-title">Ready to <span class="gradient-text">Simulate</span>?</h2>
+    <p class="cta-sub">Sign in and start exploring the robotics simulation platform.</p>
+    <button class="btn-xl" onclick="showScreen('screen-login')">SIGN IN & LAUNCH →</button>
+  </section>
+
+  <footer class="landing-footer">
+    <span>TOTO Robotics Suite · Built by <strong>Yash Surve</strong> · MESWCOE Automation & Robotics</span>
+  </footer>
+</div>
+
+<!-- ═══════════════════════════════════════
+     SCREEN 2: LOGIN
+═══════════════════════════════════════ -->
+<div id="screen-login" class="screen premium-bg hidden">
+  <div class="grid-overlay"></div>
+  <div class="glow-orb a"></div>
+  <div class="glow-orb b"></div>
+  <div style="display:flex;align-items:center;justify-content:center;min-height:100vh;padding:20px">
     <div class="auth-card">
-      <div class="glow-orb small"></div>
-      <h2>Welcome Back</h2>
-      <p>Sign in to access your simulations</p>
-      <form id="loginForm">
+      <div class="auth-logo">TOTO // SUITE</div>
+      <div class="auth-title">Welcome Back</div>
+      <div class="auth-sub">Sign in to access your simulation environments</div>
+      <form id="login-form" novalidate>
         <div class="input-group">
-          <label>Email</label>
-          <input type="email" value="yash@example.com" class="auth-input" required />
+          <label for="login-email">EMAIL</label>
+          <input type="email" id="login-email" class="auth-input" placeholder="admin@toto.io" value="admin@toto.io" autocomplete="username"/>
         </div>
         <div class="input-group">
-          <label>Password</label>
-          <input type="password" value="password123" class="auth-input" required />
+          <label for="login-pass">PASSWORD</label>
+          <input type="password" id="login-pass" class="auth-input" placeholder="••••••••" value="password123" autocomplete="current-password"/>
         </div>
-        <button type="submit" id="btnLogin" class="primary-btn w-full">Sign In</button>
+        <div class="remember-row">
+          <input type="checkbox" id="remember-me" checked/>
+          <label for="remember-me">Remember me</label>
+        </div>
+        <button type="submit" class="auth-btn" id="login-btn">SIGN IN →</button>
       </form>
+      <div class="auth-hint">Any credentials work | Mock: <code>admin@toto.io</code></div>
+      <button class="back-link" onclick="showScreen('screen-landing')">← Back to Home</button>
     </div>
   </div>
+</div>
 
-  <!-- Main Simulator -->
-  <div id="app" style="display: none;">
-    <!-- Sidebar Toggle Button -->
-    <button id="btnToggleSidebar" class="sidebar-toggle-btn open" title="Toggle Sidebar">
-      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
-        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <polyline points="15 18 9 12 15 6"></polyline>
-      </svg>
-    </button>
-
-    <!-- Mobile UI Toggle Button -->
-    <button id="btnToggleMobileUI" class="mobile-toggle-btn" title="Toggle Mobile UI">
-      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
-        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect>
-        <line x1="12" y1="18" x2="12.01" y2="18"></line>
-      </svg>
-    </button>
-
-    <!-- Sidebar Control Panel -->
-    <aside class="sidebar">
-      <header>
-        <h1>SLAM Simulator</h1>
-        <p class="subtitle">Interactive Robotics Education</p>
-        <button id="btnTutorial" class="tutorial-start-btn">📖 Start Tutorial</button>
-      </header>
-
-      <!-- Performance Stats Dashboard -->
-      <section class="stats-dashboard">
-        <h3>Performance Stats</h3>
-        <div class="stats-grid">
-          <div class="stat-card">
-            <span class="stat-label">Explored</span>
-            <span class="stat-value" id="statExplored">0%</span>
-          </div>
-          <div class="stat-card">
-            <span class="stat-label">Distance</span>
-            <span class="stat-value" id="statDistance">0m</span>
-          </div>
-          <div class="stat-card">
-            <span class="stat-label">Collisions</span>
-            <span class="stat-value" id="statCollisions">0</span>
-          </div>
-          <div class="stat-card">
-            <span class="stat-label">Time</span>
-            <span class="stat-value" id="statTime">0:00</span>
-          </div>
-        </div>
-      </section>
-
-      <section class="controls">
-        <div class="control-group">
-          <label for="noiseSlider">LiDAR Sensor Noise</label>
-          <input type="range" id="noiseSlider" min="0" max="20" value="2" step="1">
-          <span id="noiseValue" class="value-display">2%</span>
-        </div>
-
-        <div class="control-group">
-          <label for="speedSlider">Robot Speed</label>
-          <input type="range" id="speedSlider" min="1" max="10" value="5" step="1">
-          <span id="speedValue" class="value-display">5x</span>
-        </div>
-
-        <div class="control-group">
-          <label for="driveModelSelect">Drive Model</label>
-          <select id="driveModelSelect" class="preset-select">
-            <option value="differential">⚙️ Differential (Tank)</option>
-            <option value="ackermann">🚗 Ackermann (Car)</option>
-            <option value="holonomic">🔷 Holonomic (Omni)</option>
-          </select>
-        </div>
-
-        <div class="control-group">
-          <label for="rayDensitySlider">LiDAR Ray Density</label>
-          <input type="range" id="rayDensitySlider" min="30" max="360" value="90" step="10">
-          <span id="rayDensityValue" class="value-display">90 Rays</span>
-        </div>
-
-        <div class="control-group">
-          <label for="driftSlider">Odometry Drift</label>
-          <input type="range" id="driftSlider" min="0" max="10" value="0" step="1">
-          <span id="driftValue" class="value-display">Off</span>
-        </div>
-      </section>
-
-      <section class="views">
-        <h3>Pathfinding Algorithm</h3>
-        <select id="algorithmSelect" class="preset-select">
-          <option value="astar">⚡ A* (Heuristic)</option>
-          <option value="dijkstra">🔍 Dijkstra (Optimal)</option>
-          <option value="bug2">🐛 Bug2 (Wall-Follow)</option>
-        </select>
-        <span id="pathComputeTime" class="value-display" style="margin-top:0.25rem;"></span>
-      </section>
-
-      <section class="views">
-        <h3>Interaction Mode</h3>
-        <div class="button-group">
-          <button id="btnDriveMode" class="active">Drive Mode</button>
-          <button id="btnBuildMode">Build Mode</button>
-        </div>
-        <button id="btnAutoExplore" class="auto-explore-btn">🧭 Auto Explore</button>
-        <button id="btnDynamicObs" class="dynamic-obs-btn">🔮 Dynamic Obstacles</button>
-        <button id="btnDynamicHumans" class="dynamic-obs-btn" style="margin-top:0.5rem;">👷‍♂️ Moving Workers</button>
-        <button id="btnParticleFilter" class="particle-btn">🎯 Particle Filter</button>
-        <button id="btnLoopClosure" class="loop-closure-btn">🔗 Loop Closure</button>
-        <div class="control-group" id="particleCountGroup" style="display:none;">
-          <label for="particleCountSlider">Particle Count</label>
-          <input type="range" id="particleCountSlider" min="50" max="500" value="200" step="25">
-          <span id="particleCountValue" class="value-display">200</span>
-        </div>
-      </section>
-
-      <section class="views">
-        <h3>Sound Effects</h3>
-        <div class="button-group">
-          <button id="btnSoundOff" class="active">🔇 Off</button>
-          <button id="btnSoundOn">🔊 On</button>
-        </div>
-        <div class="control-group" id="volumeGroup" style="display:none;">
-          <label for="volumeSlider">Volume</label>
-          <input type="range" id="volumeSlider" min="0" max="100" value="30" step="5">
-          <span id="volumeValue" class="value-display">30%</span>
-        </div>
-      </section>
-
-      <section class="views">
-        <h3>Viewport Toggle</h3>
-        <div class="button-group">
-          <button id="btnRealWorld" class="active">Real World</button>
-          <button id="btnSlamMap">SLAM Map</button>
-          <button id="btn3DView">3D LiDAR</button>
-        </div>
-      </section>
-
-      <section class="instructions" id="instructionsDrive">
-        <h3>Controls</h3>
-        <p><kbd>W</kbd> Move Forward</p>
-        <p><kbd>S</kbd> Move Backward</p>
-        <p><kbd>A</kbd> Rotate Left</p>
-        <p><kbd>D</kbd> Rotate Right</p>
-        <p>Click on SLAM Map to Auto-Navigate</p>
-      </section>
-
-      <section class="instructions hidden" id="instructionsBuild">
-        <h3>Build Controls</h3>
-        <p>Click and Drag on Real World to draw custom walls.</p>
-      </section>
-
-      <section class="chart-container">
-        <h3>Live Sensor Data</h3>
-        <div class="chart-wrapper">
-          <canvas id="lidarChart"></canvas>
-        </div>
-      </section>
-
-      <section class="chart-container">
-        <h3>Robot Dynamics (v, w)</h3>
-        <div class="chart-wrapper">
-          <canvas id="dynamicsChart"></canvas>
-        </div>
-      </section>
-
-      <!-- Environment Presets & Map Tools -->
-      <section class="map-tools">
-        <h3>Environment Presets</h3>
-        <select id="presetSelect" class="preset-select">
-          <option value="random">🎲 Random</option>
-          <option value="maze">🏗️ Maze</option>
-          <option value="warehouse">📦 Warehouse</option>
-          <option value="office">🏢 Office</option>
-          <option value="lshape">↰ L-Shape</option>
-          <option value="open">🏜️ Open Field</option>
-        </select>
-        <div class="map-buttons">
-          <button id="btnExportMap" class="tool-btn">📤 Export Map</button>
-          <button id="btnImportMap" class="tool-btn">📥 Import Map</button>
-          <input type="file" id="importFileInput" accept=".json" style="display:none;" />
-        </div>
-      </section>
-
-      <footer>
-        <button id="btnReset" class="danger-btn" style="margin-bottom: 0.5rem;">Reset Map</button>
-        <button id="btnClearCustom" class="danger-btn">Clear Custom Walls</button>
-      </footer>
-    </aside>
-
-    <!-- Main Canvas Area -->
-    <main class="canvas-container">
-      <!-- Canvas for the 'Real World' view -->
-      <canvas id="realWorldCanvas"></canvas>
-      <!-- Canvas for the generated Occupancy Grid view (hidden by default initially) -->
-      <canvas id="slamCanvas" class="hidden"></canvas>
-      <div id="pointCloudContainer" class="hidden"></div>
-      
-      <!-- Virtual Joystick Zones (Mobile UI Only) -->
-      <div id="joystickLeft" class="joystick-zone left-zone"></div>
-      <div id="joystickRight" class="joystick-zone right-zone"></div>
-    </main>
-  </div>
-
-  <!-- Feature card scroll animation -->
-  <script>
-    document.addEventListener('DOMContentLoaded', () => {
-      const observer = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-          if (entry.isIntersecting) {
-            // Stagger the cards within this grid
-            const cards = entry.target.querySelectorAll('.feature-card');
-            cards.forEach((card, i) => {
-              setTimeout(() => card.classList.add('visible'), i * 80);
-            });
-            observer.unobserve(entry.target);
-          }
-        });
-      }, { threshold: 0.15 });
-
-      document.querySelectorAll('.features-grid').forEach(grid => observer.observe(grid));
-
-      // Also animate the header
-      const headerObs = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-          if (entry.isIntersecting) {
-            entry.target.style.opacity = '1';
-            entry.target.style.transform = 'translateY(0)';
-            headerObs.unobserve(entry.target);
-          }
-        });
-      }, { threshold: 0.3 });
-
-      const fh = document.querySelector('.features-header');
-      if (fh) {
-        fh.style.opacity = '0';
-        fh.style.transform = 'translateY(20px)';
-        fh.style.transition = 'all 0.6s ease';
-        headerObs.observe(fh);
-      }
-    });
-  </script>
-
-  <!-- Donation Modal -->
-  <div id="donateModal" class="full-page donate-overlay" style="display: none;">
-    <div class="auth-card donate-card text-center relative-box">
-      <button class="modal-close" id="btnDonateClose">&times;</button>
-      <h2 style="margin-bottom: 0.5rem; font-size: 1.8rem; font-weight: 700;">Support the Project</h2>
-      <p style="color: #94a3b8; font-size: 0.95rem; margin-bottom: 1.5rem;">If you find this simulator helpful, consider supporting its development!</p>
-      <div class="donate-image-container">
-        <img src="./donate.jpeg" alt="Donate QR Code" class="donate-image" />
-      </div>
+<!-- ═══════════════════════════════════════
+     SCREEN 3: HUB
+═══════════════════════════════════════ -->
+<div id="screen-hub" class="screen premium-bg hidden">
+  <div class="grid-overlay"></div>
+  <div class="glow-orb a"></div>
+  <div class="glow-orb b"></div>
+  <nav class="hub-nav">
+    <div class="hub-brand"><span>TOTO</span> // SUITE</div>
+    <div class="hub-user-row">
+      <div class="hub-avatar" id="hub-avatar">YS</div>
+      <span class="hub-username" id="hub-username">admin@toto.io</span>
+      <button class="logout-btn" id="logout-btn">LOGOUT</button>
     </div>
+  </nav>
+  <div class="hub-hero">
+    <div class="hub-greeting">Choose Your <span class="gradient-text">Simulator</span></div>
+    <div class="hub-tagline">Three powerful environments — SLAM mapping, NEXUS kinematics, and HIVE swarm logistics.</div>
   </div>
+  <div class="sim-grid">
+    <a href="./slam.html" class="sim-card slam">
+      <div class="sim-top-bar"><div class="sim-icon-wrap ic1">🤖</div><div class="sim-status" style="color:var(--cyan)"><div class="status-dot" style="background:var(--cyan);box-shadow:0 0 6px var(--cyan)"></div>READY</div></div>
+      <div class="sim-name">SLAM SIMULATOR</div>
+      <div class="sim-desc">Interactive real-time robot mapping with LiDAR, Bayesian grids, and advanced pathfinding.</div>
+      <div class="sim-features"><span class="feat-tag ft-c">A* Pathfinding</span><span class="feat-tag ft-c">Particle Filter</span><span class="feat-tag ft-c">Loop Closure</span><span class="feat-tag ft-c">3D LiDAR</span></div>
+      <div class="sim-launch-btn lc">LAUNCH SLAM <span>→</span></div>
+    </a>
+    <a href="./nexus.html" class="sim-card nexus">
+      <div class="sim-top-bar"><div class="sim-icon-wrap ic2">⚙️</div><div class="sim-status" style="color:var(--violet)"><div class="status-dot" style="background:var(--violet);box-shadow:0 0 6px var(--violet)"></div>READY</div></div>
+      <div class="sim-name">NEXUS ENGINE</div>
+      <div class="sim-desc">6-DOF robot arm with FK/IK, LSPB trajectory, and Boids swarm intelligence.</div>
+      <div class="sim-features"><span class="feat-tag ft-v">FK/IK Solver</span><span class="feat-tag ft-v">LSPB Trajectory</span><span class="feat-tag ft-v">Boids Swarm</span><span class="feat-tag ft-v">Torque Analytics</span></div>
+      <div class="sim-launch-btn lv">LAUNCH NEXUS <span>→</span></div>
+    </a>
+    <a href="./hive.html" class="sim-card hive">
+      <div class="sim-top-bar"><div class="sim-icon-wrap ic3">🏭</div><div class="sim-status" style="color:var(--amber)"><div class="status-dot" style="background:var(--amber);box-shadow:0 0 6px var(--amber)"></div>READY</div></div>
+      <div class="sim-name">HIVE LOGISTICS</div>
+      <div class="sim-desc">Industrial warehouse swarm simulation with isometric 2.5D and A* task coordination.</div>
+      <div class="sim-features"><span class="feat-tag ft-a">Task Assignment</span><span class="feat-tag ft-a">Battery Mgmt</span><span class="feat-tag ft-g">Live Analytics</span><span class="feat-tag ft-g">Report Export</span></div>
+      <div class="sim-launch-btn la">LAUNCH HIVE <span>→</span></div>
+    </a>
+  </div>
+  <div class="hub-footer">
+    <span>TOTO Robotics Suite · Built by <strong style="color:var(--text)">Yash Surve</strong></span>
+    <span style="color:var(--green);font-family:var(--font-hd);font-size:0.65rem;letter-spacing:2px">● ALL SYSTEMS ONLINE</span>
+  </div>
+</div>
 
-  <script type="module" src="./src/main.js"></script>
+<script>
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.add('hidden'));
+  const el=document.getElementById(id);
+  el.classList.remove('hidden');
+  el.scrollTop=0;
+  window.scrollTo(0,0);
+}
+function getUserInitials(e){const p=e.split('@')[0].split(/[.\-_]/).filter(Boolean);return p.length>=2?(p[0][0]+p[1][0]).toUpperCase():e.slice(0,2).toUpperCase()}
+function loginSuccess(email){
+  sessionStorage.setItem('toto_user',email);
+  document.getElementById('hub-avatar').textContent=getUserInitials(email);
+  document.getElementById('hub-username').textContent=email;
+  showScreen('screen-hub');
+}
+document.getElementById('login-form').addEventListener('submit',e=>{
+  e.preventDefault();
+  const email=document.getElementById('login-email').value.trim();
+  const pass=document.getElementById('login-pass').value;
+  if(!email.includes('@')||pass.length<1)return;
+  const btn=document.getElementById('login-btn');
+  btn.textContent='SIGNING IN...';btn.style.opacity='0.7';
+  setTimeout(()=>{btn.textContent='SIGN IN →';btn.style.opacity='1';loginSuccess(email)},800);
+});
+document.getElementById('logout-btn').addEventListener('click',()=>{sessionStorage.removeItem('toto_user');showScreen('screen-landing')});
+document.getElementById('nav-login-btn').addEventListener('click',e=>{e.preventDefault();showScreen('screen-login')});
+// Auto-login check
+(function(){const s=sessionStorage.getItem('toto_user');if(s)loginSuccess(s);else showScreen('screen-landing')})();
+</script>
 </body>
-
 </html>

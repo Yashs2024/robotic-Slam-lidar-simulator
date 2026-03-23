@@ -1,0 +1,1802 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HIVE — Industrial Swarm Robotics Simulator v2</title>
+    <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@400;600;700&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --bg: #0A0C10;
+            --bg2: #0F1218;
+            --bg3: #151820;
+            --panel: rgba(15, 18, 26, 0.95);
+            --border: rgba(30, 144, 255, 0.18);
+            --blue: #1E90FF;
+            --cyan: #00E5FF;
+            --green: #00E676;
+            --amber: #FFB300;
+            --red: #FF1744;
+            --white: #E8EDF5;
+            --muted: #4A5568;
+            --font-mono: 'Share Tech Mono', monospace;
+            --font-head: 'Rajdhani', sans-serif;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--white);
+            font-family: var(--font-mono);
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* TOPBAR */
+        #topbar {
+            height: 50px;
+            background: rgba(8, 10, 14, 0.98);
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            padding: 0 14px;
+            gap: 10px;
+            flex-shrink: 0;
+            z-index: 200;
+        }
+
+        .logo {
+            font-family: var(--font-head);
+            font-size: 22px;
+            font-weight: 700;
+            color: var(--blue);
+            letter-spacing: 4px;
+            text-shadow: 0 0 20px rgba(30, 144, 255, 0.6);
+        }
+
+        .subtitle {
+            font-size: 9px;
+            color: var(--muted);
+            letter-spacing: 2px;
+            margin-left: -8px;
+            margin-top: 1px;
+        }
+
+        .spacer {
+            flex: 1;
+        }
+
+        .topstat {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 0 10px;
+            border-left: 1px solid var(--border);
+        }
+
+        .topstat .val {
+            font-family: var(--font-head);
+            font-size: 17px;
+            font-weight: 700;
+            color: var(--cyan);
+        }
+
+        .topstat .lbl {
+            font-size: 8px;
+            color: var(--muted);
+            letter-spacing: 1px;
+        }
+
+        select,
+        button {
+            background: var(--bg3);
+            border: 1px solid var(--border);
+            color: var(--white);
+            font-family: var(--font-mono);
+            font-size: 10px;
+            padding: 4px 9px;
+            cursor: pointer;
+            border-radius: 3px;
+            transition: all .2s;
+        }
+
+        select:hover,
+        button:hover {
+            border-color: var(--blue);
+            background: rgba(30, 144, 255, 0.1);
+        }
+
+        button.primary {
+            background: rgba(30, 144, 255, 0.15);
+            border-color: var(--blue);
+            color: var(--blue);
+        }
+
+        button.danger {
+            background: rgba(255, 23, 68, 0.1);
+            border-color: var(--red);
+            color: var(--red);
+        }
+
+        button.success {
+            background: rgba(0, 230, 118, 0.1);
+            border-color: var(--green);
+            color: var(--green);
+        }
+
+        button.amber {
+            background: rgba(255, 179, 0, 0.1);
+            border-color: var(--amber);
+            color: var(--amber);
+        }
+
+        /* TABS */
+        #tabs {
+            display: flex;
+            gap: 0;
+            border-bottom: 1px solid var(--border);
+            background: rgba(8, 10, 14, 0.95);
+            flex-shrink: 0;
+        }
+
+        .tab {
+            padding: 6px 18px;
+            font-family: var(--font-head);
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 2px;
+            color: var(--muted);
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            transition: all .2s;
+        }
+
+        .tab:hover {
+            color: var(--white);
+        }
+
+        .tab.active {
+            color: var(--blue);
+            border-bottom-color: var(--blue);
+        }
+
+        /* MAIN LAYOUT */
+        #main {
+            flex: 1;
+            display: grid;
+            grid-template-columns: 255px 1fr 235px;
+            grid-template-rows: 1fr 155px;
+            gap: 0;
+            overflow: hidden;
+        }
+
+        /* PANELS */
+        .panel {
+            background: var(--panel);
+            border: 1px solid var(--border);
+            backdrop-filter: blur(12px);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .panel-header {
+            padding: 8px 12px;
+            border-bottom: 1px solid var(--border);
+            font-family: var(--font-head);
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 2px;
+            color: var(--blue);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex-shrink: 0;
+        }
+
+        .dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--blue);
+            box-shadow: 0 0 8px var(--blue);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: .3;
+            }
+        }
+
+        /* LEFT PANEL */
+        #left-panel {
+            grid-row: 1/3;
+            border-right: none;
+        }
+
+        .task-controls {
+            padding: 8px;
+            display: flex;
+            gap: 5px;
+            flex-shrink: 0;
+            flex-wrap: wrap;
+        }
+
+        .task-controls button {
+            flex: 1;
+            font-size: 9px;
+            padding: 5px 4px;
+            min-width: 60px;
+        }
+
+        .task-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 5px;
+        }
+
+        .task-list::-webkit-scrollbar {
+            width: 3px;
+        }
+
+        .task-list::-webkit-scrollbar-thumb {
+            background: var(--border);
+        }
+
+        .task-item {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border);
+            border-radius: 3px;
+            padding: 7px 8px;
+            margin-bottom: 4px;
+            font-size: 9px;
+            transition: all .3s;
+        }
+
+        .task-item.urgent {
+            border-color: rgba(255, 23, 68, 0.4);
+            background: rgba(255, 23, 68, 0.05);
+        }
+
+        .task-item.active {
+            border-color: rgba(0, 229, 255, 0.35);
+            background: rgba(0, 229, 255, 0.04);
+        }
+
+        .task-item.done {
+            opacity: .35;
+        }
+
+        .badge {
+            display: inline-block;
+            font-size: 8px;
+            padding: 1px 5px;
+            border-radius: 2px;
+            margin-bottom: 2px;
+            font-family: var(--font-head);
+            font-weight: 700;
+            letter-spacing: 1px;
+        }
+
+        .badge.urgent {
+            background: rgba(255, 23, 68, .2);
+            color: var(--red);
+        }
+
+        .badge.normal {
+            background: rgba(30, 144, 255, .2);
+            color: var(--blue);
+        }
+
+        .badge.done {
+            background: rgba(0, 230, 118, .2);
+            color: var(--green);
+        }
+
+        .task-stats {
+            padding: 8px 10px;
+            border-top: 1px solid var(--border);
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 6px;
+            flex-shrink: 0;
+        }
+
+        .stat-box {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border);
+            border-radius: 3px;
+            padding: 7px;
+            text-align: center;
+        }
+
+        .stat-box .sv {
+            font-family: var(--font-head);
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--cyan);
+        }
+
+        .stat-box .sl {
+            font-size: 8px;
+            color: var(--muted);
+            letter-spacing: 1px;
+        }
+
+        /* CANVAS */
+        #canvas-area {
+            grid-column: 2;
+            grid-row: 1;
+            position: relative;
+            overflow: hidden;
+            background: var(--bg);
+        }
+
+        #simCanvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+
+        .scenario-badge {
+            position: absolute;
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(10, 12, 16, .88);
+            border: 1px solid var(--border);
+            padding: 3px 14px;
+            font-family: var(--font-head);
+            font-size: 11px;
+            letter-spacing: 3px;
+            color: var(--cyan);
+            border-radius: 20px;
+            backdrop-filter: blur(8px);
+            white-space: nowrap;
+        }
+
+        .canvas-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            pointer-events: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: var(--font-head);
+            font-size: 28px;
+            letter-spacing: 4px;
+            color: var(--green);
+            text-shadow: 0 0 30px var(--green);
+            opacity: 0;
+            transition: opacity .5s;
+        }
+
+        /* MINI CHART on canvas bottom-left */
+        #mini-chart {
+            position: absolute;
+            bottom: 10px;
+            left: 10px;
+            background: rgba(10, 12, 16, .85);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            padding: 6px 8px;
+            width: 180px;
+        }
+
+        #mini-chart .mc-title {
+            font-size: 9px;
+            color: var(--muted);
+            letter-spacing: 1px;
+            margin-bottom: 4px;
+        }
+
+        #mini-chart canvas {
+            display: block;
+        }
+
+        /* MAP PROGRESS */
+        #map-progress-wrap {
+            position: absolute;
+            bottom: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(10, 12, 16, .9);
+            border: 1px solid var(--border);
+            padding: 5px 12px;
+            border-radius: 20px;
+            display: none;
+            align-items: center;
+            gap: 8px;
+            font-size: 9px;
+        }
+
+        #map-progress-bar-bg {
+            width: 100px;
+            height: 5px;
+            background: rgba(255, 255, 255, .1);
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        #map-progress-bar {
+            height: 100%;
+            background: var(--cyan);
+            border-radius: 3px;
+            transition: width .5s;
+        }
+
+        #map-pct {
+            color: var(--cyan);
+            font-family: var(--font-head);
+            font-weight: 700;
+        }
+
+        /* RIGHT PANEL */
+        #right-panel {
+            grid-row: 1/3;
+            border-left: none;
+        }
+
+        .robot-card {
+            padding: 9px 10px;
+            border-bottom: 1px solid var(--border);
+            flex-shrink: 0;
+        }
+
+        .robot-card-header {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            margin-bottom: 6px;
+        }
+
+        .robot-color-bar {
+            width: 3px;
+            height: 30px;
+            border-radius: 2px;
+            flex-shrink: 0;
+        }
+
+        .robot-name {
+            font-family: var(--font-head);
+            font-size: 13px;
+            font-weight: 700;
+            letter-spacing: 1px;
+        }
+
+        .robot-state-badge {
+            display: inline-block;
+            font-size: 8px;
+            padding: 2px 5px;
+            border-radius: 2px;
+            font-family: var(--font-head);
+            font-weight: 700;
+            letter-spacing: 1px;
+            margin-left: auto;
+        }
+
+        .battery-bar-wrap {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-bottom: 4px;
+        }
+
+        .battery-bar {
+            flex: 1;
+            height: 5px;
+            background: rgba(255, 255, 255, .08);
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .battery-fill {
+            height: 100%;
+            border-radius: 3px;
+            transition: width .5s, background .5s;
+        }
+
+        .battery-pct {
+            font-size: 9px;
+            width: 30px;
+            text-align: right;
+        }
+
+        .robot-task {
+            font-size: 9px;
+            color: var(--muted);
+            margin-bottom: 3px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .robot-meta {
+            font-size: 9px;
+            color: var(--muted);
+            display: flex;
+            gap: 10px;
+        }
+
+        /* ANALYTICS TAB (right panel) */
+        #analytics-tab {
+            display: none;
+            flex: 1;
+            overflow-y: auto;
+            padding: 8px;
+        }
+
+        .chart-wrap {
+            background: rgba(255, 255, 255, .03);
+            border: 1px solid var(--border);
+            border-radius: 3px;
+            padding: 8px;
+            margin-bottom: 8px;
+        }
+
+        .chart-wrap .ct {
+            font-size: 9px;
+            color: var(--muted);
+            letter-spacing: 1px;
+            margin-bottom: 5px;
+            font-family: var(--font-head);
+            font-size: 10px;
+            color: var(--blue);
+        }
+
+        /* BOTTOM LOG */
+        #bottom-panel {
+            grid-column: 2;
+            grid-row: 2;
+            border-top: none;
+        }
+
+        .log-controls {
+            padding: 5px 10px;
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            border-bottom: 1px solid var(--border);
+            flex-shrink: 0;
+        }
+
+        .log-controls span {
+            font-size: 9px;
+            color: var(--muted);
+            flex: 1;
+        }
+
+        .log-feed {
+            flex: 1;
+            overflow-y: auto;
+            padding: 4px 10px;
+            display: flex;
+            flex-direction: column-reverse;
+        }
+
+        .log-feed::-webkit-scrollbar {
+            width: 3px;
+        }
+
+        .log-feed::-webkit-scrollbar-thumb {
+            background: var(--border);
+        }
+
+        .log-entry {
+            font-size: 9px;
+            padding: 2px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, .02);
+            display: flex;
+            gap: 7px;
+            animation: logIn .3s ease;
+        }
+
+        @keyframes logIn {
+            from {
+                opacity: 0;
+                transform: translateX(-6px)
+            }
+
+            to {
+                opacity: 1;
+                transform: none
+            }
+        }
+
+        .log-ts {
+            color: var(--muted);
+            flex-shrink: 0;
+        }
+
+        .log-msg.blue {
+            color: var(--blue);
+        }
+
+        .log-msg.green {
+            color: var(--green);
+        }
+
+        .log-msg.amber {
+            color: var(--amber);
+        }
+
+        .log-msg.red {
+            color: var(--red);
+        }
+
+        .log-msg.white {
+            color: var(--white);
+        }
+
+        /* MODAL */
+        #modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, .7);
+            z-index: 500;
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #modal-overlay.show {
+            display: flex;
+        }
+
+        #modal-box {
+            background: #0F1218;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 24px;
+            max-width: 560px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            position: relative;
+        }
+
+        #modal-box h2 {
+            font-family: var(--font-head);
+            font-size: 20px;
+            color: var(--blue);
+            letter-spacing: 2px;
+            margin-bottom: 12px;
+        }
+
+        #modal-box p,
+        #modal-box li {
+            font-size: 11px;
+            line-height: 1.7;
+            color: rgba(232, 237, 245, .8);
+        }
+
+        #modal-box ul {
+            padding-left: 16px;
+            margin: 6px 0;
+        }
+
+        #modal-box .close-btn {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+        }
+
+        .section-title {
+            font-family: var(--font-head);
+            font-size: 13px;
+            color: var(--cyan);
+            letter-spacing: 1px;
+            margin: 10px 0 4px;
+        }
+
+        /* REPORT MODAL */
+        #report-content {
+            font-size: 10px;
+            line-height: 1.8;
+            color: var(--white);
+        }
+
+        .report-section {
+            border: 1px solid var(--border);
+            border-radius: 3px;
+            padding: 10px;
+            margin-bottom: 10px;
+        }
+
+        .report-section h3 {
+            font-family: var(--font-head);
+            color: var(--cyan);
+            font-size: 12px;
+            letter-spacing: 1px;
+            margin-bottom: 6px;
+        }
+
+        .report-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 6px;
+        }
+
+        .report-kv {
+            display: flex;
+            justify-content: space-between;
+            padding: 2px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, .05);
+        }
+
+        .report-kv .rk {
+            color: var(--muted);
+        }
+
+        .report-kv .rv {
+            color: var(--cyan);
+            font-family: var(--font-head);
+            font-weight: 700;
+        }
+
+        /* HEATMAP canvas */
+        #heatmap-canvas {
+            display: none;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Back to Hub -->
+    <a href="./index.html" id="back-hub-btn" style="position:fixed;top:8px;left:8px;z-index:9999;background:rgba(10,15,30,0.8);border:1px solid rgba(30,144,255,0.25);backdrop-filter:blur(10px);color:#1E90FF;font-family:'Rajdhani',sans-serif;font-size:11px;font-weight:700;letter-spacing:2px;padding:6px 14px;text-decoration:none;border-radius:4px;transition:all 0.2s;display:flex;align-items:center;gap:5px;" onmouseover="this.style.borderColor='#1E90FF';this.style.boxShadow='0 0 12px rgba(30,144,255,0.25)'" onmouseout="this.style.borderColor='rgba(30,144,255,0.25)';this.style.boxShadow='none'">← HUB</a>
+
+    <!-- TOPBAR -->
+    <div id="topbar">
+        <div>
+            <div class="logo">HIVE</div>
+            <div class="subtitle">INDUSTRIAL SWARM CONTROLLER v2.0</div>
+        </div>
+        <div class="spacer"></div>
+        <div class="topstat"><span class="val" id="stat-done">0</span><span class="lbl">TASKS</span></div>
+        <div class="topstat"><span class="val" id="stat-active">4</span><span class="lbl">ACTIVE</span></div>
+        <div class="topstat"><span class="val" id="stat-battery">100%</span><span class="lbl">AVG BATT</span></div>
+        <div class="topstat"><span class="val" id="stat-uptime">00:00</span><span class="lbl">UPTIME</span></div>
+        <select id="scenario-select">
+            <option value="warehouse">🏭 WAREHOUSE</option>
+            <option value="assembly">🔧 ASSEMBLY</option>
+            <option value="mapping">🗺 MAPPING</option>
+        </select>
+        <select id="speed-select">
+            <option value="2">0.5×</option>
+            <option value="1" selected>1×</option>
+            <option value="0.5">2×</option>
+            <option value="0.25">4×</option>
+        </select>
+        <button class="primary" id="pause-btn">⏸ PAUSE</button>
+        <button class="danger" id="reset-btn">↺ RESET</button>
+        <button class="amber" onclick="openHelp()">? HELP</button>
+        <button class="success" onclick="openReport()">📊 REPORT</button>
+    </div>
+
+    <!-- TABS (right panel) -->
+    <div id="main">
+        <!-- LEFT: TASK PANEL -->
+        <div class="panel" id="left-panel">
+            <div class="panel-header">
+                <div class="dot"></div>TASK ASSIGNMENT
+            </div>
+            <div class="task-controls">
+                <button class="primary" onclick="addRandomTask()">+ TASK</button>
+                <button class="danger" onclick="addUrgentTask()">⚡ URGENT</button>
+                <button onclick="addBulkTasks()">⊕ BULK×3</button>
+            </div>
+            <div class="task-list" id="task-list"></div>
+            <div class="task-stats">
+                <div class="stat-box">
+                    <div class="sv" id="ts-completed">0</div>
+                    <div class="sl">DONE</div>
+                </div>
+                <div class="stat-box">
+                    <div class="sv" id="ts-avgtime">—</div>
+                    <div class="sl">AVG TIME(s)</div>
+                </div>
+                <div class="stat-box">
+                    <div class="sv" id="ts-queued">0</div>
+                    <div class="sl">QUEUED</div>
+                </div>
+                <div class="stat-box">
+                    <div class="sv" id="ts-collisions">0</div>
+                    <div class="sl">AVOIDANCES</div>
+                </div>
+                <div class="stat-box">
+                    <div class="sv" id="ts-throughput">0</div>
+                    <div class="sl">TASKS/MIN</div>
+                </div>
+                <div class="stat-box">
+                    <div class="sv" id="ts-efficiency">—</div>
+                    <div class="sl">EFFICIENCY</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- CENTER: CANVAS -->
+        <div id="canvas-area">
+            <canvas id="simCanvas"></canvas>
+            <div class="scenario-badge" id="scenario-badge">WAREHOUSE INVENTORY MANAGEMENT</div>
+            <div class="canvas-overlay" id="canvas-overlay"></div>
+            <div id="map-progress-wrap"><span
+                    style="color:var(--muted);font-size:8px;letter-spacing:1px;">MAPPING</span>
+                <div id="map-progress-bar-bg">
+                    <div id="map-progress-bar" style="width:0%"></div>
+                </div><span id="map-pct">0%</span>
+            </div>
+            <!-- mini throughput chart -->
+            <div id="mini-chart">
+                <div class="mc-title">THROUGHPUT (tasks/min)</div>
+                <canvas id="throughputCanvas" width="164" height="40"></canvas>
+            </div>
+        </div>
+
+        <!-- RIGHT: ROBOT STATUS + ANALYTICS -->
+        <div class="panel" id="right-panel">
+            <div style="display:flex;border-bottom:1px solid var(--border);flex-shrink:0;">
+                <div class="tab active" id="tab-status" onclick="switchRightTab('status')">STATUS</div>
+                <div class="tab" id="tab-analytics" onclick="switchRightTab('analytics')">ANALYTICS</div>
+            </div>
+            <div id="robot-cards" style="flex:1;overflow-y:auto;"></div>
+            <div id="analytics-tab">
+                <div class="chart-wrap">
+                    <div class="ct">BATTERY LEVELS</div>
+                    <canvas id="battChart" width="210" height="60"></canvas>
+                </div>
+                <div class="chart-wrap">
+                    <div class="ct">TASK DISTRIBUTION</div>
+                    <canvas id="taskChart" width="210" height="80"></canvas>
+                </div>
+                <div class="chart-wrap">
+                    <div class="ct">ROBOT ODOMETER</div>
+                    <canvas id="odoChart" width="210" height="60"></canvas>
+                </div>
+                <div class="chart-wrap">
+                    <div class="ct">STATE TIMELINE</div>
+                    <canvas id="stateChart" width="210" height="50"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- BOTTOM: LOG -->
+        <div class="panel" id="bottom-panel">
+            <div class="log-controls">
+                <div class="dot" style="background:var(--cyan);box-shadow:0 0 8px var(--cyan);"></div>
+                <span
+                    style="font-family:var(--font-head);font-size:12px;font-weight:700;letter-spacing:2px;color:var(--cyan);">LIVE
+                    LOG</span>
+                <span id="log-count">0 EVENTS</span>
+                <button onclick="exportLog()" style="font-size:9px;padding:3px 7px;">↓ EXPORT</button>
+                <button onclick="clearLog()" style="font-size:9px;padding:3px 7px;">CLEAR</button>
+            </div>
+            <div class="log-feed" id="log-feed"></div>
+        </div>
+    </div>
+
+    <!-- HELP MODAL -->
+    <div id="modal-overlay">
+        <div id="modal-box">
+            <button class="close-btn danger" onclick="closeModal()">✕ CLOSE</button>
+            <div id="modal-inner"></div>
+        </div>
+    </div>
+
+    <canvas id="heatmap-canvas"></canvas>
+
+    <script>
+        // ════════════════════════════════════════════════════════
+        //   HIVE v2 — Industrial Swarm Robotics Simulator
+        // ════════════════════════════════════════════════════════
+
+        const canvas = document.getElementById('simCanvas');
+        const ctx = canvas.getContext('2d');
+        const GRID = 20, TW = 56, TH = 28;
+        let OX, OY;
+
+        let scenario = 'warehouse', paused = false, speedMult = 1;
+        let simTime = 0, simStartTime = Date.now();
+        let tasksDone = 0, totalTaskTime = 0, collisionCount = 0, taskIdCounter = 0;
+        let tasksThisMinute = 0, lastMinuteMark = Date.now();
+        let throughputHistory = [];
+
+        const ROBOT_DEFS = [
+            { id: 0, name: 'R-01 ATLAS', shortName: 'ATLAS', color: '#1E90FF', darkColor: '#0D4F8C' },
+            { id: 1, name: 'R-02 NEXUS', shortName: 'NEXUS', color: '#00E676', darkColor: '#006633' },
+            { id: 2, name: 'R-03 FORGE', shortName: 'FORGE', color: '#FF6B35', darkColor: '#8C3010' },
+            { id: 3, name: 'R-04 ECHO', shortName: 'ECHO', color: '#B44FFF', darkColor: '#5A1E8C' },
+        ];
+
+        const STATES = {
+            IDLE: { label: 'IDLE', color: '#8899AA', bg: 'rgba(136,153,170,.15)' },
+            NAVIGATING: { label: 'NAVIGATING', color: '#1E90FF', bg: 'rgba(30,144,255,.15)' },
+            PICKING: { label: 'PICKING', color: '#FFB300', bg: 'rgba(255,179,0,.15)' },
+            CARRYING: { label: 'CARRYING', color: '#00E5FF', bg: 'rgba(0,229,255,.15)' },
+            DEPOSITING: { label: 'DEPOSITING', color: '#00E676', bg: 'rgba(0,230,118,.15)' },
+            CHARGING: { label: 'CHARGING', color: '#00E676', bg: 'rgba(0,230,118,.15)' },
+            AVOIDING: { label: 'AVOIDING', color: '#FF6B35', bg: 'rgba(255,107,53,.15)' },
+            ERROR: { label: 'ERROR', color: '#FF1744', bg: 'rgba(255,23,68,.15)' },
+            EXPLORING: { label: 'EXPLORING', color: '#B44FFF', bg: 'rgba(180,79,255,.15)' },
+            WORKING: { label: 'WORKING', color: '#00E5FF', bg: 'rgba(0,229,255,.15)' },
+        };
+
+        let robots = [], grid = [], itemLocations = [];
+        let dispatchZone = { x: 17, y: 17 }, chargingStation = { x: 1, y: 1 };
+        let taskQueue = [], particles = [];
+        let fogGrid = [], visitedTiles = 0;
+        let stationProgress = [0, 0, 0, 0], assemblyCycles = 0;
+        let heatmapData = [];  // visits per tile
+        let robotStateHistory = {}; // id -> [{state,time}]
+        let sessionStartTime = Date.now();
+
+        // ── INIT ──────────────────────────────────────────────
+        function init() {
+            resizeCanvas();
+            buildWarehouseGrid();
+            spawnRobots();
+            renderRobotCards();
+            scheduleAutoTask();
+            addLog('HIVE v2.0 initialized — 4 robots online', 'green');
+            addLog('Scenario: WAREHOUSE INVENTORY MANAGEMENT', 'blue');
+            requestAnimationFrame(gameLoop);
+            setInterval(updateAnalyticsCharts, 1500);
+            setInterval(updateThroughput, 60000);
+        }
+
+        function resizeCanvas() {
+            const a = document.getElementById('canvas-area');
+            canvas.width = a.clientWidth; canvas.height = a.clientHeight;
+            OX = canvas.width / 2; OY = 65;
+        }
+
+        function isoToScreen(gx, gy) {
+            return { x: OX + (gx - gy) * (TW / 2), y: OY + (gx + gy) * (TH / 2) };
+        }
+
+        // ── GRID BUILDERS ─────────────────────────────────────
+        function buildWarehouseGrid() {
+            grid = Array.from({ length: GRID }, () => Array(GRID).fill(0));
+            fogGrid = Array.from({ length: GRID }, () => Array(GRID).fill(false));
+            heatmapData = Array.from({ length: GRID }, () => Array(GRID).fill(0));
+            itemLocations = [];
+            const shelfPairs = [[2, 4], [2, 6], [2, 8], [6, 4], [6, 6], [6, 8], [10, 4], [10, 6], [10, 8], [14, 4], [14, 6], [14, 8]];
+            shelfPairs.forEach(([x, y]) => { grid[x][y] = 1; grid[x + 1][y] = 1; });
+            grid[8][12] = 2; grid[12][8] = 2;
+            itemLocations = [{ x: 3, y: 4 }, { x: 3, y: 7 }, { x: 7, y: 5 }, { x: 11, y: 6 }];
+            const names = ['SKU-1042 Servo', 'SKU-2189 Bearing', 'SKU-3301 Motor', 'SKU-4821 Sensor',
+                'SKU-5012 Gear', 'SKU-6234 Belt', 'SKU-7090 Cam', 'SKU-8811 Encoder'];
+            itemLocations.forEach((loc, i) => { loc.item = { id: i, name: names[i * 2] || `SKU-${1000 + i}` }; });
+            document.getElementById('map-progress-wrap').style.display = 'none';
+            document.getElementById('scenario-badge').textContent = 'WAREHOUSE INVENTORY MANAGEMENT';
+        }
+
+        function buildAssemblyGrid() {
+            grid = Array.from({ length: GRID }, () => Array(GRID).fill(0));
+            fogGrid = Array.from({ length: GRID }, () => Array(GRID).fill(true));
+            heatmapData = Array.from({ length: GRID }, () => Array(GRID).fill(0));
+            itemLocations = [{ x: 2, y: 2 }, { x: 2, y: 5 }];
+            for (let i = 1; i < 19; i++) grid[i][10] = 2;
+            [10, 5, 8, 13, 16].forEach(x => grid[x][10] = 0);
+            [4, 9].forEach(x => { grid[x][8] = 1; grid[x][12] = 1; });
+            stationProgress = [0, 0, 0, 0]; assemblyCycles = 0;
+            document.getElementById('map-progress-wrap').style.display = 'none';
+            document.getElementById('scenario-badge').textContent = 'ASSEMBLY LINE COLLABORATION';
+        }
+
+        function buildMappingGrid() {
+            grid = Array.from({ length: GRID }, () => Array(GRID).fill(0));
+            fogGrid = Array.from({ length: GRID }, () => Array(GRID).fill(false));
+            heatmapData = Array.from({ length: GRID }, () => Array(GRID).fill(0));
+            for (let i = 0; i < 18; i++) { const x = 2 + Math.floor(Math.random() * 16), y = 2 + Math.floor(Math.random() * 16); grid[x][y] = 1; }
+            visitedTiles = 0;
+            document.getElementById('map-progress-wrap').style.display = 'flex';
+            document.getElementById('scenario-badge').textContent = 'AUTONOMOUS MAPPING & EXPLORATION';
+        }
+
+        // ── ROBOTS ────────────────────────────────────────────
+        function spawnRobots() {
+            const starts = [{ x: 1, y: 1 }, { x: 1, y: 3 }, { x: 1, y: 5 }, { x: 1, y: 7 }];
+            robots = ROBOT_DEFS.map((def, i) => ({
+                ...def,
+                gx: starts[i].x * 1.0, gy: starts[i].y * 1.0,
+                px: 0, py: 0,
+                path: [], pathIdx: 0,
+                state: 'IDLE', battery: 75 + Math.random() * 25,
+                task: null, odo: 0, stateTimer: 0,
+                carrying: false, carriedItem: null,
+                flashTimer: 0, avoidTimer: 0, prevTask: null,
+                frontierTarget: null, workStation: i,
+                tasksCompleted: 0, totalDistance: 0,
+                stateLog: [{ state: 'IDLE', t: 0 }],
+            }));
+            robotStateHistory = {};
+            robots.forEach(r => robotStateHistory[r.id] = []);
+            updateScreenPositions();
+        }
+
+        function updateScreenPositions() {
+            robots.forEach(r => { const s = isoToScreen(r.gx, r.gy); r.px = s.x; r.py = s.y; });
+        }
+
+        // ── A* ────────────────────────────────────────────────
+        function astar(sx, sy, ex, ey, rid) {
+            const K = (x, y) => x * 100 + y;
+            const blocked = new Set();
+            grid.forEach((col, x) => col.forEach((v, y) => { if (v > 0) blocked.add(K(x, y)); }));
+            robots.forEach((r, i) => { if (i === rid) return; blocked.add(K(Math.round(r.gx), Math.round(r.gy))); });
+            if (sx === ex && sy === ey) return [];
+            const open = [{ x: sx, y: sy, g: 0, h: 0, f: 0, parent: null }];
+            const closed = new Set(), best = {};
+            best[K(sx, sy)] = 0;
+            while (open.length) {
+                open.sort((a, b) => a.f - b.f);
+                const cur = open.shift();
+                if (cur.x === ex && cur.y === ey) {
+                    const path = []; let c = cur; while (c) { path.unshift({ x: c.x, y: c.y }); c = c.parent; }
+                    return path.slice(1);
+                }
+                closed.add(K(cur.x, cur.y));
+                for (const [dx, dy] of [[-1, 0], [1, 0], [0, -1], [0, 1], [-1, -1], [-1, 1], [1, -1], [1, 1]]) {
+                    const nx = cur.x + dx, ny = cur.y + dy;
+                    if (nx < 0 || nx >= GRID || ny < 0 || ny >= GRID) continue;
+                    if (closed.has(K(nx, ny))) continue;
+                    if (blocked.has(K(nx, ny)) && !(nx === ex && ny === ey)) continue;
+                    const g = cur.g + (Math.abs(dx) + Math.abs(dy) === 2 ? 1.414 : 1);
+                    const h = Math.abs(nx - ex) + Math.abs(ny - ey);
+                    const f = g + h;
+                    if (best[K(nx, ny)] !== undefined && best[K(nx, ny)] <= g) continue;
+                    best[K(nx, ny)] = g;
+                    open.push({ x: nx, y: ny, g, h, f, parent: cur });
+                }
+            }
+            return null;
+        }
+
+        // ── TASKS ─────────────────────────────────────────────
+        const SKU_NAMES = ['SKU-0012 Valve', 'SKU-1234 Servo', 'SKU-2048 Encoder', 'SKU-3301 Motor',
+            'SKU-4821 Sensor', 'SKU-5566 Relay', 'SKU-6789 Cam', 'SKU-7090 Gear',
+            'SKU-8811 Belt', 'SKU-9900 Hub', 'SKU-1110 Piston', 'SKU-2220 Actuator'];
+
+        function addRandomTask(urgent = false) {
+            if (scenario !== 'warehouse') { addLog('Tasks only in Warehouse mode', 'amber'); return; }
+            const src = itemLocations[Math.floor(Math.random() * itemLocations.length)];
+            const task = {
+                id: ++taskIdCounter,
+                name: SKU_NAMES[Math.floor(Math.random() * SKU_NAMES.length)],
+                priority: urgent ? 'urgent' : 'normal',
+                pickX: src.x, pickY: src.y,
+                dropX: dispatchZone.x, dropY: dispatchZone.y,
+                assignedRobot: null, status: 'queued', createdAt: simTime,
+            };
+            taskQueue.push(task);
+            addLog(`Task #${task.id} queued: ${task.name} [${urgent ? 'URGENT' : 'NORMAL'}]`, urgent ? 'red' : 'white');
+            assignTasks(); updateTaskUI();
+        }
+        function addUrgentTask() { addRandomTask(true); }
+        function addBulkTasks() { addRandomTask(); addRandomTask(); addRandomTask(Math.random() < 0.5); }
+
+        function assignTasks() {
+            taskQueue.filter(t => t.status === 'queued').sort((a, b) => a.priority === 'urgent' ? -1 : 1).forEach(task => {
+                const idles = robots.filter(r => r.state === 'IDLE' && r.battery > 25);
+                if (!idles.length) return;
+                idles.sort((a, b) => (Math.abs(a.gx - task.pickX) + Math.abs(a.gy - task.pickY)) - (Math.abs(b.gx - task.pickX) + Math.abs(b.gy - task.pickY)));
+                const r = idles[0];
+                task.assignedRobot = r.id; task.status = 'active';
+                r.task = task; r.state = 'NAVIGATING';
+                const p = astar(Math.round(r.gx), Math.round(r.gy), task.pickX, task.pickY, r.id);
+                r.path = p || []; r.pathIdx = 0;
+                addLog(`${r.shortName} → ${task.name} [#${task.id}]`, 'blue');
+                updateTaskUI();
+            });
+        }
+
+        let autoTaskTimer = 0;
+        function scheduleAutoTask() {
+            autoTaskTimer = setTimeout(() => {
+                if (scenario === 'warehouse' && !paused) addRandomTask(Math.random() < 0.2);
+                scheduleAutoTask();
+            }, 9000 + Math.random() * 6000);
+        }
+
+        // ── TICK ──────────────────────────────────────────────
+        function tick(dt) {
+            simTime += dt;
+            robots.forEach(r => {
+                // battery
+                if (r.state === 'CHARGING') {
+                    r.battery = Math.min(100, r.battery + 0.5 * dt / 1000);
+                    if (r.battery >= 100) {
+                        r.battery = 100;
+                        addLog(`${r.shortName} fully charged`, 'green');
+                        if (r.prevTask) { r.task = r.prevTask; r.prevTask = null; r.state = 'NAVIGATING'; const p = astar(Math.round(r.gx), Math.round(r.gy), r.task.pickX, r.task.pickY, r.id); r.path = p || []; r.pathIdx = 0; }
+                        else { r.state = 'IDLE'; r.task = null; }
+                    }
+                } else r.battery = Math.max(0, r.battery - 0.02 * dt / 1000);
+
+                if (r.battery < 20 && r.state !== 'CHARGING' && r.state !== 'NAVIGATING' && r.avoidTimer <= 0) {
+                    addLog(`⚠ ${r.shortName} LOW BATTERY (${r.battery.toFixed(0)}%)`, 'amber');
+                    r.prevTask = r.task && r.task.status === 'active' ? r.task : null;
+                    r.task = null; r.state = 'NAVIGATING';
+                    const p = astar(Math.round(r.gx), Math.round(r.gy), chargingStation.x, chargingStation.y, r.id);
+                    r.path = p || []; r.pathIdx = 0; r.flashTimer = 3000;
+                }
+
+                r.flashTimer = Math.max(0, r.flashTimer - dt);
+                r.stateTimer = Math.max(0, r.stateTimer - dt);
+
+                // movement
+                if (r.path.length && r.pathIdx < r.path.length && r.stateTimer <= 0) {
+                    const next = r.path[r.pathIdx];
+                    const dx = next.x - r.gx, dy = next.y - r.gy, dist = Math.sqrt(dx * dx + dy * dy);
+                    const ms = 3 * dt / 1000 / speedMult;
+                    if (dist < ms + 0.05) {
+                        r.gx = next.x; r.gy = next.y; r.pathIdx++; r.odo++; r.totalDistance++;
+                        r.battery = Math.max(0, r.battery - 0.05);
+                        markVisited(Math.round(r.gx), Math.round(r.gy));
+                        heatmapData[Math.round(r.gx)][Math.round(r.gy)] = (heatmapData[Math.round(r.gx)][Math.round(r.gy)] || 0) + 1;
+                        if (r.pathIdx >= r.path.length) onArrival(r);
+                    } else { r.gx += dx / dist * ms; r.gy += dy / dist * ms; }
+                }
+
+                // collision avoidance
+                robots.forEach(other => {
+                    if (other.id === r.id) return;
+                    const dx = r.gx - other.gx, dy = r.gy - other.gy, d = Math.sqrt(dx * dx + dy * dy);
+                    if (d < 1.2 && d > 0.01) {
+                        r.gx += dx / d * 0.05; r.gy += dy / d * 0.05;
+                        if (r.state === 'NAVIGATING' && r.avoidTimer <= 0 && d < 0.85) {
+                            setState(r, 'AVOIDING');
+                            r.avoidTimer = 1500; collisionCount++;
+                            addLog(`${r.shortName} avoiding ${other.shortName}`, 'amber');
+                            if (r.path.length && r.pathIdx < r.path.length) {
+                                const dest = r.path[r.path.length - 1];
+                                const p = astar(Math.round(r.gx), Math.round(r.gy), dest.x, dest.y, r.id);
+                                if (p) { r.path = p; r.pathIdx = 0; }
+                            }
+                        }
+                    }
+                });
+                if (r.avoidTimer > 0) { r.avoidTimer = Math.max(0, r.avoidTimer - dt); if (r.avoidTimer <= 0 && r.state === 'AVOIDING') setState(r, 'NAVIGATING'); }
+                if (scenario === 'assembly') tickAssembly(r, dt);
+                if (scenario === 'mapping') tickMapping(r, dt);
+                r.gx = Math.max(0, Math.min(GRID - 1, r.gx));
+                r.gy = Math.max(0, Math.min(GRID - 1, r.gy));
+            });
+            updateScreenPositions();
+            updateUI();
+            particles = particles.filter(p => p.life > 0);
+            particles.forEach(p => { p.x += p.vx * dt / 16; p.y += p.vy * dt / 16; p.life -= dt / 16; p.vy += 0.04; });
+        }
+
+        function setState(r, state) {
+            if (r.state === state) return;
+            r.stateLog.push({ state, t: simTime });
+            if (r.stateLog.length > 50) r.stateLog.shift();
+            r.state = state;
+        }
+
+        function onArrival(r) {
+            if (scenario === 'warehouse') {
+                if (!r.task) {
+                    if (Math.round(r.gx) === chargingStation.x && Math.round(r.gy) === chargingStation.y) { setState(r, 'CHARGING'); addLog(`${r.shortName} charging...`, 'green'); }
+                    else { setState(r, 'IDLE'); assignTasks(); }
+                    return;
+                }
+                if (!r.carrying) {
+                    if (Math.round(r.gx) === r.task.pickX && Math.round(r.gy) === r.task.pickY) {
+                        setState(r, 'PICKING'); r.stateTimer = 1500;
+                        spawnParticles(r.px, r.py, 'pick', r.color);
+                        setTimeout(() => {
+                            if (r.state === 'PICKING') {
+                                r.carrying = true; setState(r, 'CARRYING');
+                                addLog(`${r.shortName} picked ${r.task.name}`, 'blue');
+                                const p = astar(Math.round(r.gx), Math.round(r.gy), dispatchZone.x, dispatchZone.y, r.id);
+                                r.path = p || []; r.pathIdx = 0;
+                            }
+                        }, 1500 / speedMult);
+                    } else setState(r, 'IDLE');
+                } else {
+                    if (Math.round(r.gx) === dispatchZone.x && Math.round(r.gy) === dispatchZone.y) {
+                        setState(r, 'DEPOSITING'); r.stateTimer = 800;
+                        spawnParticles(r.px, r.py, 'complete', r.color);
+                        setTimeout(() => {
+                            if (r.state === 'DEPOSITING') {
+                                r.carrying = false; tasksDone++; r.tasksCompleted++;
+                                tasksThisMinute++;
+                                if (r.task) { totalTaskTime += (simTime - r.task.createdAt) / 1000; r.task.status = 'done'; }
+                                r.task = null; setState(r, 'IDLE');
+                                addLog(`✓ ${r.shortName} task complete`, 'green');
+                                updateTaskUI(); assignTasks();
+                            }
+                        }, 800 / speedMult);
+                    }
+                }
+            }
+        }
+
+        function tickAssembly(r, dt) {
+            if (r.state === 'IDLE') {
+                const s = r.workStation, stations = [{ x: 5, y: 10 }, { x: 8, y: 10 }, { x: 13, y: 10 }, { x: 16, y: 10 }], sup = { x: 1, y: 2 };
+                if (!r.carrying) {
+                    setState(r, 'NAVIGATING');
+                    const p = astar(Math.round(r.gx), Math.round(r.gy), sup.x, sup.y, r.id);
+                    r.path = p || []; r.pathIdx = 0;
+                    r.task = { pickX: sup.x, pickY: sup.y, dropX: stations[s].x, dropY: stations[s].y, name: `COMP→S${s + 1}` };
+                }
+            }
+            if (r.path.length && r.pathIdx >= r.path.length && r.state === 'NAVIGATING') {
+                if (!r.carrying && r.task) { r.carrying = true; setState(r, 'CARRYING'); const p = astar(Math.round(r.gx), Math.round(r.gy), r.task.dropX, r.task.dropY, r.id); r.path = p || []; r.pathIdx = 0; }
+                else if (r.carrying && r.task) {
+                    stationProgress[r.workStation] = Math.min(100, stationProgress[r.workStation] + 25);
+                    if (stationProgress[r.workStation] >= 100) {
+                        stationProgress[r.workStation] = 0; assemblyCycles++; tasksDone++;
+                        addLog(`Station ${r.workStation + 1} cycle complete! Total: ${assemblyCycles}`, 'green');
+                    }
+                    r.carrying = false; r.task = null; setState(r, 'IDLE'); spawnParticles(r.px, r.py, 'complete', r.color);
+                }
+            }
+        }
+
+        function tickMapping(r, dt) {
+            if ((r.state === 'IDLE' || !r.frontierTarget || r.path.length === 0) && r.state !== 'EXPLORING') {
+                const f = findFrontier(r.id);
+                if (f) { r.frontierTarget = f; setState(r, 'EXPLORING'); const p = astar(Math.round(r.gx), Math.round(r.gy), f.x, f.y, r.id); r.path = p || []; r.pathIdx = 0; }
+            }
+            if (r.path.length && r.pathIdx >= r.path.length && r.state === 'EXPLORING') { r.frontierTarget = null; setState(r, 'IDLE'); }
+        }
+
+        function findFrontier(rid) {
+            const r = robots[rid]; let best = null, bestDist = 9999;
+            const zone = rid % 4;
+            for (let x = 0; x < GRID; x++)for (let y = 0; y < GRID; y++) {
+                if (fogGrid[x][y] || grid[x][y] > 0) continue;
+                const iz = (zone === 0 && x < 10 && y < 10) || (zone === 1 && x >= 10 && y < 10) || (zone === 2 && x < 10 && y >= 10) || (zone === 3 && x >= 10 && y >= 10);
+                if (!iz) continue;
+                const d = Math.abs(r.gx - x) + Math.abs(r.gy - y);
+                if (d < bestDist) { bestDist = d; best = { x, y }; }
+            }
+            return best;
+        }
+
+        function markVisited(x, y) {
+            if (x < 0 || x >= GRID || y < 0 || y >= GRID) return;
+            if (!fogGrid[x][y]) { fogGrid[x][y] = true; visitedTiles++; }
+            [[-1, 0], [1, 0], [0, -1], [0, 1]].forEach(([dx, dy]) => {
+                const nx = x + dx, ny = y + dy;
+                if (nx >= 0 && nx < GRID && ny >= 0 && ny < GRID && !fogGrid[nx][ny]) { fogGrid[nx][ny] = true; visitedTiles++; }
+            });
+        }
+
+        // ── PARTICLES ─────────────────────────────────────────
+        function spawnParticles(px, py, type, color) {
+            for (let i = 0; i < 12; i++) {
+                const a = Math.random() * Math.PI * 2, s = 1 + Math.random() * 3;
+                particles.push({ x: px, y: py, vx: Math.cos(a) * s, vy: Math.sin(a) * s - 2, life: 30 + Math.random() * 20, maxLife: 50, color: type === 'complete' ? '#00E676' : color, size: 2 + Math.random() * 2.5 });
+            }
+        }
+
+        // ── RENDER ────────────────────────────────────────────
+        function render() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = '#0A0C10'; ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Scanline effect
+            for (let y = 0; y < canvas.height; y += 3) {
+                ctx.fillStyle = 'rgba(0,0,0,0.07)';
+                ctx.fillRect(0, y, canvas.width, 1);
+            }
+
+            drawGrid();
+            const sorted = [...robots].sort((a, b) => (a.gx + a.gy) - (b.gx + b.gy));
+            sorted.forEach(r => drawTrail(r));
+            sorted.forEach(r => drawRobot(r));
+
+            particles.forEach(p => {
+                ctx.globalAlpha = p.life / p.maxLife;
+                ctx.fillStyle = p.color; ctx.beginPath(); ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2); ctx.fill();
+            });
+            ctx.globalAlpha = 1;
+
+            if (scenario === 'mapping') drawFog();
+            if (scenario === 'assembly') drawAssemblyStations();
+            if (scenario === 'mapping') {
+                const exp = Math.floor(visitedTiles / (GRID * GRID) * 100);
+                document.getElementById('map-progress-bar').style.width = exp + '%';
+                document.getElementById('map-pct').textContent = exp + '%';
+                if (exp >= 95) showOverlay('MAPPING COMPLETE!');
+            }
+
+            drawMiniThroughputChart();
+        }
+
+        function drawGrid() {
+            for (let x = 0; x < GRID; x++)for (let y = 0; y < GRID; y++) {
+                const s = isoToScreen(x, y), v = grid[x][y];
+                if (v === 1) drawIsoTile(s.x, s.y, '#1a1f2e', '#232a3d', '#0d1018');
+                else if (v === 2) drawIsoTile(s.x, s.y, '#2a1a1a', '#3a2020', '#1a0d0d');
+                else {
+                    // heatmap tint
+                    const heat = heatmapData[x] && heatmapData[x][y] ? Math.min(heatmapData[x][y] / 20, 1) : 0;
+                    if (heat > 0) {
+                        const r = Math.floor(heat * 30), g = Math.floor(heat * 60), b = Math.floor(heat * 80) + 14;
+                        drawIsoTile(s.x, s.y, `rgb(${10 + r},${14 + g},${20 + b})`, '#141920', '#0A0D14');
+                    } else drawIsoTile(s.x, s.y, '#0F141E', '#141920', '#0A0D14');
+                }
+                if (x === chargingStation.x && y === chargingStation.y) drawGlowTile(s.x, s.y, '#00E676', 0.3 + 0.1 * Math.sin(simTime / 400));
+                if (x === dispatchZone.x && y === dispatchZone.y && scenario === 'warehouse') drawGlowTile(s.x, s.y, '#FFB300', 0.3 + 0.1 * Math.sin(simTime / 300));
+                if (scenario === 'warehouse') itemLocations.forEach(l => { if (l.x === x && l.y === y) drawGlowTile(s.x, s.y, '#00E5FF', 0.2); });
+            }
+        }
+
+        function drawIsoTile(sx, sy, topColor) {
+            const hw = TW / 2, hh = TH / 2;
+            ctx.beginPath(); ctx.moveTo(sx, sy - hh); ctx.lineTo(sx + hw, sy); ctx.lineTo(sx, sy + hh); ctx.lineTo(sx - hw, sy); ctx.closePath();
+            ctx.fillStyle = topColor; ctx.fill();
+            ctx.strokeStyle = 'rgba(255,255,255,0.03)'; ctx.lineWidth = 0.5; ctx.stroke();
+        }
+
+        function drawGlowTile(sx, sy, color, alpha) {
+            const hw = TW / 2, hh = TH / 2;
+            ctx.beginPath(); ctx.moveTo(sx, sy - hh); ctx.lineTo(sx + hw, sy); ctx.lineTo(sx, sy + hh); ctx.lineTo(sx - hw, sy); ctx.closePath();
+            ctx.fillStyle = color + Math.floor(alpha * 255).toString(16).padStart(2, '0'); ctx.fill();
+            ctx.shadowBlur = 15; ctx.shadowColor = color; ctx.strokeStyle = color + '88'; ctx.lineWidth = 1; ctx.stroke(); ctx.shadowBlur = 0;
+        }
+
+        function drawTrail(r) {
+            if (r.path.length < 2) return;
+            ctx.save(); ctx.setLineDash([3, 5]); ctx.strokeStyle = r.color + '44'; ctx.lineWidth = 1.5;
+            ctx.beginPath(); const s = isoToScreen(r.gx, r.gy); ctx.moveTo(s.x, s.y);
+            for (let i = r.pathIdx; i < Math.min(r.pathIdx + 14, r.path.length); i++) { const p = isoToScreen(r.path[i].x, r.path[i].y); ctx.lineTo(p.x, p.y); }
+            ctx.stroke(); ctx.setLineDash([]); ctx.restore();
+        }
+
+        function drawRobot(r) {
+            const s = isoToScreen(r.gx, r.gy), px = s.x, py = s.y, bh = 22;
+            const flash = r.flashTimer > 0 && Math.floor(r.flashTimer / 200) % 2 === 0;
+            const col = flash ? '#FFB300' : r.color;
+            const hw = TW / 2 * 0.68, hh = TH / 2 * 0.68;
+
+            // Shadow
+            ctx.beginPath(); ctx.ellipse(px, py + hh + 2, hw * 0.9, hh * 0.5, 0, 0, Math.PI * 2); ctx.fillStyle = 'rgba(0,0,0,0.4)'; ctx.fill();
+
+            // Left face
+            ctx.beginPath(); ctx.moveTo(px - hw, py); ctx.lineTo(px, py + hh); ctx.lineTo(px, py + hh + bh); ctx.lineTo(px - hw, py + bh); ctx.closePath();
+            ctx.fillStyle = r.darkColor; ctx.fill();
+            // Right face
+            ctx.beginPath(); ctx.moveTo(px + hw, py); ctx.lineTo(px, py + hh); ctx.lineTo(px, py + hh + bh); ctx.lineTo(px + hw, py + bh); ctx.closePath();
+            ctx.fillStyle = r.darkColor + 'cc'; ctx.fill();
+            // Top face
+            ctx.beginPath(); ctx.moveTo(px, py - hh + bh); ctx.lineTo(px + hw, py + bh); ctx.lineTo(px, py + hh + bh); ctx.lineTo(px - hw, py + bh); ctx.closePath();
+            ctx.fillStyle = col; ctx.fill();
+            ctx.shadowBlur = 10; ctx.shadowColor = col; ctx.strokeStyle = col + '66'; ctx.lineWidth = 1;
+            ctx.beginPath(); ctx.moveTo(px, py - hh + bh); ctx.lineTo(px + hw, py + bh); ctx.lineTo(px, py + hh + bh); ctx.lineTo(px - hw, py + bh); ctx.closePath(); ctx.stroke();
+            ctx.shadowBlur = 0;
+
+            // Antenna
+            ctx.strokeStyle = col + 'cc'; ctx.lineWidth = 1.5;
+            ctx.beginPath(); ctx.moveTo(px, py + bh - hh - 2); ctx.lineTo(px, py + bh - hh - 12); ctx.stroke();
+            ctx.beginPath(); ctx.arc(px, py + bh - hh - 13, 3, 0, Math.PI * 2);
+            ctx.fillStyle = col; ctx.shadowBlur = 8; ctx.shadowColor = col; ctx.fill(); ctx.shadowBlur = 0;
+
+            // Eye
+            const sc = STATES[r.state]?.color || '#fff';
+            ctx.beginPath(); ctx.arc(px + 2, py + bh - 2, 4, 0, Math.PI * 2);
+            ctx.fillStyle = sc; ctx.shadowBlur = 10; ctx.shadowColor = sc; ctx.fill(); ctx.shadowBlur = 0;
+
+            // Carried item
+            if (r.carrying) {
+                ctx.beginPath(); ctx.arc(px, py + bh - hh - 22, 5, 0, Math.PI * 2);
+                ctx.fillStyle = '#00E5FF'; ctx.shadowBlur = 10; ctx.shadowColor = '#00E5FF'; ctx.fill(); ctx.shadowBlur = 0;
+            }
+
+            // Battery bar
+            const bpct = r.battery / 100, bw = TW * 0.8, bx = px - bw / 2, by = py + bh - hh - 28;
+            ctx.fillStyle = 'rgba(0,0,0,0.5)'; ctx.fillRect(bx, by, bw, 4);
+            ctx.fillStyle = bpct > 0.5 ? '#00E676' : bpct > 0.2 ? '#FFB300' : '#FF1744'; ctx.fillRect(bx, by, bw * bpct, 4);
+
+            // Label
+            ctx.font = 'bold 9px Share Tech Mono'; ctx.textAlign = 'center';
+            ctx.fillStyle = col; ctx.shadowBlur = 5; ctx.shadowColor = col;
+            ctx.fillText(r.shortName, px, py + bh - hh - 32); ctx.shadowBlur = 0;
+        }
+
+        function drawFog() {
+            for (let x = 0; x < GRID; x++)for (let y = 0; y < GRID; y++) {
+                if (!fogGrid[x][y]) {
+                    const s = isoToScreen(x, y), hw = TW / 2, hh = TH / 2;
+                    ctx.beginPath(); ctx.moveTo(s.x, s.y - hh); ctx.lineTo(s.x + hw, s.y); ctx.lineTo(s.x, s.y + hh); ctx.lineTo(s.x - hw, s.y); ctx.closePath();
+                    ctx.fillStyle = 'rgba(10,12,16,0.87)'; ctx.fill();
+                }
+            }
+        }
+
+        function drawAssemblyStations() {
+            [{ x: 5, y: 10 }, { x: 8, y: 10 }, { x: 13, y: 10 }, { x: 16, y: 10 }].forEach((st, i) => {
+                const s = isoToScreen(st.x, st.y), p = stationProgress[i] / 100;
+                ctx.fillStyle = 'rgba(0,229,255,0.15)'; ctx.fillRect(s.x - 20, s.y - 5, 40, 6);
+                ctx.fillStyle = p < 0.9 ? '#00E5FF' : '#00E676'; ctx.fillRect(s.x - 20, s.y - 5, 40 * p, 6);
+                ctx.font = '9px Share Tech Mono'; ctx.textAlign = 'center'; ctx.fillStyle = '#00E5FF';
+                ctx.fillText(`S${i + 1} ${stationProgress[i]}%`, s.x, s.y + 15);
+            });
+        }
+
+        // ── MINI THROUGHPUT CHART ─────────────────────────────
+        function drawMiniThroughputChart() {
+            const mc = document.getElementById('throughputCanvas');
+            const mctx = mc.getContext('2d');
+            mctx.clearRect(0, 0, mc.width, mc.height);
+            if (throughputHistory.length < 2) return;
+            const max = Math.max(...throughputHistory, 1);
+            mctx.strokeStyle = 'rgba(0,229,255,0.6)'; mctx.lineWidth = 1.5;
+            mctx.beginPath();
+            throughputHistory.forEach((v, i) => {
+                const x = i * (mc.width / Math.max(throughputHistory.length - 1, 1)), y = mc.height - (v / max) * mc.height * 0.9;
+                i === 0 ? mctx.moveTo(x, y) : mctx.lineTo(x, y);
+            });
+            mctx.stroke();
+            // fill
+            mctx.lineTo(mc.width, mc.height); mctx.lineTo(0, mc.height); mctx.closePath();
+            mctx.fillStyle = 'rgba(0,229,255,0.06)'; mctx.fill();
+        }
+
+        function updateThroughput() {
+            throughputHistory.push(tasksThisMinute);
+            if (throughputHistory.length > 20) throughputHistory.shift();
+            tasksThisMinute = 0;
+        }
+
+        // ── ANALYTICS CHARTS ─────────────────────────────────
+        function updateAnalyticsCharts() {
+            if (document.getElementById('analytics-tab').style.display === 'none') return;
+            drawBatteryChart(); drawTaskChart(); drawOdoChart(); drawStateChart();
+        }
+
+        function drawBatteryChart() {
+            const c = document.getElementById('battChart'), ctx2 = c.getContext('2d');
+            ctx2.clearRect(0, 0, c.width, c.height);
+            const bw = c.width / 4 - 4;
+            robots.forEach((r, i) => {
+                const x = i * (c.width / 4) + 2, pct = r.battery / 100;
+                const h = Math.max(pct * (c.height - 16), 2);
+                const col = pct > 0.5 ? '#00E676' : pct > 0.2 ? '#FFB300' : '#FF1744';
+                ctx2.fillStyle = col + '33'; ctx2.fillRect(x, c.height - 16 - h + 1, bw - 2, h);
+                ctx2.fillStyle = col; ctx2.fillRect(x, c.height - 16 - h, bw - 2, 3);
+                ctx2.font = '8px Share Tech Mono'; ctx2.textAlign = 'center'; ctx2.fillStyle = col;
+                ctx2.fillText(r.battery.toFixed(0) + '%', x + (bw - 2) / 2, c.height - 4);
+                ctx2.fillStyle = r.color; ctx2.fillText(r.shortName, x + (bw - 2) / 2, 10);
+            });
+        }
+
+        function drawTaskChart() {
+            const c = document.getElementById('taskChart'), ctx2 = c.getContext('2d');
+            ctx2.clearRect(0, 0, c.width, c.height);
+            const total = robots.reduce((s, r) => s + r.tasksCompleted, 0) || 1;
+            let angle = -Math.PI / 2, cx = c.width / 2, cy = c.height / 2, rad = Math.min(cx, cy) - 10;
+            robots.forEach(r => {
+                const slice = (r.tasksCompleted / total) * Math.PI * 2;
+                ctx2.beginPath(); ctx2.moveTo(cx, cy); ctx2.arc(cx, cy, rad, angle, angle + slice); ctx2.closePath();
+                ctx2.fillStyle = r.color + 'aa'; ctx2.fill();
+                ctx2.strokeStyle = r.color; ctx2.lineWidth = 1.5; ctx2.stroke();
+                if (r.tasksCompleted > 0) {
+                    const mid = angle + slice / 2;
+                    ctx2.font = '8px Share Tech Mono'; ctx2.textAlign = 'center'; ctx2.fillStyle = r.color;
+                    ctx2.fillText(r.tasksCompleted, cx + Math.cos(mid) * (rad * 0.6), cy + Math.sin(mid) * (rad * 0.6) + 3);
+                }
+                angle += slice;
+            });
+            ctx2.font = '8px Share Tech Mono'; ctx2.textAlign = 'center'; ctx2.fillStyle = 'var(--muted)';
+            ctx2.fillStyle = 'rgba(232,237,245,0.4)'; ctx2.fillText('TASKS', cx, cy + 3);
+        }
+
+        function drawOdoChart() {
+            const c = document.getElementById('odoChart'), ctx2 = c.getContext('2d');
+            ctx2.clearRect(0, 0, c.width, c.height);
+            const max = Math.max(...robots.map(r => r.odo), 1);
+            const bw = c.width / 4 - 4;
+            robots.forEach((r, i) => {
+                const x = i * (c.width / 4) + 2, h = Math.max((r.odo / max) * (c.height - 16), 2);
+                ctx2.fillStyle = r.color + '33'; ctx2.fillRect(x, c.height - 16 - h, bw - 2, h);
+                ctx2.fillStyle = r.color; ctx2.fillRect(x, c.height - 16 - h, bw - 2, 2);
+                ctx2.font = '8px Share Tech Mono'; ctx2.textAlign = 'center'; ctx2.fillStyle = r.color;
+                ctx2.fillText(r.odo, x + (bw - 2) / 2, c.height - 4);
+                ctx2.fillText(r.shortName, x + (bw - 2) / 2, 10);
+            });
+        }
+
+        function drawStateChart() {
+            const c = document.getElementById('stateChart'), ctx2 = c.getContext('2d');
+            ctx2.clearRect(0, 0, c.width, c.height);
+            const stateColors = Object.fromEntries(Object.entries(STATES).map(([k, v]) => [k, v.color]));
+            const rh = (c.height - 4) / 4;
+            robots.forEach((r, i) => {
+                const last = r.stateLog.slice(-8);
+                const y = i * rh + 2, rowH = rh - 2;
+                if (!last.length) return;
+                const totalSpan = Math.max(simTime - last[0].t, 1);
+                last.forEach((entry, j) => {
+                    const dur = (j < last.length - 1 ? last[j + 1].t : simTime) - entry.t;
+                    const x = (entry.t - last[0].t) / totalSpan * c.width;
+                    const w = dur / totalSpan * c.width;
+                    ctx2.fillStyle = (stateColors[entry.state] || '#888') + '88';
+                    ctx2.fillRect(x, y, Math.max(w, 1), rowH);
+                });
+                ctx2.font = '7px Share Tech Mono'; ctx2.textAlign = 'left'; ctx2.fillStyle = r.color;
+                ctx2.fillText(r.shortName, 2, y + rowH - 1);
+            });
+        }
+
+        // ── UI ────────────────────────────────────────────────
+        function updateUI() {
+            document.getElementById('stat-done').textContent = tasksDone;
+            const active = robots.filter(r => r.state !== 'IDLE' && r.state !== 'CHARGING').length;
+            document.getElementById('stat-active').textContent = active;
+            const avg = robots.reduce((s, r) => s + r.battery, 0) / robots.length;
+            document.getElementById('stat-battery').textContent = avg.toFixed(0) + '%';
+            const elapsed = Math.floor((Date.now() - sessionStartTime) / 1000);
+            document.getElementById('stat-uptime').textContent = `${String(Math.floor(elapsed / 60)).padStart(2, '0')}:${String(elapsed % 60).padStart(2, '0')}`;
+
+            robots.forEach(r => {
+                const card = document.getElementById(`rcard-${r.id}`); if (!card) return;
+                const st = STATES[r.state] || STATES.IDLE;
+                card.querySelector('.robot-state-badge').textContent = st.label;
+                card.querySelector('.robot-state-badge').style.color = st.color;
+                card.querySelector('.robot-state-badge').style.background = st.bg;
+                const bfill = card.querySelector('.battery-fill');
+                bfill.style.width = r.battery + '%';
+                bfill.style.background = r.battery > 50 ? '#00E676' : r.battery > 20 ? '#FFB300' : '#FF1744';
+                card.querySelector('.battery-pct').textContent = r.battery.toFixed(0) + '%';
+                card.querySelector('.robot-task').textContent = r.task ? r.task.name : (r.state === 'CHARGING' ? 'Charging...' : 'IDLE');
+                card.querySelector('.robot-meta').innerHTML = `<span>ODO: ${r.odo}</span><span>DONE: ${r.tasksCompleted}</span>`;
+            });
+
+            document.getElementById('ts-completed').textContent = tasksDone;
+            document.getElementById('ts-avgtime').textContent = tasksDone > 0 ? (totalTaskTime / tasksDone).toFixed(1) : '—';
+            document.getElementById('ts-queued').textContent = taskQueue.filter(t => t.status === 'queued').length;
+            document.getElementById('ts-collisions').textContent = collisionCount;
+            const elapsed2 = Math.max((Date.now() - sessionStartTime) / 60000, 0.01);
+            document.getElementById('ts-throughput').textContent = (tasksDone / elapsed2).toFixed(1);
+            const maxPossible = robots.length * (tasksDone / Math.max(1, tasksDone)) * 100;
+            const eff = tasksDone > 0 ? Math.min(100, Math.round((tasksDone / (tasksDone + collisionCount * 0.5)) * 100)) : 0;
+            document.getElementById('ts-efficiency').textContent = eff + '%';
+        }
+
+        function updateTaskUI() {
+            const list = document.getElementById('task-list'); list.innerHTML = '';
+            taskQueue.slice(-25).reverse().forEach(t => {
+                const r = t.assignedRobot !== null ? robots[t.assignedRobot] : null;
+                const div = document.createElement('div');
+                div.className = 'task-item' + (t.priority === 'urgent' ? ' urgent' : '') + (t.status === 'active' ? ' active' : '') + (t.status === 'done' ? ' done' : '');
+                div.innerHTML = `<span class="badge ${t.status === 'done' ? 'done' : t.priority}">${t.status === 'done' ? '✓' : t.priority === 'urgent' ? '⚡ URGENT' : 'NORMAL'}</span>
+      <div style="font-size:10px;color:var(--white);margin:2px 0">#${t.id} ${t.name}</div>
+      <div style="font-size:9px;color:var(--muted)">${r ? `<span style="color:${r.color}">■</span> ${r.shortName}` : t.status === 'queued' ? '⌛ awaiting robot' : ''}</div>`;
+                list.appendChild(div);
+            });
+        }
+
+        function renderRobotCards() {
+            const c = document.getElementById('robot-cards'); c.innerHTML = '';
+            robots.forEach(r => {
+                const d = document.createElement('div'); d.className = 'robot-card'; d.id = `rcard-${r.id}`;
+                d.innerHTML = `<div class="robot-card-header">
+      <div class="robot-color-bar" style="background:${r.color};box-shadow:0 0 8px ${r.color}"></div>
+      <div><div class="robot-name" style="color:${r.color}">${r.name}</div></div>
+      <div class="robot-state-badge">IDLE</div></div>
+    <div class="battery-bar-wrap"><div class="battery-bar"><div class="battery-fill" style="width:100%;background:#00E676"></div></div><div class="battery-pct">100%</div></div>
+    <div class="robot-task">—</div>
+    <div class="robot-meta"><span>ODO: 0</span><span>DONE: 0</span></div>`;
+                c.appendChild(d);
+            });
+        }
+
+        // ── LOG ───────────────────────────────────────────────
+        let logCount = 0, logData = [];
+        function addLog(msg, type = 'white') {
+            logCount++;
+            const now = new Date();
+            const ts = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`;
+            logData.push({ ts, msg, type });
+            if (logData.length > 200) logData.shift();
+            const feed = document.getElementById('log-feed');
+            const d = document.createElement('div'); d.className = 'log-entry';
+            d.innerHTML = `<span class="log-ts">${ts}</span><span class="log-msg ${type}">${msg}</span>`;
+            feed.insertBefore(d, feed.firstChild);
+            if (feed.children.length > 80) feed.removeChild(feed.lastChild);
+            document.getElementById('log-count').textContent = logCount + ' EVENTS';
+        }
+        function clearLog() { document.getElementById('log-feed').innerHTML = ''; logCount = 0; document.getElementById('log-count').textContent = '0 EVENTS'; }
+        function exportLog() {
+            const text = logData.map(l => `[${l.ts}] ${l.msg}`).join('\n');
+            const blob = new Blob([text], { type: 'text/plain' });
+            const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'hive-log.txt'; a.click();
+        }
+
+        // ── MODAL / HELP ──────────────────────────────────────
+        function openHelp() {
+            document.getElementById('modal-inner').innerHTML = `
+    <h2>HIVE — USER GUIDE</h2>
+    <div class="section-title">WHAT IS HIVE?</div>
+    <p>HIVE is an Industrial Swarm Robotics Simulator demonstrating 4 collaborative robots performing real industrial tasks using A* pathfinding, priority-based task assignment, battery management, and multi-agent collision avoidance.</p>
+    <div class="section-title">SCENARIOS</div>
+    <ul>
+      <li><b style="color:var(--blue)">WAREHOUSE</b> — Robots pick inventory items and deliver to dispatch. Tasks auto-generate every ~10s. Add manual tasks with the + TASK / ⚡ URGENT buttons.</li>
+      <li><b style="color:var(--amber)">ASSEMBLY LINE</b> — Each robot services a workstation along a conveyor. Components delivered in sequence; watch cycle counters increment.</li>
+      <li><b style="color:var(--cyan)">MAPPING</b> — Fog-of-war environment. Robots use frontier-based exploration partitioned by zone. Progress bar shows % explored.</li>
+    </ul>
+    <div class="section-title">ROBOT STATES</div>
+    <ul>
+      ${Object.entries(STATES).map(([k, v]) => `<li><b style="color:${v.color}">${k}</b> — ${{ IDLE: 'Waiting for task', NAVIGATING: 'Moving via A* path', PICKING: 'Collecting item (1.5s)', CARRYING: 'Transporting to drop-off', DEPOSITING: 'Dropping off (0.8s)', CHARGING: 'Recharging battery', AVOIDING: 'Re-routing around robot', ERROR: 'No path found', EXPLORING: 'Mapping frontier', WORKING: 'At workstation' }[k] || ''
+                }</li>`).join('')}
+    </ul>
+    <div class="section-title">KEY ALGORITHMS</div>
+    <ul>
+      <li><b>A* Pathfinding</b> — Grid-based with Manhattan heuristic + diagonal moves. Dynamic obstacles (other robots) re-trigger path recalculation.</li>
+      <li><b>Priority Task Assignment</b> — Urgent tasks jump the queue. Nearest idle robot with battery > 25% is assigned. If all busy, task is queued.</li>
+      <li><b>Battery System</b> — Drains 0.05%/tile + 0.02%/s idle. Auto-charges at 20%. Resumes interrupted task after full charge.</li>
+      <li><b>Collision Avoidance</b> — Robots within 0.85 tiles trigger avoidance. Lower-priority robot yields and recalculates path.</li>
+      <li><b>Frontier Exploration</b> — Each robot claims a quadrant. Visits nearest unexplored tile border, marks 3×3 area as visible.</li>
+    </ul>
+    <div class="section-title">KEYBOARD SHORTCUTS</div>
+    <ul><li><b>Space</b> — Pause/Resume</li><li><b>R</b> — Reset simulation</li><li><b>A</b> — Switch to Analytics tab</li></ul>`;
+            document.getElementById('modal-overlay').classList.add('show');
+        }
+
+        function openReport() {
+            const elapsed = Math.max((Date.now() - sessionStartTime) / 1000, 1);
+            const elMin = (elapsed / 60).toFixed(1);
+            const avgBatt = robots.reduce((s, r) => s + r.battery, 0) / robots.length;
+            const throughput = (tasksDone / (elapsed / 60)).toFixed(2);
+            const eff = tasksDone > 0 ? Math.min(100, Math.round((tasksDone / (tasksDone + collisionCount * 0.5)) * 100)) : 0;
+            const robotRows = robots.map(r => `
+    <div class="report-kv"><span class="rk">${r.name}</span><span class="rv">${r.tasksCompleted} tasks / ${r.odo} tiles / ${r.battery.toFixed(0)}% batt</span></div>`).join('');
+            document.getElementById('modal-inner').innerHTML = `
+    <h2>SESSION REPORT</h2>
+    <div class="report-section">
+      <h3>SESSION OVERVIEW</h3>
+      <div class="report-grid">
+        <div>
+          <div class="report-kv"><span class="rk">Scenario</span><span class="rv">${scenario.toUpperCase()}</span></div>
+          <div class="report-kv"><span class="rk">Duration</span><span class="rv">${elMin} min</span></div>
+          <div class="report-kv"><span class="rk">Tasks Completed</span><span class="rv">${tasksDone}</span></div>
+          <div class="report-kv"><span class="rk">Tasks Queued</span><span class="rv">${taskQueue.filter(t => t.status === 'queued').length}</span></div>
+        </div>
+        <div>
+          <div class="report-kv"><span class="rk">Avg Task Time</span><span class="rv">${tasksDone > 0 ? (totalTaskTime / tasksDone).toFixed(1) : '—'} s</span></div>
+          <div class="report-kv"><span class="rk">Throughput</span><span class="rv">${throughput} tasks/min</span></div>
+          <div class="report-kv"><span class="rk">Collisions</span><span class="rv">${collisionCount}</span></div>
+          <div class="report-kv"><span class="rk">Swarm Efficiency</span><span class="rv">${eff}%</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="report-section">
+      <h3>ROBOT PERFORMANCE</h3>
+      ${robotRows}
+      <div class="report-kv" style="margin-top:6px"><span class="rk">Avg Battery</span><span class="rv">${avgBatt.toFixed(1)}%</span></div>
+      <div class="report-kv"><span class="rk">Total Distance</span><span class="rv">${robots.reduce((s, r) => s + r.odo, 0)} tiles</span></div>
+    </div>
+    <div class="report-section">
+      <h3>ALGORITHMS USED</h3>
+      <div class="report-kv"><span class="rk">Pathfinding</span><span class="rv">A* (Manhattan + Diagonal)</span></div>
+      <div class="report-kv"><span class="rk">Task Assignment</span><span class="rv">Priority Queue + Nearest-Robot</span></div>
+      <div class="report-kv"><span class="rk">Collision Avoidance</span><span class="rv">Dynamic Re-routing</span></div>
+      <div class="report-kv"><span class="rk">Exploration</span><span class="rv">Frontier-Based (Partitioned)</span></div>
+      <div class="report-kv"><span class="rk">Grid Size</span><span class="rv">20×20 (400 tiles)</span></div>
+    </div>
+    <div style="margin-top:12px;display:flex;gap:8px;">
+      <button class="primary" onclick="printReport()">🖨 PRINT REPORT</button>
+      <button class="success" onclick="exportReportJSON()">↓ EXPORT JSON</button>
+    </div>`;
+            document.getElementById('modal-overlay').classList.add('show');
+        }
+
+        function printReport() { window.print(); }
+
+        function exportReportJSON() {
+            const data = {
+                scenario, sessionDuration: (Date.now() - sessionStartTime) / 1000,
+                tasksDone, avgTaskTime: tasksDone > 0 ? totalTaskTime / tasksDone : 0,
+                collisionCount,
+                robots: robots.map(r => ({ name: r.name, tasksCompleted: r.tasksCompleted, odometer: r.odo, battery: r.battery })),
+                timestamp: new Date().toISOString()
+            };
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+            const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'hive-report.json'; a.click();
+        }
+
+        function closeModal() { document.getElementById('modal-overlay').classList.remove('show'); }
+
+        // ── TABS ─────────────────────────────────────────────
+        function switchRightTab(tab) {
+            document.getElementById('tab-status').classList.toggle('active', tab === 'status');
+            document.getElementById('tab-analytics').classList.toggle('active', tab === 'analytics');
+            document.getElementById('robot-cards').style.display = tab === 'status' ? 'block' : 'none';
+            document.getElementById('analytics-tab').style.display = tab === 'analytics' ? 'block' : 'none';
+            if (tab === 'analytics') updateAnalyticsCharts();
+        }
+
+        function showOverlay(msg) {
+            const el = document.getElementById('canvas-overlay'); el.textContent = msg; el.style.opacity = '1';
+            setTimeout(() => el.style.opacity = '0', 3000);
+        }
+
+        // ── EVENTS ────────────────────────────────────────────
+        document.getElementById('scenario-select').addEventListener('change', e => {
+            scenario = e.target.value; clearTimeout(autoTaskTimer);
+            if (scenario === 'warehouse') buildWarehouseGrid();
+            else if (scenario === 'assembly') buildAssemblyGrid();
+            else buildMappingGrid();
+            spawnRobots(); taskQueue = []; tasksDone = 0; totalTaskTime = 0; collisionCount = 0; taskIdCounter = 0; visitedTiles = 0; particles = [];
+            sessionStartTime = Date.now(); throughputHistory = []; tasksThisMinute = 0;
+            updateTaskUI(); clearLog(); renderRobotCards();
+            if (scenario === 'warehouse') scheduleAutoTask();
+            addLog(`Scenario: ${scenario.toUpperCase()}`, 'blue');
+        });
+
+        document.getElementById('speed-select').addEventListener('change', e => speedMult = parseFloat(e.target.value));
+
+        document.getElementById('pause-btn').addEventListener('click', () => {
+            paused = !paused;
+            document.getElementById('pause-btn').textContent = paused ? '▶ RESUME' : '⏸ PAUSE';
+            document.getElementById('pause-btn').className = paused ? 'success' : 'primary';
+            addLog(paused ? 'Simulation PAUSED' : 'Simulation RESUMED', 'amber');
+        });
+
+        document.getElementById('reset-btn').addEventListener('click', () => {
+            clearTimeout(autoTaskTimer);
+            if (scenario === 'warehouse') buildWarehouseGrid();
+            else if (scenario === 'assembly') buildAssemblyGrid();
+            else buildMappingGrid();
+            spawnRobots(); taskQueue = []; tasksDone = 0; totalTaskTime = 0; collisionCount = 0; taskIdCounter = 0; visitedTiles = 0; particles = [];
+            sessionStartTime = Date.now(); throughputHistory = []; tasksThisMinute = 0;
+            updateTaskUI(); clearLog(); renderRobotCards();
+            if (scenario === 'warehouse') scheduleAutoTask();
+            addLog('Simulation RESET', 'red');
+        });
+
+        document.addEventListener('keydown', e => {
+            if (e.code === 'Space') { e.preventDefault(); document.getElementById('pause-btn').click(); }
+            if (e.code === 'KeyR' && !e.ctrlKey) document.getElementById('reset-btn').click();
+            if (e.code === 'KeyA') switchRightTab(document.getElementById('tab-analytics').classList.contains('active') ? 'status' : 'analytics');
+            if (e.code === 'Escape') closeModal();
+            if (e.code === 'KeyH') openHelp();
+        });
+
+        window.addEventListener('resize', resizeCanvas);
+        document.getElementById('modal-overlay').addEventListener('click', e => { if (e.target === document.getElementById('modal-overlay')) closeModal(); });
+
+        // ── GAME LOOP ─────────────────────────────────────────
+        let lastFrame = 0;
+        function gameLoop(ts) {
+            const dt = Math.min(ts - lastFrame, 100); lastFrame = ts;
+            if (!paused) tick(dt);
+            render();
+            requestAnimationFrame(gameLoop);
+        }
+
+        window.addEventListener('load', () => {
+            init();
+            setTimeout(() => { addRandomTask(); addRandomTask(); addRandomTask(true); }, 900);
+        });
+    </script>
+</body>
+
+</html>

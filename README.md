@@ -13,9 +13,18 @@
 
 ---
 
-## ✨ Live Demo
+## 🌐 Unified Landing Page
 
-> Clone the repo and run `npm run dev` — it's instant with Vite.
+The suite now features a premium, robotic‑themed **landing page** that introduces all three simulators (SLAM, NEXUS, HIVE) in a single, cohesive UI. Users start at this page, click **Get Started**, and are taken to a mock login (handled centrally). After login, a **hub** lets you choose which simulator to launch.
+
+- **Hero Section** with animated 3‑D robot SVG and glowing orbit rings.
+- **Simulator Overview Cards** for SLAM, NEXUS, and HIVE.
+- **Glass‑morphism login** that accepts any credentials.
+- **Hub** with clean navigation to each simulator.
+
+### NEXUS Engine Direct Load
+
+The NEXUS simulator now skips the previous "Choose your simulator" hero selection. After the loading screen finishes, the engine initializes automatically, presenting the kinematics and swarm modules directly.
 
 ---
 

@@ -29,7 +29,7 @@ export class DynamicsChartManager {
                     {
                         label: 'Angular Vel (rad/s)',
                         data: this.angularVelData,
-                        borderColor: '#8b5cf6', // purple
+                        borderColor: '#1E90FF', // purple
                         backgroundColor: 'transparent',
                         borderWidth: 2,
                         tension: 0.3,

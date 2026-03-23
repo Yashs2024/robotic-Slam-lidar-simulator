@@ -1,0 +1,1947 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NEXUS — Robotics Simulation Engine</title>
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <!-- Libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    
+    <style>
+        /* Core Variables */
+        :root {
+            --bg-dark: #050810;
+            --cyan: #00F5FF;
+            --violet: #9B5DE5;
+            --text-main: #E0E6ED;
+            --text-muted: #8A9BB3;
+            --glass-bg: rgba(10, 15, 30, 0.6);
+            --glass-border: rgba(0, 245, 255, 0.2);
+            --font-display: 'Orbitron', sans-serif;
+            --font-data: 'JetBrains Mono', monospace;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            font-family: var(--font-data);
+            overflow: hidden;
+            width: 100vw;
+            height: 100vh;
+        }
+
+        /* Loading Screen */
+        #loader {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: var(--bg-dark);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            transition: opacity 1s ease-out;
+        }
+        .nexus-logo {
+            font-family: var(--font-display);
+            font-size: 4rem;
+            color: var(--cyan);
+            text-shadow: 0 0 20px var(--cyan);
+            letter-spacing: 15px;
+            animation: pulse 2s infinite alternate;
+        }
+        @keyframes pulse {
+            0% { text-shadow: 0 0 10px var(--cyan); }
+            100% { text-shadow: 0 0 30px var(--cyan), 0 0 50px var(--violet); }
+        }
+
+        /* Navbar */
+        nav {
+            position: absolute;
+            top: 0; left: 0; width: 100%;
+            height: 60px;
+            background: var(--glass-bg);
+            border-bottom: 1px solid var(--glass-border);
+            backdrop-filter: blur(10px);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 30px;
+            z-index: 100;
+        }
+        .nav-brand {
+            font-family: var(--font-display);
+            font-size: 1.5rem;
+            color: var(--text-main);
+            letter-spacing: 2px;
+        }
+        .nav-brand span { color: var(--cyan); }
+        .nav-tabs {
+            display: flex;
+            gap: 20px;
+        }
+        .tab-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            font-family: var(--font-display);
+            font-size: 1rem;
+            cursor: pointer;
+            padding: 10px 20px;
+            transition: all 0.3s;
+            position: relative;
+        }
+        .tab-btn:hover, .tab-btn.active {
+            color: var(--cyan);
+        }
+        .tab-btn.active::after {
+            content: '';
+            position: absolute;
+            bottom: -5px; left: 0; width: 100%; height: 2px;
+            background: var(--cyan);
+            box-shadow: 0 0 10px var(--cyan);
+        }
+
+        /* Layout */
+        #app-container {
+            position: absolute;
+            top: 60px; left: 0; width: 100%; height: calc(100vh - 60px);
+            display: flex;
+        }
+
+        /* Panels */
+        .side-panel {
+            width: 350px;
+            height: 100%;
+            background: var(--glass-bg);
+            border-right: 1px solid var(--glass-border);
+            backdrop-filter: blur(10px);
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            overflow-y: auto;
+            position: relative;
+            z-index: 50;
+            transition: transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+        }
+        
+        /* Custom Scrollbar */
+        .side-panel::-webkit-scrollbar {
+            width: 6px;
+        }
+        .side-panel::-webkit-scrollbar-track {
+            background: rgba(0,0,0,0.2);
+        }
+        .side-panel::-webkit-scrollbar-thumb {
+            background: var(--glass-border);
+            border-radius: 3px;
+        }
+        .side-panel::-webkit-scrollbar-thumb:hover {
+            background: var(--cyan);
+        }
+
+        .side-panel.hidden {
+            transform: translateX(-100%);
+        }
+        
+        .side-panel-right {
+            border-right: none;
+            border-left: 1px solid var(--glass-border);
+            position: absolute;
+            right: 0;
+            transform: translateX(0);
+        }
+        .side-panel-right.hidden {
+            transform: translateX(100%);
+        }
+
+        /* Main View */
+        .main-view {
+            flex: 1;
+            position: relative;
+            background: radial-gradient(circle at center, #0a0f1e 0%, var(--bg-dark) 100%);
+        }
+
+        .module-container {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            display: flex; /* Display grid or flex per module */
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.5s ease-in-out;
+        }
+        .module-container.active {
+            opacity: 1;
+            pointer-events: auto;
+            z-index: 10;
+        }
+        
+        #mod-swarm { /* Swarm overlay fix since main canvas fits */
+            display: flex; 
+        }
+
+        #kineCanvas, #swarmCanvas {
+            width: 100%; height: 100%;
+            outline: none;
+        }
+
+        /* UI Elements */
+        h2.panel-title {
+            font-family: var(--font-display);
+            color: var(--cyan);
+            font-size: 1.1rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            border-bottom: 1px dashed var(--glass-border);
+            padding-bottom: 8px;
+            margin-bottom: 5px;
+            display: flex;
+            justify-content: space-between;
+        }
+        
+        .info-btn {
+            background: transparent;
+            color: var(--violet);
+            border: 1px solid var(--violet);
+            border-radius: 50%;
+            width: 20px; height: 20px;
+            display: inline-flex;
+            justify-content: center; align-items: center;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .info-btn:hover { background: var(--violet); color: #fff; box-shadow: 0 0 10px var(--violet); }
+
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .control-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .control-label {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+        .control-value {
+            color: var(--cyan);
+            font-weight: bold;
+        }
+        
+        input[type="range"] {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 100%;
+            background: rgba(255,255,255,0.1);
+            height: 4px;
+            border-radius: 2px;
+            outline: none;
+        }
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 14px; height: 14px;
+            background: var(--cyan);
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 0 10px var(--cyan);
+        }
+
+        input[type="number"] {
+            background: rgba(0,0,0,0.5);
+            border: 1px solid var(--glass-border);
+            color: var(--cyan);
+            font-family: var(--font-data);
+            padding: 5px;
+            outline: none;
+            text-align: right;
+        }
+        input[type="number"]:focus {
+            border-color: var(--cyan);
+            box-shadow: 0 0 8px rgba(0, 245, 255, 0.4);
+        }
+
+        .btn {
+            background: rgba(0, 245, 255, 0.1);
+            border: 1px solid var(--cyan);
+            color: var(--cyan);
+            padding: 8px 15px;
+            font-family: var(--font-display);
+            cursor: pointer;
+            text-transform: uppercase;
+            font-size: 0.8rem;
+            transition: all 0.2s;
+            text-align: center;
+        }
+        .btn:hover {
+            background: var(--cyan);
+            color: var(--bg-dark);
+            box-shadow: 0 0 15px var(--cyan);
+        }
+        .btn-violet {
+            border-color: var(--violet);
+            color: var(--violet);
+            background: rgba(155, 93, 229, 0.1);
+        }
+        .btn-violet:hover {
+            background: var(--violet);
+            color: var(--bg-dark);
+            box-shadow: 0 0 15px var(--violet);
+        }
+
+        .data-box {
+            background: rgba(0,10,20,0.6);
+            border: 1px solid var(--glass-border);
+            padding: 12px;
+            font-family: var(--font-data);
+            font-size: 0.8rem;
+            color: var(--cyan);
+            white-space: pre-wrap;
+            line-height: 1.5;
+        }
+
+        /* Modal */
+        .modal {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.85);
+            backdrop-filter: blur(5px);
+            display: none;
+            justify-content: center; align-items: center;
+            z-index: 1000;
+        }
+        .modal.active { display: flex; }
+        .modal-content {
+            background: #080c14;
+            border: 1px solid var(--cyan);
+            padding: 30px;
+            width: 90%;
+            max-width: 600px;
+            box-shadow: 0 0 30px rgba(0,245,255,0.2);
+            position: relative;
+            border-radius: 4px;
+        }
+        .close-modal {
+            position: absolute; top: 10px; right: 20px;
+            color: var(--text-muted); cursor: pointer; font-size: 1.5rem;
+            transition: color 0.2s;
+        }
+        .close-modal:hover { color: var(--cyan); }
+        .modal-body {
+            color: var(--text-muted);
+            line-height: 1.6;
+            margin-top: 15px;
+            font-size: 0.95rem;
+        }
+        .modal-body strong { color: var(--cyan); }
+        .modal-body .violet { color: var(--violet); }
+        
+    </style>
+</head>
+<body>
+
+    <!-- Back to Hub -->
+    <a href="./index.html" id="back-hub-btn" style="position:fixed;top:12px;left:12px;z-index:9999;background:rgba(10,15,30,0.7);border:1px solid rgba(0,245,255,0.2);backdrop-filter:blur(10px);color:#00F5FF;font-family:'Orbitron',sans-serif;font-size:0.65rem;letter-spacing:2px;padding:8px 16px;text-decoration:none;border-radius:6px;transition:all 0.2s;display:flex;align-items:center;gap:6px;" onmouseover="this.style.borderColor='#00F5FF';this.style.boxShadow='0 0 15px rgba(0,245,255,0.2)'" onmouseout="this.style.borderColor='rgba(0,245,255,0.2)';this.style.boxShadow='none'">← HUB</a>
+
+    <!-- Loading Screen -->
+    <div id="loader">
+        <div class="nexus-logo">NEXUS</div>
+        <div id="loader-status" style="color: var(--text-muted); margin-top: 20px; font-family: var(--font-data); animation: loadPulse 1s infinite alternate;">INITIALIZING ENGINE...</div>
+    </div>
+    <style>@keyframes loadPulse { from {opacity: 0.5;} to {opacity: 1;} }</style>
+
+    <!-- UI -->
+    <nav>
+        <div class="nav-brand"><span>NEXUS</span> // ENGINE</div>
+        <div class="nav-tabs">
+            <button class="tab-btn active" data-target="mod-kine">KINEMATICS</button>
+            <button class="tab-btn" data-target="mod-swarm">SWARM</button>
+            <button class="tab-btn" id="btn-about">ABOUT</button>
+        </div>
+        <div style="font-size: 0.8rem; color: var(--text-muted); display:flex; gap:15px; align-items:center;">
+            <span>HOTKEYS: [SPACE], [R], [H]</span>
+            <span style="color: var(--cyan); text-shadow: 0 0 5px var(--cyan);">[ ONLINE ]</span>
+        </div>
+    </nav>
+
+    <div id="app-container">
+        
+        <!-- MODULE 1: Kinematics -->
+        <div id="mod-kine" class="module-container active">
+            
+            <!-- Left Panel (FK/IK) -->
+            <div class="side-panel" id="panel-kine-left">
+                <h2 class="panel-title">Forward Kinematics <span class="info-btn" data-info="fk">?</span></h2>
+                <div id="fk-sliders" class="control-group"></div>
+                
+                <h2 class="panel-title" style="margin-top: 20px;">Inverse Kinematics <span class="info-btn" data-info="ik">?</span></h2>
+                <div class="control-group">
+                    <div class="control-row"><span class="control-label">Target X:</span><input type="number" id="ik-x" step="0.5" value="12.0"></div>
+                    <div class="control-row"><span class="control-label">Target Y:</span><input type="number" id="ik-y" step="0.5" value="8.0"></div>
+                    <div class="control-row"><span class="control-label">Target Z:</span><input type="number" id="ik-z" step="0.5" value="0.0"></div>
+                    <button class="btn btn-violet" id="btn-solve-ik" style="margin-top: 5px;">SOLVE IK</button>
+                    <div style="font-size: 0.75rem; color: var(--text-muted); text-align:center;" id="ik-status">IK Solver Ready</div>
+                </div>
+
+                <h2 class="panel-title" style="margin-top: 20px;">Trajectory Engine</h2>
+                <div class="control-group">
+                    <div style="display: flex; gap: 10px; margin-bottom: 5px;">
+                        <label style="color: var(--text-muted); font-size: 0.8rem; cursor:pointer;"><input type="radio" name="traj_type" value="joint" checked> Joint (LSPB)</label>
+                        <label style="color: var(--text-muted); font-size: 0.8rem; cursor:pointer;"><input type="radio" name="traj_type" value="cartesian"> Cartesian</label>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; font-size: 0.8rem; color: var(--text-muted);">
+                        <span>Waypoints:</span> <span id="traj-waypoint-count" style="color:var(--cyan);">0</span>
+                    </div>
+                    <div style="display: flex; gap: 5px; margin-top: 5px;">
+                        <button class="btn btn-violet" id="btn-traj-run" style="flex:1;">RUN PATH</button>
+                        <button class="btn" id="btn-traj-clear" style="flex:1; border-color: #f55; color: #f55;">CLEAR</button>
+                    </div>
+                    <div style="font-size: 0.7rem; color: #666; margin-top: 5px; line-height: 1.2;">
+                        *Double-click on 3D grid to place target waypoints.
+                    </div>
+                    <div style="margin-top: 10px; display: flex; align-items: center; gap: 8px;">
+                        <input type="checkbox" id="check-safety-stop" checked>
+                        <label for="check-safety-stop" style="color: #f55; font-size: 0.8rem; cursor:pointer; font-weight:bold;">HARD SAFETY STOP</label>
+                    </div>
+                </div>
+
+                <div class="data-box" id="data-readout" style="margin-top: auto;">SYS_RDY...</div>
+            </div>
+
+            <!-- Main Render Area -->
+            <div class="main-view" id="kine-view" style="display: flex; flex-direction: column;">
+                <div id="kine-3d-wrap" style="flex: 1; position: relative;">
+                    <div class="bg-grid"></div>
+                    <canvas id="kineCanvas"></canvas>
+                    
+                    <!-- Safety Monitor Overlay -->
+                    <div id="safety-monitor" style="position: absolute; top: 15px; right: 15px; width: 220px; background: rgba(255,0,0,0.1); border: 1px solid rgba(255,0,0,0.3); backdrop-filter: blur(5px); padding: 10px; border-radius: 4px; pointer-events: none; opacity: 0; transition: opacity 0.3s;">
+                        <div style="color: #ff4444; font-family: var(--font-display); font-size: 0.75rem; border-bottom: 1px solid rgba(255,0,0,0.3); padding-bottom: 5px; margin-bottom: 5px;">SAFETY MONITOR</div>
+                        <div id="safety-list" style="font-family: var(--font-mono); font-size: 0.65rem; color: #fff; line-height: 1.4;">
+                            NO COLLISION DETECTED
+                        </div>
+                    </div>
+                    <div id="kine-notify" style="position: absolute; top: 20px; left: 50%; transform: translateX(-50%); background: rgba(255,50,50,0.8); color: white; padding: 5px 15px; border-radius: 4px; font-family: var(--font-display); font-size: 0.8rem; letter-spacing: 1px; pointer-events: none; opacity: 0; transition: opacity 0.3s; z-index: 100;">OUT OF REACH</div>
+                </div>
+                <!-- Trajectory Charts Panel -->
+                <div id="panel-kine-bottom" style="height: 220px; display: flex; border-top: 1px solid var(--glass-border); background: var(--bg-dark); z-index: 5;">
+                    <div style="flex: 1; padding: 15px 10px 10px 10px; border-right: 1px solid var(--glass-border); position: relative;">
+                        <div style="position: absolute; top:5px; left:10px; font-size:0.7rem; color:var(--cyan); font-family:var(--font-display);">VELOCITY PROFILE</div>
+                        <canvas id="trajVelChart"></canvas>
+                    </div>
+                    <div style="flex: 1; padding: 15px 10px 10px 10px; position: relative;">
+                        <div style="position: absolute; top:5px; left:10px; font-size:0.7rem; color:var(--violet); font-family:var(--font-display);">ACCELERATION PROFILE</div>
+                        <canvas id="trajAccChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Panel (Dynamics) -->
+            <div class="side-panel side-panel-right" id="panel-kine-right">
+                <h2 class="panel-title">Dynamics <span class="info-btn" data-info="dyn">?</span></h2>
+                <div class="control-row" style="margin-bottom: 10px;">
+                    <span class="control-label">Gravity Vector</span>
+                    <button class="btn" id="btn-gravity" style="font-size: 0.7rem; padding: 4px 8px;">Y: -9.81</button>
+                </div>
+                <!-- Torque Chart -->
+                <div style="width: 100%; height: 220px; background: rgba(0,0,0,0.4); border: 1px solid var(--glass-border); padding: 5px;">
+                    <canvas id="torqueChart"></canvas>
+                </div>
+                
+                <h2 class="panel-title" style="margin-top: 20px;">Workspace</h2>
+                <button class="btn" id="btn-toggle-workspace">TOGGLE REACHABILITY</button>
+                <div style="margin-top: 15px;">
+                    <button class="btn btn-violet" id="btn-teach-mode" style="width:100%;">TEACH MODE: OFF</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- MODULE 2: Swarm -->
+        <div id="mod-swarm" class="module-container">
+            <!-- Left Panel (Controls) -->
+            <div class="side-panel" id="panel-swarm-left">
+                <h2 class="panel-title">Boids Engine <span class="info-btn" data-info="boids">?</span></h2>
+                <div class="control-group">
+                    <div class="control-row"><span class="control-label">Agent Count</span><span class="control-value" id="val-agents">50</span></div>
+                    <input type="range" id="param-agents" min="10" max="200" value="50">
+                    
+                    <div class="control-row"><span class="control-label">Separation</span><span class="control-value" id="val-sep">1.5</span></div>
+                    <input type="range" id="param-sep" min="0" max="5" step="0.1" value="1.5">
+                    
+                    <div class="control-row"><span class="control-label">Alignment</span><span class="control-value" id="val-ali">1.0</span></div>
+                    <input type="range" id="param-ali" min="0" max="5" step="0.1" value="1.0">
+                    
+                    <div class="control-row"><span class="control-label">Cohesion</span><span class="control-value" id="val-coh">1.0</span></div>
+                    <input type="range" id="param-coh" min="0" max="5" step="0.1" value="1.0">
+                    
+                    <div class="control-row"><span class="control-label">Max Speed</span><span class="control-value" id="val-speed">2.0</span></div>
+                    <input type="range" id="param-speed" min="0.5" max="6" step="0.1" value="2.0">
+                    
+                    <div class="control-row"><span class="control-label">Visibility Radius</span><span class="control-value" id="val-radius">50</span></div>
+                    <input type="range" id="param-radius" min="20" max="150" step="5" value="50">
+                </div>
+                
+                <h2 class="panel-title" style="margin-top: 20px;">Swarm Tasks</h2>
+                <div class="control-group">
+                    <div class="control-row">
+                        <span class="control-label">Active Task</span>
+                        <select id="swarm-task-select" class="btn" style="width: 130px; font-size: 0.7rem; background: rgba(0,0,0,0.3); color: var(--cyan); border: 1px solid var(--glass-border);">
+                            <option value="none">None (Flock)</option>
+                            <option value="search">Search & Rescue</option>
+                            <option value="formation">Formation Control</option>
+                        </select>
+                    </div>
+                    
+                    <div id="formation-controls" style="display: none; margin-top: 10px;">
+                        <div class="control-row">
+                            <span class="control-label">Shape</span>
+                            <select id="formation-shape-select" class="btn" style="width: 130px; font-size: 0.7rem; background: rgba(0,0,0,0.3); color: var(--violet); border: 1px solid var(--glass-border);">
+                                <option value="circle">Circle</option>
+                                <option value="grid">Grid</option>
+                                <option value="vshape">V-Shape</option>
+                                <option value="arrow">Arrow</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div id="search-stats" style="display: none; margin-top: 10px; font-size: 0.7rem; color: var(--text-muted); border-top: 1px solid rgba(255,255,255,0.05); padding-top: 10px;">
+                        <div class="control-row"><span>Targets Found:</span><span id="search-found" style="color:var(--cyan);">0 / 5</span></div>
+                        <div class="control-row"><span>Time Elapsed:</span><span id="search-time">0.0s</span></div>
+                    </div>
+                </div>
+                
+                <h2 class="panel-title" style="margin-top: 20px;">Simulation Control</h2>
+                <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                    <button class="btn" id="btn-swarm-play" style="flex: 1;">PAUSE</button>
+                    <button class="btn" id="btn-swarm-reset" style="flex: 1;">RESET</button>
+                    <button class="btn" id="btn-swarm-export" style="flex: 1; border-color: var(--cyan); color: var(--cyan);">EXPORT</button>
+                </div>
+                
+                <h2 class="panel-title" style="margin-top: 20px;">Environment</h2>
+                <button class="btn btn-violet" id="btn-add-obstacle" style="width: 100%; margin-bottom: 10px;">ADD OBSTACLE</button>
+                <button class="btn btn-violet" id="btn-set-goal" style="width: 100%; margin-bottom: 10px;">SET TARGET</button>
+                <button class="btn" id="btn-clear-env" style="width: 100%; border-color: #f55; color: #f55;">CLEAR ENVIRONMENT</button>
+            </div>
+
+            <!-- Main Render Area -->
+            <div class="main-view" id="swarm-view">
+                <canvas id="swarmCanvas"></canvas>
+            </div>
+
+            <!-- Right Panel (Analytics) -->
+            <div class="side-panel side-panel-right" id="panel-swarm-right">
+                <h2 class="panel-title">Analytics</h2>
+                
+                <div style="width: 100%; height: 220px; margin-bottom: 20px; border: 1px solid var(--glass-border); background: rgba(0,0,0,0.4); padding: 5px;">
+                    <canvas id="coverageChart"></canvas>
+                </div>
+                
+                <div style="width: 100%; height: 220px; border: 1px solid var(--glass-border); background: rgba(0,0,0,0.4); padding: 5px;">
+                    <canvas id="stateChart"></canvas>
+                </div>
+                
+                <div class="data-box" style="margin-top: auto;">
+                    <div class="control-row"><span class="control-label">Avg Speed:</span><span id="stat-vel" style="color:var(--violet);">0.0</span></div>
+                    <div class="control-row"><span class="control-label">Clusters:</span><span id="stat-cluster">1</span></div>
+                    <div class="control-row"><span class="control-label">Collisions:</span><span id="stat-col" style="color:#f55;">0</span></div>
+                    <div class="control-row"><span class="control-label">Coverage Area:</span><span id="stat-cov">0%</span></div>
+                </div>
+
+                <div style="margin-top: 20px; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 15px;">
+                    <h2 class="panel-title" style="color: var(--violet); font-size: 0.7rem;">SESSION HISTORY (LAST 5)</h2>
+                    <div id="session-history-list" style="font-family: var(--font-mono); font-size: 0.65rem; color: #888;">
+                        <div style="padding: 5px; border-bottom: 1px solid rgba(255,255,255,0.03);">NO PREVIOUS SESSIONS</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Info Modal -->
+    <div class="modal" id="modal-info">
+        <div class="modal-content">
+            <span class="close-modal">&times;</span>
+            <h2 style="color: var(--cyan); font-family: var(--font-display);" id="modal-info-title">TITLE</h2>
+            <div class="modal-body" id="modal-info-body">BODY</div>
+        </div>
+    </div>
+
+    <script>
+        // ==========================================
+        //  CORE UI LOGIC & INITIALIZATION
+        // ==========================================
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                const loader = document.getElementById('loader');
+                loader.style.opacity = '0';
+                setTimeout(() => loader.style.display = 'none', 1000);
+                
+                // Init Modules automatically since the hub handles selection
+                initKinematics();
+                initSwarm();
+            }, 1200);
+        });
+
+        // Tab Switching
+        const tabs = document.querySelectorAll('.tab-btn[data-target]');
+        const modules = document.querySelectorAll('.module-container');
+        tabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                tabs.forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                modules.forEach(m => m.classList.remove('active'));
+                document.getElementById(tab.getAttribute('data-target')).classList.add('active');
+                
+                // Resize charts/canvas on tab switch
+                if(tab.getAttribute('data-target') === 'mod-kine' && window.kineRenderer) {
+                    const kWrap = document.getElementById('kine-3d-wrap');
+                    if(kWrap) window.kineRenderer.setSize(kWrap.clientWidth, kWrap.clientHeight);
+                }
+                if(tab.getAttribute('data-target') === 'mod-swarm' && window.resizeSwarmCanvas) {
+                    window.resizeSwarmCanvas();
+                }
+            });
+        });
+
+        // Modals & Info System
+        const infoData = {
+            'about': {
+                title: 'NEXUS ENGINE v1.0',
+                body: `High-performance physics and kinematics simulation environment.<br><br>
+                       <strong>Module 1 - Kinematics Engine</strong>:<br> 6-DOF Robot Arm equipped with Forward and Inverse Kinematics engines. Real-time dynamic torque graphs.<br><br>
+                       <strong>Module 2 - Swarm Intelligence</strong>:<br> Multi-agent particle simulation utilizing Craig Reynolds' Boid algorithms incorporating behavioral vectors (Separation, Alignment, Cohesion).<br><br>
+                       <span class="violet">HOTKEYS</span>: <br>
+                       • <strong>[SPACE]</strong> Toggle Swarm Play/Pause <br>
+                       • <strong>[R]</strong> Reset Engine <br>
+                       • <strong>[H]</strong> Toggle UI Panels`
+            },
+            'fk': {
+                title: 'FORWARD KINEMATICS',
+                body: `Computes the 3D position and orientation of the end-effector relative to the base, given a set of joint angles.<br><br>Utilizes transformation matrices: <br><strong>T<sub>0_6</sub> = T<sub>0_1</sub> · T<sub>1_2</sub> · ... · T<sub>5_6</sub></strong>`
+            },
+            'ik': {
+                title: 'INVERSE KINEMATICS (IK)',
+                body: `Calculates joint angles required to position the end-effector at a specific spatial target.<br><br>Engine uses an iterative numerical solver (Cyclic Coordinate Descent / Pseudo-inverse Jacobian) to converge on a valid configuration. Solves iteratively over <strong>θ<sub>i</sub> = θ<sub>i</sub> + Δθ</strong>`
+            },
+            'dyn': {
+                title: 'DYNAMIC TORQUE ESTIMATION',
+                body: `Approximates joint torques based on static gravitational forces acting on the center of mass of each link.<br><br><strong>τ<sub>i</sub> = J<sup>T</sup>(q) · F<sub>ext</sub> + G(q)</strong><br><br>Excludes Coriolis and inertial forces in this realtime approximation.`
+            },
+            'boids': {
+                title: 'REYNOLDS BOIDS ALGORITHM',
+                body: `Simulates flocking behavior. Each agent follows three primary steering behaviors based on local neighbors within a visibility radius:<br>
+                       <br><strong>Separation</strong>: Steer to avoid crowding.<br>
+                       <strong>Alignment</strong>: Steer towards average heading of neighbors.<br>
+                       <strong>Cohesion</strong>: Steer towards average position of neighbors.<br>
+                       <strong>Obstacle Avoidance</strong>: Ray-cast repelling force from obstacles.`
+            }
+        };
+
+        const modalInfo = document.getElementById('modal-info');
+        const modalTitle = document.getElementById('modal-info-title');
+        const modalBody = document.getElementById('modal-info-body');
+
+        document.getElementById('btn-about').addEventListener('click', () => {
+            modalTitle.innerHTML = infoData.about.title;
+            modalBody.innerHTML = infoData.about.body;
+            modalInfo.classList.add('active');
+        });
+
+        document.querySelectorAll('.info-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const info = infoData[e.target.getAttribute('data-info')];
+                if(info) {
+                    modalTitle.innerHTML = info.title;
+                    modalBody.innerHTML = info.body;
+                    modalInfo.classList.add('active');
+                }
+            });
+        });
+
+        document.querySelectorAll('.close-modal').forEach(btn => {
+            btn.addEventListener('click', () => {
+                btn.closest('.modal').classList.remove('active');
+            });
+        });
+
+        modalInfo.addEventListener('click', (e) => {
+            if(e.target === modalInfo) modalInfo.classList.remove('active');
+        });
+
+        // Global UI Toggle
+        let uiVisible = true;
+        window.addEventListener('keydown', (e) => {
+            if(e.key.toLowerCase() === 'h') {
+                uiVisible = !uiVisible;
+                document.querySelectorAll('.side-panel').forEach(p => p.classList.toggle('hidden', !uiVisible));
+            }
+            if(e.key === ' ' && document.getElementById('mod-swarm').classList.contains('active')) {
+                e.preventDefault();
+                document.getElementById('btn-swarm-play').click();
+            }
+        });
+
+        // Resize Handling
+        window.addEventListener('resize', () => {
+            if(window.kineCamera && window.kineRenderer) {
+                const container = document.getElementById('kine-3d-wrap');
+                if(container) {
+                    window.kineCamera.aspect = container.clientWidth / container.clientHeight;
+                    window.kineCamera.updateProjectionMatrix();
+                    window.kineRenderer.setSize(container.clientWidth, container.clientHeight);
+                }
+            }
+            if(window.resizeSwarmCanvas) {
+                window.resizeSwarmCanvas();
+            }
+        });
+
+        // ==========================================
+        //  MODULE 1: KINEMATICS ENGINE
+        // ==========================================
+        function initKinematics() {
+            const container = document.getElementById('kine-3d-wrap');
+            const scene = new THREE.Scene();
+
+            const camera = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 0.1, 1000);
+            camera.position.set(30, 20, 40);
+            window.kineCamera = camera;
+
+            const renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('kineCanvas'), antialias: true, alpha: true });
+            renderer.setSize(container.clientWidth, container.clientHeight);
+            renderer.setPixelRatio(window.devicePixelRatio);
+            window.kineRenderer = renderer;
+
+            const domElement = document.getElementById('kineCanvas');
+            const controls = new THREE.OrbitControls(camera, domElement);
+            controls.enableDamping = true;
+            controls.target.set(0, 10, 0);
+
+            // Lighting
+            const ambient = new THREE.AmbientLight(0xffffff, 0.5);
+            scene.add(ambient);
+            const dirLight = new THREE.DirectionalLight(0x00f5ff, 1);
+            dirLight.position.set(20, 50, 20);
+            scene.add(dirLight);
+            const pointLight = new THREE.PointLight(0x9b5de5, 2, 50);
+            pointLight.position.set(-20, 20, -20);
+            scene.add(pointLight);
+
+            // Robot Setup
+            const links = [
+                { l: 2, r: 1.5, c: 0x333333, m: 5 },  // Base
+                { l: 8, r: 1.0, c: 0x555555, m: 10 }, // Link 1
+                { l: 6, r: 0.8, c: 0x444444, m: 7 },  // Link 2
+                { l: 4, r: 0.6, c: 0x555555, m: 4 },  // Link 3
+                { l: 2, r: 0.5, c: 0x444444, m: 2 },  // Link 4
+                { l: 1, r: 0.4, c: 0x00f5ff, m: 1 }   // End Effector
+            ];
+
+            const jointMaterial = new THREE.MeshStandardMaterial({ color: 0x9b5de5, emissive: 0x4a0080 });
+            const jointAngles = [0, 0, 0, 0, 0, 0];
+
+            const base = new THREE.Group();
+            scene.add(base);
+
+            let currentParent = base;
+
+            const axes = [
+                new THREE.Vector3(0, 1, 0),
+                new THREE.Vector3(0, 0, 1),
+                new THREE.Vector3(0, 0, 1),
+                new THREE.Vector3(1, 0, 0),
+                new THREE.Vector3(0, 0, 1),
+                new THREE.Vector3(1, 0, 0)
+            ];
+
+            const jointNodes = [];
+            
+            const linkMeshes = [];
+            
+            links.forEach((link, i) => {
+                const isBase = i === 0;
+                
+                const jointNode = new THREE.Object3D();
+                if(!isBase) jointNode.position.y = links[i-1].l; 
+                currentParent.add(jointNode);
+                jointNodes.push(jointNode);
+
+                if(!isBase) {
+                    const sphere = new THREE.Mesh(new THREE.SphereGeometry(link.r * 1.2, 16, 16), jointMaterial);
+                    jointNode.add(sphere);
+                }
+
+                const geom = new THREE.CylinderGeometry(link.r*0.9, link.r, link.l, 16);
+                geom.translate(0, link.l/2, 0);
+                
+                const mat = new THREE.MeshStandardMaterial({ color: link.c, roughness: 0.4, metalness: 0.8 });
+                if(i === 5) {
+                    mat.emissive = new THREE.Color(0x00f5ff);
+                    mat.emissiveIntensity = 0.5;
+                }
+                const mesh = new THREE.Mesh(geom, mat);
+                
+                jointNode.add(mesh);
+                linkMeshes.push(mesh); // Store for collision highlighting
+                currentParent = jointNode;
+            });
+
+            const endEffectorPnt = new THREE.Object3D();
+            endEffectorPnt.position.y = links[5].l;
+            jointNodes[5].add(endEffectorPnt);
+
+            const targetGeo = new THREE.SphereGeometry(0.5, 16, 16);
+            const targetMat = new THREE.MeshBasicMaterial({ color: 0x00f5ff, wireframe: true });
+            const targetMesh = new THREE.Mesh(targetGeo, targetMat);
+            targetMesh.position.set(12, 8, 0);
+            scene.add(targetMesh);
+
+            const fkContainer = document.getElementById('fk-sliders');
+            jointAngles.forEach((a, i) => {
+                fkContainer.innerHTML += `
+                    <div class="control-row">
+                        <span class="control-label">Joint ${i+1}&theta;</span>
+                        <span class="control-value" id="val-j${i}">0&deg;</span>
+                    </div>
+                    <input type="range" id="slider-j${i}" min="-180" max="180" value="0">
+                `;
+            });
+
+            function updateRobotAngles() {
+                jointAngles.forEach((a, i) => {
+                    const angleRad = a * Math.PI / 180;
+                    jointNodes[i].setRotationFromAxisAngle(axes[i], angleRad);
+                });
+            }
+
+            function getEndEffectorPos() {
+                const pos = new THREE.Vector3();
+                endEffectorPnt.getWorldPosition(pos);
+                return pos;
+            }
+
+            fkContainer.addEventListener('input', (e) => {
+                if(e.target.tagName === 'INPUT') {
+                    const idx = parseInt(e.target.id.replace('slider-j', ''));
+                    const val = parseFloat(e.target.value);
+                    
+                    const testAngles = [...jointAngles];
+                    testAngles[idx] = val;
+                    
+                    const isSafetyOn = document.getElementById('check-safety-stop').checked;
+                    if(isSafetyOn && checkCollisions(testAngles)) {
+                        // Revert slider
+                        e.target.value = jointAngles[idx];
+                        return;
+                    }
+
+                    document.getElementById(`val-j${idx}`).innerHTML = `${val}&deg;`;
+                    jointAngles[idx] = val;
+                    updateRobotAngles();
+                    updateReadout();
+                    updateDynamics();
+                }
+            });
+
+            function updateReadout() {
+                const pos = getEndEffectorPos();
+                let str = "<b>T_0_6 (Position):</b>\n";
+                str += `X: ${pos.x.toFixed(2)}  Y: ${pos.y.toFixed(2)}  Z: ${pos.z.toFixed(2)}\n\n`;
+                str += `<b>Joints:</b> [${jointAngles.map(a => a.toFixed(1)).join(', ')}]`;
+                document.getElementById('data-readout').innerHTML = str;
+            }
+
+            let gravityY = -9.81;
+            document.getElementById('btn-gravity').addEventListener('click', () => {
+                gravityY = gravityY === 0 ? -9.81 : 0;
+                document.getElementById('btn-gravity').innerText = gravityY === 0 ? "ZERO-G" : "Y: -9.81";
+                updateDynamics();
+            });
+
+            const ctxKine = document.getElementById('torqueChart').getContext('2d');
+            const torqueChart = new Chart(ctxKine, {
+                type: 'bar',
+                data: {
+                    labels: ['J1', 'J2', 'J3', 'J4', 'J5', 'J6'],
+                    datasets: [{
+                        label: 'Estimated Torque',
+                        data: [0,0,0,0,0,0],
+                        backgroundColor: '#9B5DE5',
+                        borderColor: '#00F5FF',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    scales: { y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.1)' }, ticks: { color: '#8A9BB3' }},
+                              x: { grid: { color: 'rgba(255,255,255,0.1)' }, ticks: { color: '#8A9BB3' }}},
+                    plugins: { legend: { display: false } }
+                }
+            });
+
+            function updateDynamics() {
+                if(gravityY === 0) {
+                    torqueChart.data.datasets[0].data = [0,0,0,0,0,0];
+                    torqueChart.update();
+                    return;
+                }
+                
+                const torques = [0,0,0,0,0,0];
+                const gVec = new THREE.Vector3(0, gravityY, 0);
+                
+                let accumForce = new THREE.Vector3();
+                let accumTorque = new THREE.Vector3();
+
+                for(let i = 5; i >= 0; i--) {
+                    const node = jointNodes[i];
+                    const pos = new THREE.Vector3();
+                    node.getWorldPosition(pos);
+                    
+                    const m = links[i].m;
+                    const fG = gVec.clone().multiplyScalar(m);
+                    
+                    const comLocal = new THREE.Vector3(0, links[i].l/2, 0);
+                    const comWorld = comLocal.clone().applyMatrix4(node.matrixWorld);
+                    
+                    const r = new THREE.Vector3().subVectors(comWorld, pos);
+                    const tLink = new THREE.Vector3().crossVectors(r, fG);
+                    
+                    accumForce.add(fG);
+                    if(i < 5) {
+                        const nextPos = new THREE.Vector3();
+                        jointNodes[i+1].getWorldPosition(nextPos);
+                        const r_next = new THREE.Vector3().subVectors(nextPos, pos);
+                        accumTorque.add( new THREE.Vector3().crossVectors(r_next, accumForce) );
+                    }
+                    accumTorque.add(tLink);
+                    
+                    const axisWorld = axes[i].clone().applyQuaternion(node.getWorldQuaternion(new THREE.Quaternion()));
+                    torques[i] = accumTorque.dot(axisWorld);
+                }
+
+                torqueChart.data.datasets[0].data = torques.map(t => Math.abs(t));
+                torqueChart.update();
+            }
+
+            function solveIK(target, maxIters = 100, tol = 0.5) {
+                for(let iter=0; iter<maxIters; iter++) {
+                    if(getEndEffectorPos().distanceTo(target) < tol) return true;
+
+                    for(let i = 5; i >= 0; i--) {
+                        if(i===0) continue; // Base rotation simpler handled or assume free
+                        const node = jointNodes[i];
+                        const eff = getEndEffectorPos();
+                        const jPos = new THREE.Vector3();
+                        node.getWorldPosition(jPos);
+                        
+                        const vEff = new THREE.Vector3().subVectors(eff, jPos).normalize();
+                        const vTar = new THREE.Vector3().subVectors(target, jPos).normalize();
+                        
+                        const axisWorld = axes[i].clone().applyQuaternion(node.getWorldQuaternion(new THREE.Quaternion()));
+                        
+                        const vE_proj = vEff.clone().projectOnPlane(axisWorld).normalize();
+                        const vT_proj = vTar.clone().projectOnPlane(axisWorld).normalize();
+                        
+                        let angle = vE_proj.angleTo(vT_proj);
+                        if(isNaN(angle) || angle < 0.001) continue;
+                        
+                        const cross = new THREE.Vector3().crossVectors(vE_proj, vT_proj);
+                        if(cross.dot(axisWorld) < 0) angle = -angle;
+
+                        let deg = jointAngles[i] + (angle * 180 / Math.PI) * 0.5; // dampening
+                        if(deg > 180) deg -= 360;
+                        if(deg < -180) deg += 360;
+                        if(i===2 || i===4) { // Limits for certain joints
+                            if(deg > 135) deg = 135;
+                            if(deg < -135) deg = -135;
+                        }
+                        
+                        const testAngles = [...jointAngles];
+                        testAngles[i] = deg;
+                        const isSafetyOn = document.getElementById('check-safety-stop').checked;
+                        
+                        if(isSafetyOn && checkCollisions(testAngles)) {
+                            // Skip this update if it causes collision
+                            continue;
+                        }
+
+                        jointAngles[i] = deg;
+                        updateRobotAngles();
+                    }
+                }
+                return false;
+            }
+
+            // Simple IK Solver (CCD Algorithm approximation)
+            document.getElementById('btn-solve-ik').addEventListener('click', () => {
+                const tx = parseFloat(document.getElementById('ik-x').value);
+                const ty = parseFloat(document.getElementById('ik-y').value);
+                const tz = parseFloat(document.getElementById('ik-z').value);
+                const target = new THREE.Vector3(tx, ty, tz);
+                targetMesh.position.copy(target);
+
+                const st = document.getElementById('ik-status');
+                st.innerText = "Solving...";
+                st.style.color = "var(--cyan)";
+
+                const solved = solveIK(target, 100, 0.5);
+
+                st.innerText = solved ? "Solution Found!" : "Local Minima Reached.";
+                st.style.color = solved ? "#0f0" : "var(--violet)";
+
+                jointAngles.forEach((a, i) => {
+                    document.getElementById(`slider-j${i}`).value = Math.round(a);
+                    document.getElementById(`val-j${i}`).innerHTML = `${Math.round(a)}&deg;`;
+                });
+                updateReadout();
+                updateDynamics();
+            });
+
+            const wsMat = new THREE.MeshBasicMaterial({ color: 0x00f5ff, wireframe: true, transparent: true, opacity: 0 });
+            const wsMesh = new THREE.Mesh(new THREE.SphereGeometry(22, 16, 16), wsMat);
+            wsMesh.position.y = 2;
+            scene.add(wsMesh);
+            
+            let wsVis = false;
+            document.getElementById('btn-toggle-workspace').addEventListener('click', () => {
+                wsVis = !wsVis;
+                gsap.to(wsMat, { opacity: wsVis ? 0.05 : 0, duration: 0.5 });
+            });
+
+            // ==========================================
+            // TRAJECTORY ENGINE
+            // ==========================================
+            let waypoints = [];
+            let waypointMeshes = [];
+            const trajMat = new THREE.MeshBasicMaterial({ color: 0xff00ff, wireframe: true });
+            const trajGeo = new THREE.SphereGeometry(0.5, 8, 8);
+            
+            const raycaster = new THREE.Raycaster();
+            const mouse = new THREE.Vector2();
+            const floorPlane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
+            
+            function showKineNotify(text, color = "rgba(255,50,50,0.8)") {
+                const n = document.getElementById('kine-notify');
+                n.innerText = text;
+                n.style.background = color;
+                n.style.opacity = '1';
+                setTimeout(() => n.style.opacity = '0', 2000);
+            }
+
+            function isReachable(target) {
+                // 1. Fast Distance Filter (Base joint is at 0, 2, 0)
+                const baseJointPos = new THREE.Vector3(0, 2, 0);
+                const d = target.distanceTo(baseJointPos);
+                if(d > 22) return false; // Max total length approx 21-22
+
+                // 2. Ghost Solve
+                const originalAngles = [...jointAngles];
+                const solved = solveIK(target, 40, 1.0); // Looser tolerance for reachability test
+                const finalDist = getEndEffectorPos().distanceTo(target);
+                
+                // Restore
+                jointAngles.splice(0, 6, ...originalAngles);
+                updateRobotAngles();
+                
+                return finalDist < 2.0; // If it can get within 2 units, it's roughly reachable
+            }
+
+            domElement.addEventListener('dblclick', (e) => {
+                const rect = domElement.getBoundingClientRect();
+                mouse.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+                mouse.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+                raycaster.setFromCamera(mouse, camera);
+                const intersect = new THREE.Vector3();
+                if(raycaster.ray.intersectPlane(floorPlane, intersect)) {
+                    // REACHABILITY CHECK
+                    if(!isReachable(intersect)) {
+                        showKineNotify("TARGET OUT OF REACH");
+                        return;
+                    }
+
+                    waypoints.push(intersect.clone());
+                    const m = new THREE.Mesh(trajGeo, trajMat);
+                    m.position.copy(intersect);
+                    scene.add(m);
+                    waypointMeshes.push(m);
+                    document.getElementById('traj-waypoint-count').innerText = waypoints.length;
+                    
+                    if(waypoints.length > 1) {
+                        const lineMat = new THREE.LineDashedMaterial({ color: 0xff00ff, dashSize: 0.5, gapSize: 0.2 });
+                        const points = [waypoints[waypoints.length-2], waypoints[waypoints.length-1]];
+                        const lineGeo = new THREE.BufferGeometry().setFromPoints(points);
+                        const line = new THREE.Line(lineGeo, lineMat);
+                        line.computeLineDistances();
+                        scene.add(line);
+                        waypointMeshes.push(line);
+                    }
+                }
+            });
+
+            document.getElementById('btn-traj-clear').addEventListener('click', () => {
+                waypoints = [];
+                waypointMeshes.forEach(m => scene.remove(m));
+                waypointMeshes = [];
+                document.getElementById('traj-waypoint-count').innerText = '0';
+            });
+
+            const ctxVel = document.getElementById('trajVelChart').getContext('2d');
+            const velChart = new Chart(ctxVel, {
+                type: 'line', data: { labels: Array(50).fill(''), datasets: [
+                    { label: 'J1', data: Array(50).fill(0), borderColor: '#ff0055', borderWidth: 1, pointRadius: 0 },
+                    { label: 'J2', data: Array(50).fill(0), borderColor: '#00f5ff', borderWidth: 1, pointRadius: 0 },
+                    { label: 'J3', data: Array(50).fill(0), borderColor: '#9b5de5', borderWidth: 1, pointRadius: 0 }
+                ]},
+                options: { responsive: true, maintainAspectRatio: false, animation: false, scales: { x:{display:false}, y:{grid:{color:'rgba(255,255,255,0.05)'}, ticks:{color:'#888'}} }, plugins:{legend:{display:false}} }
+            });
+
+            const ctxAcc = document.getElementById('trajAccChart').getContext('2d');
+            const accChart = new Chart(ctxAcc, {
+                type: 'line', data: { labels: Array(50).fill(''), datasets: [
+                    { label: 'J1', data: Array(50).fill(0), borderColor: '#ff0055', borderWidth: 1, pointRadius: 0 },
+                    { label: 'J2', data: Array(50).fill(0), borderColor: '#00f5ff', borderWidth: 1, pointRadius: 0 },
+                    { label: 'J3', data: Array(50).fill(0), borderColor: '#9b5de5', borderWidth: 1, pointRadius: 0 }
+                ]},
+                options: { responsive: true, maintainAspectRatio: false, animation: false, scales: { x:{display:false}, y:{grid:{color:'rgba(255,255,255,0.05)'}, ticks:{color:'#888'}} }, plugins:{legend:{display:false}} }
+            });
+
+            let trajActive = false;
+            let trajTime = 0;
+            let trajDuration = 2.0; 
+            let trajSegment = 0;
+            let trajJointTargets = []; 
+            let trajCartesianTargets = []; 
+            let trajInitialJoints = [];
+            let trajInitialPos = null;
+            let prevJoints = [...jointAngles];
+            let prevVels = [0,0,0,0,0,0];
+
+            document.getElementById('btn-traj-run').addEventListener('click', () => {
+                if(waypoints.length === 0) return;
+                
+                trajInitialJoints = [...jointAngles];
+                trajInitialPos = getEndEffectorPos();
+                
+                trajJointTargets = [];
+                waypoints.forEach(wp => {
+                    solveIK(wp, 100, 0.2);
+                    trajJointTargets.push([...jointAngles]);
+                });
+                jointAngles.splice(0, 6, ...trajInitialJoints); // restore
+                updateRobotAngles();
+
+                trajCartesianTargets = waypoints.map(w => w.clone());
+                
+                trajActive = true;
+                trajTime = 0;
+                trajSegment = 0;
+                prevJoints = [...jointAngles];
+                prevVels = [0,0,0,0,0,0];
+            });
+
+            // ==========================================
+            // COLLISION DETECTION ENGINE
+            // ==========================================
+            function distSegmentToSegment(p1, p2, q1, q2) {
+                const u = new THREE.Vector3().subVectors(p2, p1);
+                const v = new THREE.Vector3().subVectors(q2, q1);
+                const w = new THREE.Vector3().subVectors(p1, q1);
+                const a = u.dot(u), b = u.dot(v), c = v.dot(v), d = u.dot(w), e = v.dot(w);
+                const D = a * c - b * b;
+                let sc, tc;
+                if (D < 0.0001) { sc = 0.0; tc = (b > c ? d / b : e / c); }
+                else {
+                    sc = (b * e - c * d) / D;
+                    tc = (a * e - b * d) / D;
+                }
+                sc = Math.max(0, Math.min(1, sc));
+                tc = Math.max(0, Math.min(1, tc));
+                const closestP = new THREE.Vector3().addVectors(p1, u.multiplyScalar(sc));
+                const closestQ = new THREE.Vector3().addVectors(q1, v.multiplyScalar(tc));
+                return closestP.distanceTo(closestQ);
+            }
+
+            function checkCollisions(angles = null) {
+                // If angles provided, temporarily set them to check safety before commit
+                const originalAngles = [...jointAngles];
+                if(angles) {
+                    angles.forEach((a, i) => {
+                        const angleRad = a * Math.PI / 180;
+                        jointNodes[i].setRotationFromAxisAngle(axes[i], angleRad);
+                        jointNodes[i].updateMatrixWorld(true);
+                    });
+                }
+
+                const collisions = [];
+                const linkSegments = [];
+                
+                // 1. Calculate World Segments for each link
+                for(let i=0; i<6; i++) {
+                    const start = new THREE.Vector3();
+                    jointNodes[i].getWorldPosition(start);
+                    const end = new THREE.Vector3();
+                    if(i < 5) jointNodes[i+1].getWorldPosition(end);
+                    else endEffectorPnt.getWorldPosition(end);
+                    
+                    linkSegments.push({ p1: start, p2: end, r: links[i].r });
+                    
+                    // Floor Check
+                    if(end.y < 0.2 || start.y < 0) {
+                        collisions.push(`FLOOR x LINK ${i+1}`);
+                        links[i].colliding = true;
+                    } else {
+                        links[i].colliding = false;
+                    }
+                }
+
+                // 2. Self-Collision (Non-adjacent links)
+                for(let i=0; i<6; i++) {
+                    for(let j=i+2; j<6; j++) {
+                        const dist = distSegmentToSegment(linkSegments[i].p1, linkSegments[i].p2, linkSegments[j].p1, linkSegments[j].p2);
+                        if(dist < (linkSegments[i].r + linkSegments[j].r + 0.1)) {
+                            collisions.push(`LINK ${i+1} x LINK ${j+1}`);
+                            links[i].colliding = true;
+                            links[j].colliding = true;
+                        }
+                    }
+                }
+
+                // Restore angles if testing
+                if(angles) {
+                    originalAngles.forEach((a, i) => {
+                        const angleRad = a * Math.PI / 180;
+                        jointNodes[i].setRotationFromAxisAngle(axes[i], angleRad);
+                        jointNodes[i].updateMatrixWorld(true);
+                    });
+                } else {
+                    // Update Visuals and UI only if checking current state
+                    const mon = document.getElementById('safety-monitor');
+                    const list = document.getElementById('safety-list');
+                    
+                    if(collisions.length > 0) {
+                        mon.style.opacity = '1';
+                        list.innerHTML = collisions.map(c => `<div style="margin-bottom:2px;">&bull; ${c}</div>`).join('');
+                        linkMeshes.forEach((m, i) => {
+                            if(links[i].colliding) {
+                                m.material.emissive.setHex(0xff0000);
+                                m.material.emissiveIntensity = 2.0;
+                            } else {
+                                m.material.emissive.setHex(i === 5 ? 0x00f5ff : 0x000000);
+                                m.material.emissiveIntensity = i === 5 ? 0.5 : 0;
+                            }
+                        });
+                    } else {
+                        mon.style.opacity = '0';
+                        linkMeshes.forEach((m, i) => {
+                            m.material.emissive.setHex(i === 5 ? 0x00f5ff : 0x000000);
+                            m.material.emissiveIntensity = i === 5 ? 0.5 : 0;
+                        });
+                    }
+                }
+
+                return collisions.length > 0;
+            }
+
+            function animate() {
+                requestAnimationFrame(animate);
+                
+                checkCollisions(); // Real-time monitor
+                
+                if(trajActive) {
+                    const dt = 0.016; // fixed dt approx for numeric diff
+                    trajTime += dt;
+                    let t = trajTime / trajDuration;
+                    
+                    if(t >= 1.0) {
+                        t = 1.0;
+                        trajTime = 0;
+                        trajSegment++;
+                        if(trajSegment >= waypoints.length) {
+                            trajActive = false;
+                        }
+                    }
+
+                    if(trajActive) {
+                        const isJointMode = document.querySelector('input[name="traj_type"]:checked').value === 'joint';
+                        
+                        let startJoints = trajSegment === 0 ? trajInitialJoints : trajJointTargets[trajSegment-1];
+                        let endJoints = trajJointTargets[trajSegment];
+                        
+                        let startPos = trajSegment === 0 ? trajInitialPos : trajCartesianTargets[trajSegment-1];
+                        let endPos = trajCartesianTargets[trajSegment];
+                        
+                        // LSPB Interpolation profile s(t)
+                        let s = t; 
+                        const tb = 0.2; // 20% blend time
+                        const V = 1 / (1 - tb); // max velocity
+                        if(t < tb) {
+                            s = (V / (2 * tb)) * t * t;
+                        } else if (t <= 1 - tb) {
+                            s = V * t - (V * tb / 2);
+                        } else {
+                            s = 1 - (V / (2 * tb)) * (1 - t) * (1 - t);
+                        }
+
+                        if(isJointMode) {
+                            for(let i=0; i<6; i++) {
+                                const nextVal = startJoints[i] + (endJoints[i] - startJoints[i]) * s;
+                                // Optional: collision check during trajectory for safety
+                                jointAngles[i] = nextVal;
+                            }
+                            updateRobotAngles();
+                        } else {
+                            const currentTarget = new THREE.Vector3().lerpVectors(startPos, endPos, s);
+                            solveIK(currentTarget, 5, 0.1); // continuous tracking IK
+                        }
+                        
+                        checkCollisions();
+
+                        // Live Velocity & Acceleration Feeds
+                        let currentVels = [];
+                        for(let i=0; i<3; i++) { // track J1-J3
+                            const v = (jointAngles[i] - prevJoints[i]) / dt;
+                            currentVels.push(v);
+                            const a = (v - prevVels[i]) / dt;
+                            
+                            velChart.data.datasets[i].data.shift();
+                            velChart.data.datasets[i].data.push(v);
+                            
+                            accChart.data.datasets[i].data.shift();
+                            accChart.data.datasets[i].data.push(a);
+                        }
+                        velChart.update();
+                        accChart.update();
+                        
+                        // Update Sliders visually to follow IK
+                        for(let i=0; i<6; i++) {
+                            const deg = Math.round(jointAngles[i]);
+                            const el = document.getElementById(`slider-j${i}`);
+                            if(el) { el.value = deg; document.getElementById(`val-j${i}`).innerHTML = `${deg}&deg;`; }
+                        }
+                        
+                        prevJoints = [...jointAngles];
+                        prevVels = currentVels;
+                        
+                        updateReadout();
+                        updateDynamics();
+                    }
+                }
+
+                controls.update();
+                renderer.render(scene, camera);
+            }
+            
+            updateRobotAngles();
+            updateReadout();
+            updateDynamics();
+            animate();
+        }
+
+        // ==========================================
+        //  MODULE 2: SWARM BOIDS ENGINE
+        // ==========================================
+        function initSwarm() {
+            const canvas = document.getElementById('swarmCanvas');
+            const ctx = canvas.getContext('2d');
+            let width = 800, height = 600; // Provide safe initial dimensions
+
+            // Swarm State - MUST be declared before resize() to prevent TDZ ReferenceError
+            let boids = [];
+            let obstacles = [];
+            let goal = null;
+            let isPlaying = true;
+            let mode = 'none'; // 'add-obstacle' | 'set-goal'
+            
+            // New Task States
+            let currentTask = 'none'; // 'none' | 'search' | 'formation'
+            let searchTargets = [];
+            let searchStartTime = 0;
+            let searchTargetsFound = 0;
+            let formationSlots = [];
+            let formationShape = 'circle';
+            
+            // Phase 8 States
+            const hmRes = 40; // cell size
+            let heatmap = [];
+            let sessionHistory = [];
+            let sessionStartTime = Date.now();
+
+            function resize() {
+                const container = document.getElementById('swarm-view');
+                if(!container) return;
+                const newW = container.clientWidth;
+                const newH = container.clientHeight;
+                if(newW === 0 || newH === 0) return; // skip if hidden
+                
+                const wasZero = (!width || width === 800 || width === 0);
+                width = newW;
+                height = newH;
+                canvas.width = width;
+                canvas.height = height;
+
+                // Reset Heatmap on resize
+                const cols = Math.ceil(width/hmRes), rows = Math.ceil(height/hmRes);
+                heatmap = new Array(cols * rows).fill(0);
+
+                if(wasZero && boids.length > 0) {
+                    boids.forEach(b => {
+                        b.x = Math.random() * width;
+                        b.y = Math.random() * height;
+                    });
+                }
+            }
+            window.resizeSwarmCanvas = resize;
+            resize();
+
+            // Params
+            const getParam = (id) => {
+                const el = document.getElementById(id);
+                return el ? parseFloat(el.value) : 1;
+            };
+            
+            // Sync slider values to text
+            ['agents', 'sep', 'ali', 'coh', 'speed', 'radius'].forEach(id => {
+                const el = document.getElementById(`param-${id}`);
+                const valEl = document.getElementById(`val-${id}`);
+                if(el && valEl) el.addEventListener('input', () => { valEl.innerText = el.value; });
+            });
+
+            document.getElementById('param-agents').addEventListener('change', (e) => {
+                const count = parseInt(e.target.value);
+                if(count > boids.length) {
+                    for(let i = boids.length; i < count; i++) boids.push(createBoid());
+                } else if (count < boids.length) {
+                    boids.length = count;
+                }
+            });
+
+            function createBoid() {
+                return {
+                    x: Math.random() * width,
+                    y: Math.random() * height,
+                    vx: (Math.random() - 0.5) * 4,
+                    vy: (Math.random() - 0.5) * 4,
+                    color: `hsl(${Math.random()*60 + 160}, 100%, 60%)`, // cyan/blue/green
+                    state: 'exploring'
+                };
+            }
+
+            for(let i=0; i<getParam('agents'); i++) {
+                boids.push(createBoid());
+            }
+
+            // Task Initialization
+            function setSwarmTask(task) {
+                currentTask = task;
+                document.getElementById('formation-controls').style.display = task === 'formation' ? 'block' : 'none';
+                document.getElementById('search-stats').style.display = task === 'search' ? 'block' : 'none';
+                
+                if(task === 'search') {
+                    // Seed 5 hidden targets
+                    searchTargets = [];
+                    for(let i=0; i<5; i++) {
+                        searchTargets.push({ x: 50 + Math.random()*(width-100), y: 50 + Math.random()*(height-100), found: false });
+                    }
+                    searchStartTime = Date.now();
+                    searchTargetsFound = 0;
+                    document.getElementById('search-found').innerText = "0 / 5";
+                } else if(task === 'formation') {
+                    updateFormationSlots();
+                }
+            }
+
+            function updateFormationSlots() {
+                const shape = document.getElementById('formation-shape-select').value;
+                formationSlots = [];
+                const cx = width/2, cy = height/2;
+                const N = boids.length;
+
+                if(shape === 'circle') {
+                    const R = Math.min(width, height) * 0.35;
+                    for(let i=0; i<N; i++) {
+                        const a = (i/N) * Math.PI * 2;
+                        formationSlots.push({ x: cx + Math.cos(a)*R, y: cy + Math.sin(a)*R });
+                    }
+                } else if(shape === 'grid') {
+                    const side = Math.ceil(Math.sqrt(N));
+                    const spacing = 40;
+                    const startX = cx - (side*spacing)/2;
+                    const startY = cy - (side*spacing)/2;
+                    for(let i=0; i<N; i++) {
+                        const r = Math.floor(i/side), c = i%side;
+                        formationSlots.push({ x: startX + c*spacing, y: startY + r*spacing });
+                    }
+                } else if(shape === 'vshape') {
+                    const spacing = 35;
+                    for(let i=0; i<N; i++) {
+                        const side = i%2 === 0 ? 1 : -1;
+                        const depth = Math.floor(i/2);
+                        formationSlots.push({ x: cx - depth*spacing*0.8, y: cy + side*depth*spacing });
+                    }
+                } else if(shape === 'arrow') {
+                    const spacing = 30;
+                    const headSize = Math.floor(N*0.3);
+                    for(let i=0; i<N; i++) {
+                        if(i < headSize) { // Head
+                            const side = i%2 === 0 ? 1 : -1;
+                            const d = Math.floor(i/2);
+                            formationSlots.push({ x: cx + d*spacing, y: cy + side*d*spacing });
+                        } else { // Tail
+                            formationSlots.push({ x: cx - (i-headSize)*spacing, y: cy });
+                        }
+                    }
+                }
+            }
+
+            document.getElementById('swarm-task-select').addEventListener('change', (e) => setSwarmTask(e.target.value));
+            document.getElementById('formation-shape-select').addEventListener('change', updateFormationSlots);
+
+            // Charts
+            const ctxCov = document.getElementById('coverageChart').getContext('2d');
+            const covChart = new Chart(ctxCov, {
+                type: 'line',
+                data: {
+                    labels: Array(20).fill(''),
+                    datasets: [{ label: 'Coverage Area', data: Array(20).fill(0), borderColor: '#9B5DE5', tension: 0.4, borderWidth: 2 }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, animation: false, scales: { x: {display: false}, y: {min: 0, max: 100, ticks:{color:'#888'}} }, plugins:{legend:{display:false}} }
+            });
+
+            const ctxState = document.getElementById('stateChart').getContext('2d');
+            const stateChart = new Chart(ctxState, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Exploring', 'Flocking', 'Goal Seeking', 'Avoiding'],
+                    datasets: [{ data: [100, 0, 0, 0], backgroundColor: ['#00F5FF', '#9B5DE5', '#00ffaa', '#ff5555'], borderWidth: 0 }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right', labels:{color:'#888', font:{size:10}} } }, cutout: '70%' }
+            });
+
+            let frameCount = 0;
+            let collisions = 0;
+
+            function updateAnalytics() {
+                try {
+                    frameCount++;
+                    if(frameCount % 10 !== 0) return; // run 6 times a sec
+
+                    let totalSpeed = 0;
+                    let states = {exploring:0, flocking:0, goal_seeking:0, avoiding:0};
+                    
+                    boids.forEach(b => {
+                        totalSpeed += Math.hypot(b.vx || 0, b.vy || 0);
+                        if(states[b.state] !== undefined) states[b.state]++;
+                    });
+                    
+                    const avgSpeed = boids.length > 0 ? (totalSpeed / boids.length).toFixed(2) : "0.0";
+                    document.getElementById('stat-vel').innerText = avgSpeed;
+
+                    const cellSize = 50;
+                    const cols = Math.max(1, Math.ceil(width/cellSize));
+                    const rows = Math.max(1, Math.ceil(height/cellSize));
+                    const grid = new Set();
+                    boids.forEach(b => {
+                        if(isNaN(b.x) || isNaN(b.y)) return;
+                        const c = Math.floor(b.x / cellSize);
+                        const r = Math.floor(b.y / cellSize);
+                        grid.add(`${c},${r}`);
+                        
+                        // Increment Heatmap
+                        const hmc = Math.floor(b.x / hmRes);
+                        const hmr = Math.floor(b.y / hmRes);
+                        const hIndex = hmr * Math.ceil(width/hmRes) + hmc;
+                        if(heatmap[hIndex] !== undefined) heatmap[hIndex] = Math.min(100, heatmap[hIndex] + 1);
+                    });
+                    
+                    if(currentTask === 'search' && searchTargetsFound < 5) {
+                        const elapsed = ((Date.now() - searchStartTime)/1000).toFixed(1);
+                        document.getElementById('search-time').innerText = `${elapsed}s`;
+                    }
+                    
+                    const covPct = Math.min((grid.size / (cols*rows)) * 100 * 2.5, 100).toFixed(1) || 0;
+                    document.getElementById('stat-cov').innerText = `${covPct}%`;
+
+                    // Update Charts
+                    if(covChart) {
+                        covChart.data.datasets[0].data.shift();
+                        covChart.data.datasets[0].data.push(covPct);
+                        covChart.update();
+                    }
+
+                    if(stateChart) {
+                        stateChart.data.datasets[0].data = [states.exploring, states.flocking, states.goal_seeking, states.avoiding];
+                        stateChart.update();
+                    }
+                    
+                    document.getElementById('stat-col').innerText = collisions;
+                    document.getElementById('stat-cluster').innerText = boids.length > 0 ? Math.max(1, Math.floor(boids.length/10 * (states.flocking/boids.length))) : 0;
+                } catch(e) {
+                    console.error("Analytics tick error:", e);
+                }
+            }
+
+            function distance(p1, p2) { return Math.hypot(p2.x - p1.x, p2.y - p1.y); }
+
+            function runBoids() {
+                if(!isPlaying) return;
+                
+                const visibility = getParam('radius');
+                const maxSpeed = getParam('speed');
+                const wSep = getParam('sep');
+                const wAli = getParam('ali');
+                const wCoh = getParam('coh');
+
+                boids.forEach((b, i) => {
+                    let neighbors = 0;
+                    
+                    let sep = {x:0, y:0};
+                    let ali = {x:0, y:0};
+                    let coh = {x:0, y:0};
+                    let avoid = {x:0, y:0};
+                    let toGoal = {x:0, y:0};
+                    let toFormation = {x:0, y:0};
+
+                    b.state = 'exploring';
+
+                    // 0. Task Specifics
+                    if(currentTask === 'formation' && formationSlots[i]) {
+                        const slot = formationSlots[i];
+                        const df = distance(b, slot);
+                        toFormation.x = (slot.x - b.x) * 0.1;
+                        toFormation.y = (slot.y - b.y) * 0.1;
+                    }
+                    
+                    if(currentTask === 'search') {
+                        searchTargets.forEach(t => {
+                            if(!t.found) {
+                                const dt = distance(b, t);
+                                if(dt < 30) {
+                                    t.found = true;
+                                    searchTargetsFound++;
+                                    document.getElementById('search-found').innerText = `${searchTargetsFound} / 5`;
+                                }
+                            }
+                        });
+                    }
+
+                    // Interact with other boids
+                    boids.forEach(other => {
+                        if(b === other) return;
+                        const d = distance(b, other);
+                        if(d < visibility) {
+                            neighbors++;
+                            if(d < visibility * 0.4) {
+                                sep.x += b.x - other.x;
+                                sep.y += b.y - other.y;
+                                if(d < 5 && Math.random() < 0.01) collisions++; // sample roughly
+                            }
+                            ali.x += other.vx;
+                            ali.y += other.vy;
+                            coh.x += other.x;
+                            coh.y += other.y;
+                        }
+                    });
+
+                    if(neighbors > 0) {
+                        ali.x /= neighbors; ali.y /= neighbors;
+                        coh.x /= neighbors; coh.y /= neighbors;
+                        coh.x -= b.x; coh.y -= b.y;
+                        b.state = 'flocking';
+                    }
+
+                    // Obstacle avoidance
+                    let avoidingTriggered = false;
+                    obstacles.forEach(obs => {
+                        const d = distance(b, obs);
+                        if(d < obs.r + 30) {
+                            avoid.x += (b.x - obs.x) * (20 / d);
+                            avoid.y += (b.y - obs.y) * (20 / d);
+                            avoidingTriggered = true;
+                        }
+                    });
+
+                    // Goal seeking
+                    let seeking = false;
+                    if(goal && !avoidingTriggered) {
+                        const dg = distance(b, goal);
+                        if(dg > 10) {
+                            toGoal.x = (goal.x - b.x) * 0.05;
+                            toGoal.y = (goal.y - b.y) * 0.05;
+                            seeking = true;
+                        } else {
+                            goal = null;
+                            document.getElementById('btn-set-goal').innerText = "SET TARGET";
+                        }
+                    }
+
+                    if(avoidingTriggered) b.state = 'avoiding';
+                    else if(seeking) b.state = 'goal_seeking';
+
+                    // Apply forces safely
+                    const fMult = currentTask === 'formation' ? 0.3 : 1.0;
+                    if(!isNaN(sep.x) && !isNaN(ali.x) && !isNaN(coh.x)) {
+                        b.vx += (sep.x * wSep * 0.05 * fMult) + (ali.x * wAli * 0.05 * fMult) + (coh.x * wCoh * 0.005 * fMult) + (avoid.x * 0.5) + toGoal.x + (toFormation.x * 0.5);
+                        b.vy += (sep.y * wSep * 0.05 * fMult) + (ali.y * wAli * 0.05 * fMult) + (coh.y * wCoh * 0.005 * fMult) + (avoid.y * 0.5) + toGoal.y + (toFormation.y * 0.5);
+                    }
+
+                    // Limit speed robustly
+                    let speed = Math.hypot(b.vx, b.vy);
+                    if(isNaN(speed) || speed === 0) speed = 0.1;
+                    
+                    if(speed > maxSpeed) {
+                        b.vx = (b.vx / speed) * maxSpeed;
+                        b.vy = (b.vy / speed) * maxSpeed;
+                    } else if (speed < maxSpeed * 0.2) { 
+                        b.vx = (b.vx / speed) * maxSpeed * 0.5 || (Math.random()-0.5);
+                        b.vy = (b.vy / speed) * maxSpeed * 0.5 || (Math.random()-0.5);
+                    }
+
+                    // Move safely
+                    if(!isNaN(b.vx)) b.x += b.vx;
+                    if(!isNaN(b.vy)) b.y += b.vy;
+
+                    // Wrap around borders / catch NaN
+                    if(isNaN(b.x) || b.x < 0) b.x = width;
+                    if(b.x > width) b.x = 0;
+                    if(isNaN(b.y) || b.y < 0) b.y = height;
+                    if(b.y > height) b.y = 0;
+                });
+            }
+
+            function draw() {
+                // Motion trails
+                ctx.fillStyle = 'rgba(10, 15, 30, 0.4)'; // matches global dark theme
+                ctx.fillRect(0, 0, width, height);
+
+                // Draw Heatmap
+                const hCols = Math.ceil(width/hmRes), hRows = Math.ceil(height/hmRes);
+                for(let r=0; r<hRows; r++) {
+                    for(let c=0; c<hCols; c++) {
+                        const val = heatmap[r * hCols + c];
+                        if(val > 0) {
+                            ctx.fillStyle = `rgba(0, 245, 255, ${Math.min(0.2, val/100)})`;
+                            ctx.fillRect(c*hmRes, r*hmRes, hmRes, hmRes);
+                        }
+                    }
+                }
+
+                // Draw obstacles
+                ctx.shadowBlur = 10;
+                obstacles.forEach(o => {
+                    ctx.shadowColor = '#ff5555';
+                    ctx.fillStyle = '#ff5555';
+                    ctx.beginPath();
+                    ctx.arc(o.x, o.y, o.r, 0, Math.PI*2);
+                    ctx.fill();
+                    
+                    ctx.fillStyle = 'rgba(0,0,0,0.5)';
+                    ctx.beginPath();
+                    ctx.arc(o.x, o.y, o.r*0.6, 0, Math.PI*2);
+                    ctx.fill();
+                });
+
+                // Draw goal
+                if(goal) {
+                    ctx.shadowColor = '#00ffaa';
+                    ctx.strokeStyle = '#00ffaa';
+                    ctx.lineWidth = 2;
+                    ctx.beginPath();
+                    ctx.moveTo(goal.x - 10, goal.y - 10); ctx.lineTo(goal.x + 10, goal.y + 10);
+                    ctx.moveTo(goal.x + 10, goal.y - 10); ctx.lineTo(goal.x - 10, goal.y + 10);
+                    ctx.stroke();
+                    
+                    ctx.beginPath();
+                    ctx.arc(goal.x, goal.y, 15 + Math.sin(Date.now()*0.005)*5, 0, Math.PI*2);
+                    ctx.stroke();
+                }
+
+                // Draw Search Targets
+                if(currentTask === 'search') {
+                    searchTargets.forEach(t => {
+                        if(t.found) {
+                            ctx.shadowColor = '#00F5FF';
+                            ctx.shadowBlur = 15;
+                            ctx.fillStyle = 'rgba(0, 245, 255, 0.6)';
+                            ctx.beginPath();
+                            ctx.arc(t.x, t.y, 10, 0, Math.PI*2);
+                            ctx.fill();
+                            ctx.strokeStyle = '#00F5FF';
+                            ctx.stroke();
+                        }
+                    });
+                }
+
+                // Draw Formation Slots
+                if(currentTask === 'formation') {
+                    ctx.setLineDash([5, 5]);
+                    ctx.strokeStyle = 'rgba(155, 93, 229, 0.3)';
+                    formationSlots.forEach(s => {
+                        ctx.beginPath();
+                        ctx.arc(s.x, s.y, 8, 0, Math.PI*2);
+                        ctx.stroke();
+                    });
+                    ctx.setLineDash([]);
+                }
+
+                // Draw boids
+                ctx.shadowBlur = 5;
+                boids.forEach(b => {
+                    ctx.shadowColor = b.color;
+                    ctx.fillStyle = b.state === 'avoiding' ? '#ff5555' : b.state === 'goal_seeking' ? '#00ffaa' : b.color;
+                    
+                    const angle = Math.atan2(b.vy, b.vx);
+                    ctx.save();
+                    ctx.translate(b.x, b.y);
+                    ctx.rotate(angle);
+                    
+                    ctx.beginPath();
+                    ctx.moveTo(8, 0);
+                    ctx.lineTo(-4, 5);
+                    ctx.lineTo(-2, 0);
+                    ctx.lineTo(-4, -5);
+                    ctx.closePath();
+                    ctx.fill();
+                    
+                    ctx.restore();
+                });
+                ctx.shadowBlur = 0; 
+            }
+
+            function tick() {
+                try {
+                    if(document.getElementById('mod-swarm').classList.contains('active')) {
+                        // Reseed if empty
+                        if(boids.length === 0) {
+                            for(let i=0; i<getParam('agents'); i++) boids.push(createBoid());
+                        }
+
+                        runBoids();
+                        draw();
+                        if(isPlaying) updateAnalytics();
+                    }
+                } catch(e) {
+                    console.error("Tick error:", e);
+                }
+                requestAnimationFrame(tick);
+            }
+            
+            // Interaction
+            canvas.addEventListener('mousedown', (e) => {
+                const rect = canvas.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                
+                if(mode === 'add-obstacle') {
+                    obstacles.push({x, y, r: Math.random() * 20 + 15});
+                } else if(mode === 'set-goal') {
+                    goal = {x, y};
+                    mode = 'none'; 
+                    document.getElementById('btn-set-goal').innerText = "SET TARGET";
+                }
+            });
+
+            // UI Controls
+            document.getElementById('btn-add-obstacle').addEventListener('click', () => {
+                mode = mode === 'add-obstacle' ? 'none' : 'add-obstacle';
+                document.getElementById('btn-add-obstacle').innerText = mode === 'add-obstacle' ? "CLICK IN CANVAS..." : "ADD OBSTACLE";
+                document.getElementById('btn-set-goal').innerText = "SET TARGET";
+            });
+
+            document.getElementById('btn-set-goal').addEventListener('click', () => {
+                mode = mode === 'set-goal' ? 'none' : 'set-goal';
+                document.getElementById('btn-set-goal').innerText = mode === 'set-goal' ? "CLICK IN CANVAS..." : "SET TARGET";
+                document.getElementById('btn-add-obstacle').innerText = "ADD OBSTACLE";
+            });
+
+            document.getElementById('btn-clear-env').addEventListener('click', () => {
+                obstacles = []; goal = null; mode = 'none';
+                document.getElementById('btn-set-goal').innerText = "SET TARGET";
+                document.getElementById('btn-add-obstacle').innerText = "ADD OBSTACLE";
+            });
+
+            document.getElementById('btn-swarm-play').addEventListener('click', () => {
+                isPlaying = !isPlaying;
+                document.getElementById('btn-swarm-play').innerText = isPlaying ? "PAUSE" : "PLAY";
+            });
+
+            function pushToHistory() {
+                const stats = {
+                    time: ((Date.now() - sessionStartTime)/1000).toFixed(1),
+                    cov: document.getElementById('stat-cov').innerText,
+                    col: collisions,
+                    vel: document.getElementById('stat-vel').innerText,
+                    agents: boids.length,
+                    timestamp: new Date().toLocaleTimeString()
+                };
+                sessionHistory.unshift(stats);
+                if(sessionHistory.length > 5) sessionHistory.pop();
+                
+                const list = document.getElementById('session-history-list');
+                list.innerHTML = sessionHistory.map(s => `
+                    <div style="padding: 5px; border-bottom: 1px solid rgba(255,255,255,0.03); display:flex; justify-content:space-between;">
+                        <span>[${s.timestamp}] COV:${s.cov}</span>
+                        <span style="color:var(--cyan);">T:${s.time}s</span>
+                    </div>
+                `).join('');
+            }
+
+            document.getElementById('btn-swarm-export').addEventListener('click', () => {
+                const report = {
+                    session_info: {
+                        timestamp: new Date().toISOString(),
+                        duration: ((Date.now() - sessionStartTime)/1000) + "s",
+                        coverage: document.getElementById('stat-cov').innerText,
+                        collisions: collisions,
+                        avg_velocity: document.getElementById('stat-vel').innerText
+                    },
+                    swarm_config: {
+                        agent_count: boids.length,
+                        separation: getParam('sep'),
+                        alignment: getParam('ali'),
+                        cohesion: getParam('coh'),
+                        max_speed: getParam('speed'),
+                        visibility_radius: getParam('radius')
+                    }
+                };
+                const blob = new Blob([JSON.stringify(report, null, 2)], {type: 'application/json'});
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `nexus_swarm_report_${Date.now()}.json`;
+                a.click();
+            });
+
+            document.getElementById('btn-swarm-reset').addEventListener('click', () => {
+                pushToHistory();
+                boids = []; collisions = 0;
+                heatmap.fill(0);
+                sessionStartTime = Date.now();
+                // Clear canvas immediately to remove heatmap/trail ghosts
+                ctx.fillStyle = '#050810';
+                ctx.fillRect(0, 0, width, height);
+                for(let i=0; i<getParam('agents'); i++) boids.push(createBoid());
+            });
+
+            tick();
+        }
+
+    </script>
+</body>
+</html>

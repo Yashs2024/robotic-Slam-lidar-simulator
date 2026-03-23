@@ -22,7 +22,7 @@ export class JoystickManager {
       zone: leftZone,
       mode: 'static',
       position: { left: '50%', top: '50%' },
-      color: '#3b82f6',
+      color: '#1E90FF',
       size: 100
     });
 

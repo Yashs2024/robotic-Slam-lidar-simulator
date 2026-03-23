@@ -35,7 +35,7 @@ export class Renderer {
     }
 
     clear() {
-        this.realWorldCtx.fillStyle = '#0f1115';
+        this.realWorldCtx.fillStyle = '#0A0C10';
         this.realWorldCtx.fillRect(0, 0, this.realWorldCanvas.width, this.realWorldCanvas.height);
 
         this.slamCtx.fillStyle = '#1e293b';
@@ -238,8 +238,8 @@ export class Renderer {
                 ctx.beginPath();
                 ctx.arc(0, 0, radius * 0.9, -Math.PI / 6, Math.PI / 6);
                 ctx.lineWidth = 3;
-                ctx.strokeStyle = '#3b82f6'; // Bright blue LED
-                ctx.shadowColor = '#3b82f6';
+                ctx.strokeStyle = '#1E90FF'; // Bright blue LED
+                ctx.shadowColor = '#1E90FF';
                 ctx.shadowBlur = 10;
                 ctx.stroke();
                 ctx.shadowBlur = 0; // reset
@@ -365,7 +365,7 @@ export class Renderer {
         if (!dynamicHumans || !dynamicHumans.enabled) return;
 
         const colors = [
-            { shirt: '#3b82f6', hat: '#facc15' }, // Blue shirt, yellow hardhat
+            { shirt: '#1E90FF', hat: '#facc15' }, // Blue shirt, yellow hardhat
             { shirt: '#ef4444', hat: '#facc15' }, // Red shirt, yellow hardhat
             { shirt: '#10b981', hat: '#facc15' }, // Green shirt, yellow hardhat
         ];

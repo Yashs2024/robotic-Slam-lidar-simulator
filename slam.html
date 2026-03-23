@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Educational SLAM & LiDAR Simulator</title>
+  <meta name="description"
+    content="Interactive browser-based SLAM & LiDAR simulator for robotics education. Features autonomous frontier exploration, A* pathfinding, occupancy grid mapping, and real-time sensor visualization." />
+  <!-- Use Google Fonts for a modern, sleek aesthetic -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+  <!-- Chart.js for Live Data -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- Nipple.js for Virtual Joysticks -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/nipplejs/0.10.1/nipplejs.min.js"></script>
+  <link rel="stylesheet" href="./style.css">
+</head>
+
+<body>
+  <!-- Back to Hub -->
+  <a href="./index.html" id="back-hub-btn" style="position:fixed;top:12px;left:12px;z-index:9999;background:rgba(10,15,30,0.7);border:1px solid rgba(59,130,246,0.25);backdrop-filter:blur(10px);color:#60a5fa;font-family:'Inter',sans-serif;font-size:0.75rem;font-weight:600;letter-spacing:1px;padding:8px 16px;text-decoration:none;border-radius:8px;transition:all 0.2s;display:flex;align-items:center;gap:6px;" onmouseover="this.style.borderColor='#60a5fa';this.style.boxShadow='0 0 12px rgba(96,165,250,0.25)'" onmouseout="this.style.borderColor='rgba(59,130,246,0.25)';this.style.boxShadow='none'">← Hub</a>
+
+  <!-- Premium Landing Page -->
+  <div id="landingPage" class="full-page premium-bg">
+    <div class="grid-overlay"></div>
+    <div class="glow-orb primary"></div>
+    <div class="glow-orb secondary"></div>
+
+    <div class="landing-content split-layout">
+      <!-- Left: Text content -->
+      <div class="text-content">
+        <div class="badge">v3.0 — Advanced Robotics</div>
+        <h1 class="hero-title">Master <span class="text-gradient">SLAM</span><br />Algorithms</h1>
+        <p class="hero-desc">Experience autonomous navigation, real-time mapping, and advanced pathfinding algorithms
+          visualized beautifully.</p>
+
+        <div class="hero-features">
+          <div class="feature"><span class="icon">🧮</span> Bayesian Mapping</div>
+          <div class="feature"><span class="icon">🌐</span> 3D Point Cloud</div>
+          <div class="feature"><span class="icon">🔗</span> Loop Closure</div>
+        </div>
+
+        <div class="hero-cta-row">
+          <button id="btnGetStarted" class="primary-btn glow-hover">
+            Launch Simulator <span class="arrow">→</span>
+          </button>
+          <button id="btnDonate" class="donate-btn">
+            <span class="icon">💖</span> Support Project
+          </button>
+          <a href="#features-section" class="secondary-link-btn">Explore Features ↓</a>
+        </div>
+      </div>
+
+      <!-- Right: Animated Visual -->
+      <div class="visual-content">
+        <div class="robot-container">
+          <div class="scan-ring"></div>
+          <div class="scan-ring delayed"></div>
+          <svg class="floating-robot" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <linearGradient id="robotGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#3b82f6" />
+                <stop offset="100%" stop-color="#8b5cf6" />
+              </linearGradient>
+              <filter id="glow">
+                <feGaussianBlur stdDeviation="5" result="coloredBlur" />
+                <feMerge>
+                  <feMergeNode in="coloredBlur" />
+                  <feMergeNode in="SourceGraphic" />
+                </feMerge>
+              </filter>
+            </defs>
+            <path d="M70 80 Q100 40 130 80" fill="none" stroke="#60a5fa" stroke-width="6" stroke-linecap="round" />
+            <circle cx="100" cy="70" r="10" fill="#60a5fa" filter="url(#glow)">
+              <animate attributeName="opacity" values="0.5;1;0.5" dur="2s" repeatCount="indefinite" />
+            </circle>
+            <rect x="50" y="80" width="100" height="70" rx="20" fill="url(#robotGrad)" filter="url(#glow)" />
+            <rect x="40" y="100" width="20" height="40" rx="5" fill="#1e293b" />
+            <rect x="140" y="100" width="20" height="40" rx="5" fill="#1e293b" />
+            <line x1="80" y1="120" x2="120" y2="120" stroke="#0f172a" stroke-width="4" />
+          </svg>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Features Showcase Section ── -->
+    <div id="features-section" class="features-showcase">
+      <div class="features-header">
+        <div class="section-badge">All Features</div>
+        <h2 class="features-title">Everything You Need to <span class="text-gradient">Learn Robotics</span></h2>
+        <p class="features-subtitle">A professional-grade simulator packed with real-world SLAM algorithms, interactive
+          controls, and stunning visualizations.</p>
+      </div>
+
+      <div class="feature-category">
+        <h3 class="category-title"><span class="cat-dot slam"></span>Core SLAM</h3>
+        <div class="features-grid">
+          <div class="feature-card">
+            <div class="feature-card-icon">📡</div>
+            <h4>LiDAR Sensor Simulation</h4>
+            <p>180° forward-facing LiDAR with adjustable ray density, sensor noise, and real-time distance measurements
+              in metres.</p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-card-icon">🧮</div>
+            <h4>Bayesian Log-Odds Grid</h4>
+            <p>Professional-grade occupancy mapping using Bayesian probability. Watch cells gain confidence with
+              gradient shading as the robot scans.</p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-card-icon">📈</div>
+            <h4>Odometry Drift</h4>
+            <p>Simulate real-world wheel encoder errors. The believed position diverges from ground truth — the
+              fundamental challenge of localization.</p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-card-icon">🔗</div>
+            <h4>Loop Closure Detection</h4>
+            <p>Scan-matching keyframe system detects revisited areas and corrects accumulated drift — the defining
+              feature of real SLAM.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="feature-category">
+        <h3 class="category-title"><span class="cat-dot nav"></span>Navigation & Control</h3>
+        <div class="features-grid">
+          <div class="feature-card">
+            <div class="feature-card-icon">⚡</div>
+            <h4>A* Pathfinding</h4>
+            <p>Heuristic shortest path through the occupancy grid with wall proximity penalties for safe navigation.</p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-card-icon">🔍</div>
+            <h4>Dijkstra's Algorithm</h4>
+            <p>Guaranteed optimal path without heuristics. Compare with A* to understand the speed vs. optimality
+              tradeoff.</p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-card-icon">🐛</div>
+            <h4>Bug2 Wall-Following</h4>
+            <p>A reactive algorithm that follows walls to reach goals. Works without a map — perfect for unknown
+              environments.</p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-card-icon">🧭</div>
+            <h4>Frontier Exploration</h4>
+            <p>Autonomous exploration that finds boundaries between known and unknown space, mapping everything
+              systematically.</p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-card-icon">🚗</div>
+            <h4>3 Drive Models</h4>
+            <p>Differential (tank), Ackermann (car-like), and Holonomic (omnidirectional) — each with unique kinematics.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div class="feature-category">
+        <h3 class="category-title"><span class="cat-dot adv"></span>Advanced Systems</h3>
+        <div class="features-grid">
+          <div class="feature-card">
+            <div class="feature-card-icon">🎯</div>
+            <h4>Particle Filter (MCL)</h4>
+            <p>Monte Carlo Localization with adjustable particle count. Watch hypotheses converge as the robot gathers
+              evidence.</p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-card-icon">🔮</div>
+            <h4>Dynamic Obstacles</h4>
+            <p>Moving walls, sliding doors, and orbiting objects test the SLAM system's ability to handle changing
+              environments.</p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-card-icon">🌫️</div>
+            <h4>Fog of War</h4>
+            <p>Unexplored areas remain hidden on the SLAM map, revealing only what the robot has scanned — just like
+              reality.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="feature-category">
+        <h3 class="category-title"><span class="cat-dot tools"></span>Tools & Visualization</h3>
+        <div class="features-grid">
+          <div class="feature-card">
+            <div class="feature-card-icon">🌐</div>
+            <h4>3D LiDAR Point Cloud</h4>
+            <p>Interactive Three.js visualization with distance-colored points, orbit camera, and live scan rays in 3D
+              space.</p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-card-icon">📊</div>
+            <h4>Live Sensor Charts</h4>
+            <p>Real-time polar chart of LiDAR distances plus a Sensor HUD showing pose, min/max distances, and compass.
+            </p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-card-icon">🏗️</div>
+            <h4>Map Builder & Presets</h4>
+            <p>Draw custom walls or load preset environments — Maze, Warehouse, Office, L-Shape, Open Field.
+              Export/import as JSON.</p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-card-icon">📖</div>
+            <h4>Interactive Tutorial</h4>
+            <p>Guided 11-step walkthrough teaching every SLAM concept with auto-scrolling, view switching, and clear
+              explanations.</p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-card-icon">🔊</div>
+            <h4>Sound Effects</h4>
+            <p>Subtle audio feedback for LiDAR sweeps, collisions, goal reached, and exploration complete.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="features-cta">
+        <button class="primary-btn glow-hover features-launch-btn"
+          onclick="document.getElementById('btnGetStarted').click()">
+          Start Exploring Now <span class="arrow">→</span>
+        </button>
+      </div>
+
+      <!-- ── Footer ── -->
+      <footer class="landing-footer">
+        <div class="footer-content">
+          <p class="creator-text">
+            Created by <strong>Yash Surve</strong><br>
+            <span class="subtitle">An Automation and Robotics Engineering student from MESWCOE</span>
+          </p>
+          <div class="social-links">
+            <a href="mailto:yashusurve2005@gmail.com" class="social-link" title="Email Me">
+              <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none"
+                stroke-linecap="round" stroke-linejoin="round">
+                <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+                <polyline points="22,6 12,13 2,6"></polyline>
+              </svg>
+            </a>
+            <a href="https://github.com/Yashs2024" target="_blank" rel="noopener noreferrer" class="social-link">
+              <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none"
+                stroke-linecap="round" stroke-linejoin="round">
+                <path
+                  d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22">
+                </path>
+              </svg>
+            </a>
+            <a href="https://www.linkedin.com/in/yash-surve-3b6a72253" target="_blank" rel="noopener noreferrer"
+              class="social-link">
+              <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none"
+                stroke-linecap="round" stroke-linejoin="round">
+                <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"></path>
+                <rect x="2" y="9" width="4" height="12"></rect>
+                <circle cx="4" cy="4" r="2"></circle>
+              </svg>
+            </a>
+          </div>
+        </div>
+      </footer>
+    </div>
+  </div>
+
+  <!-- Main Simulator -->
+  <div id="app" style="display: none;">
+    <!-- Sidebar Toggle Button -->
+    <button id="btnToggleSidebar" class="sidebar-toggle-btn open" title="Toggle Sidebar">
+      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="15 18 9 12 15 6"></polyline>
+      </svg>
+    </button>
+
+    <!-- Mobile UI Toggle Button -->
+    <button id="btnToggleMobileUI" class="mobile-toggle-btn" title="Toggle Mobile UI">
+      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect>
+        <line x1="12" y1="18" x2="12.01" y2="18"></line>
+      </svg>
+    </button>
+
+    <!-- Sidebar Control Panel -->
+    <aside class="sidebar">
+      <header>
+        <h1>SLAM Simulator</h1>
+        <p class="subtitle">Interactive Robotics Education</p>
+        <button id="btnTutorial" class="tutorial-start-btn">📖 Start Tutorial</button>
+      </header>
+
+      <!-- Performance Stats Dashboard -->
+      <section class="stats-dashboard">
+        <h3>Performance Stats</h3>
+        <div class="stats-grid">
+          <div class="stat-card">
+            <span class="stat-label">Explored</span>
+            <span class="stat-value" id="statExplored">0%</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-label">Distance</span>
+            <span class="stat-value" id="statDistance">0m</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-label">Collisions</span>
+            <span class="stat-value" id="statCollisions">0</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-label">Time</span>
+            <span class="stat-value" id="statTime">0:00</span>
+          </div>
+        </div>
+      </section>
+
+      <section class="controls">
+        <div class="control-group">
+          <label for="noiseSlider">LiDAR Sensor Noise</label>
+          <input type="range" id="noiseSlider" min="0" max="20" value="2" step="1">
+          <span id="noiseValue" class="value-display">2%</span>
+        </div>
+
+        <div class="control-group">
+          <label for="speedSlider">Robot Speed</label>
+          <input type="range" id="speedSlider" min="1" max="10" value="5" step="1">
+          <span id="speedValue" class="value-display">5x</span>
+        </div>
+
+        <div class="control-group">
+          <label for="driveModelSelect">Drive Model</label>
+          <select id="driveModelSelect" class="preset-select">
+            <option value="differential">⚙️ Differential (Tank)</option>
+            <option value="ackermann">🚗 Ackermann (Car)</option>
+            <option value="holonomic">🔷 Holonomic (Omni)</option>
+          </select>
+        </div>
+
+        <div class="control-group">
+          <label for="rayDensitySlider">LiDAR Ray Density</label>
+          <input type="range" id="rayDensitySlider" min="30" max="360" value="90" step="10">
+          <span id="rayDensityValue" class="value-display">90 Rays</span>
+        </div>
+
+        <div class="control-group">
+          <label for="driftSlider">Odometry Drift</label>
+          <input type="range" id="driftSlider" min="0" max="10" value="0" step="1">
+          <span id="driftValue" class="value-display">Off</span>
+        </div>
+      </section>
+
+      <section class="views">
+        <h3>Pathfinding Algorithm</h3>
+        <select id="algorithmSelect" class="preset-select">
+          <option value="astar">⚡ A* (Heuristic)</option>
+          <option value="dijkstra">🔍 Dijkstra (Optimal)</option>
+          <option value="bug2">🐛 Bug2 (Wall-Follow)</option>
+        </select>
+        <span id="pathComputeTime" class="value-display" style="margin-top:0.25rem;"></span>
+      </section>
+
+      <section class="views">
+        <h3>Interaction Mode</h3>
+        <div class="button-group">
+          <button id="btnDriveMode" class="active">Drive Mode</button>
+          <button id="btnBuildMode">Build Mode</button>
+        </div>
+        <button id="btnAutoExplore" class="auto-explore-btn">🧭 Auto Explore</button>
+        <button id="btnDynamicObs" class="dynamic-obs-btn">🔮 Dynamic Obstacles</button>
+        <button id="btnDynamicHumans" class="dynamic-obs-btn" style="margin-top:0.5rem;">👷‍♂️ Moving Workers</button>
+        <button id="btnParticleFilter" class="particle-btn">🎯 Particle Filter</button>
+        <button id="btnLoopClosure" class="loop-closure-btn">🔗 Loop Closure</button>
+        <div class="control-group" id="particleCountGroup" style="display:none;">
+          <label for="particleCountSlider">Particle Count</label>
+          <input type="range" id="particleCountSlider" min="50" max="500" value="200" step="25">
+          <span id="particleCountValue" class="value-display">200</span>
+        </div>
+      </section>
+
+      <section class="views">
+        <h3>Sound Effects</h3>
+        <div class="button-group">
+          <button id="btnSoundOff" class="active">🔇 Off</button>
+          <button id="btnSoundOn">🔊 On</button>
+        </div>
+        <div class="control-group" id="volumeGroup" style="display:none;">
+          <label for="volumeSlider">Volume</label>
+          <input type="range" id="volumeSlider" min="0" max="100" value="30" step="5">
+          <span id="volumeValue" class="value-display">30%</span>
+        </div>
+      </section>
+
+      <section class="views">
+        <h3>Viewport Toggle</h3>
+        <div class="button-group">
+          <button id="btnRealWorld" class="active">Real World</button>
+          <button id="btnSlamMap">SLAM Map</button>
+          <button id="btn3DView">3D LiDAR</button>
+        </div>
+      </section>
+
+      <section class="instructions" id="instructionsDrive">
+        <h3>Controls</h3>
+        <p><kbd>W</kbd> Move Forward</p>
+        <p><kbd>S</kbd> Move Backward</p>
+        <p><kbd>A</kbd> Rotate Left</p>
+        <p><kbd>D</kbd> Rotate Right</p>
+        <p>Click on SLAM Map to Auto-Navigate</p>
+      </section>
+
+      <section class="instructions hidden" id="instructionsBuild">
+        <h3>Build Controls</h3>
+        <p>Click and Drag on Real World to draw custom walls.</p>
+      </section>
+
+      <section class="chart-container">
+        <h3>Live Sensor Data</h3>
+        <div class="chart-wrapper">
+          <canvas id="lidarChart"></canvas>
+        </div>
+      </section>
+
+      <section class="chart-container">
+        <h3>Robot Dynamics (v, w)</h3>
+        <div class="chart-wrapper">
+          <canvas id="dynamicsChart"></canvas>
+        </div>
+      </section>
+
+      <!-- Environment Presets & Map Tools -->
+      <section class="map-tools">
+        <h3>Environment Presets</h3>
+        <select id="presetSelect" class="preset-select">
+          <option value="random">🎲 Random</option>
+          <option value="maze">🏗️ Maze</option>
+          <option value="warehouse">📦 Warehouse</option>
+          <option value="office">🏢 Office</option>
+          <option value="lshape">↰ L-Shape</option>
+          <option value="open">🏜️ Open Field</option>
+        </select>
+        <div class="map-buttons">
+          <button id="btnExportMap" class="tool-btn">📤 Export Map</button>
+          <button id="btnImportMap" class="tool-btn">📥 Import Map</button>
+          <input type="file" id="importFileInput" accept=".json" style="display:none;" />
+        </div>
+      </section>
+
+      <footer>
+        <button id="btnReset" class="danger-btn" style="margin-bottom: 0.5rem;">Reset Map</button>
+        <button id="btnClearCustom" class="danger-btn">Clear Custom Walls</button>
+      </footer>
+    </aside>
+
+    <!-- Main Canvas Area -->
+    <main class="canvas-container">
+      <!-- Canvas for the 'Real World' view -->
+      <canvas id="realWorldCanvas"></canvas>
+      <!-- Canvas for the generated Occupancy Grid view (hidden by default initially) -->
+      <canvas id="slamCanvas" class="hidden"></canvas>
+      <div id="pointCloudContainer" class="hidden"></div>
+      
+      <!-- Virtual Joystick Zones (Mobile UI Only) -->
+      <div id="joystickLeft" class="joystick-zone left-zone"></div>
+      <div id="joystickRight" class="joystick-zone right-zone"></div>
+    </main>
+  </div>
+
+  <!-- Feature card scroll animation -->
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            // Stagger the cards within this grid
+            const cards = entry.target.querySelectorAll('.feature-card');
+            cards.forEach((card, i) => {
+              setTimeout(() => card.classList.add('visible'), i * 80);
+            });
+            observer.unobserve(entry.target);
+          }
+        });
+      }, { threshold: 0.15 });
+
+      document.querySelectorAll('.features-grid').forEach(grid => observer.observe(grid));
+
+      // Also animate the header
+      const headerObs = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            entry.target.style.opacity = '1';
+            entry.target.style.transform = 'translateY(0)';
+            headerObs.unobserve(entry.target);
+          }
+        });
+      }, { threshold: 0.3 });
+
+      const fh = document.querySelector('.features-header');
+      if (fh) {
+        fh.style.opacity = '0';
+        fh.style.transform = 'translateY(20px)';
+        fh.style.transition = 'all 0.6s ease';
+        headerObs.observe(fh);
+      }
+    });
+  </script>
+
+  <!-- Donation Modal -->
+  <div id="donateModal" class="full-page donate-overlay" style="display: none;">
+    <div class="auth-card donate-card text-center relative-box">
+      <button class="modal-close" id="btnDonateClose">&times;</button>
+      <h2 style="margin-bottom: 0.5rem; font-size: 1.8rem; font-weight: 700;">Support the Project</h2>
+      <p style="color: #94a3b8; font-size: 0.95rem; margin-bottom: 1.5rem;">If you find this simulator helpful, consider supporting its development!</p>
+      <div class="donate-image-container">
+        <img src="./donate.jpeg" alt="Donate QR Code" class="donate-image" />
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="./src/main.js"></script>
+</body>
+
+</html>
