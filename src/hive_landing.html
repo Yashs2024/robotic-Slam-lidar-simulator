@@ -1,0 +1,689 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HIVE — Industrial Swarm Robotics Simulator</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#080A0F;--bg2:#0C0F16;--bg3:#111520;
+  --blue:#1E90FF;--cyan:#00E5FF;--green:#00E676;--amber:#FFB300;--red:#FF1744;
+  --white:#E8EDF5;--muted:#4A5568;--border:rgba(0,229,255,0.15);
+  --glow-cyan:0 0 20px rgba(0,229,255,0.4);
+  --font-head:'Orbitron',monospace;--font-mono:'Share Tech Mono',monospace;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{background:var(--bg);color:var(--white);font-family:var(--font-mono);overflow-x:hidden;}
+
+/* SCROLLBAR */
+::-webkit-scrollbar{width:4px;}
+::-webkit-scrollbar-track{background:var(--bg);}
+::-webkit-scrollbar-thumb{background:var(--cyan);border-radius:2px;}
+
+/* SCANLINE OVERLAY */
+body::after{content:'';position:fixed;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.04) 2px,rgba(0,0,0,0.04) 4px);pointer-events:none;z-index:1000;}
+
+/* BLUEPRINT GRID BG */
+.grid-bg{background-image:radial-gradient(rgba(0,229,255,0.08) 1px,transparent 1px);background-size:32px 32px;}
+
+/* ── STICKY NAV ── */
+#sticky-nav{
+  position:fixed;top:0;left:0;right:0;height:44px;
+  background:rgba(8,10,15,0.96);backdrop-filter:blur(14px);
+  border-bottom:1px solid var(--border);
+  display:flex;align-items:center;padding:0 32px;gap:24px;
+  z-index:900;opacity:0;transform:translateY(-44px);transition:all 0.4s ease;
+}
+#sticky-nav.visible{opacity:1;transform:translateY(0);}
+.nav-logo{font-family:var(--font-head);font-size:16px;font-weight:900;color:var(--cyan);letter-spacing:4px;text-shadow:var(--glow-cyan);text-decoration:none;}
+.nav-links{display:flex;gap:20px;margin-left:24px;}
+.nav-links a{font-size:10px;letter-spacing:2px;color:var(--muted);text-decoration:none;transition:color 0.2s;}
+.nav-links a:hover{color:var(--cyan);}
+.nav-spacer{flex:1;}
+.btn{display:inline-flex;align-items:center;gap:8px;font-family:var(--font-head);font-size:11px;font-weight:700;letter-spacing:2px;padding:10px 24px;cursor:pointer;text-decoration:none;transition:all 0.2s;border:none;}
+.btn-primary{background:var(--cyan);color:#000;box-shadow:0 0 24px rgba(0,229,255,0.3);}
+.btn-primary:hover{background:#fff;box-shadow:0 0 40px rgba(0,229,255,0.6);transform:scale(1.03);}
+.btn-sm{padding:6px 14px;font-size:9px;}
+.btn-outline{background:transparent;color:var(--cyan);border:1px solid var(--cyan);}
+.btn-outline:hover{background:rgba(0,229,255,0.12);box-shadow:var(--glow-cyan);}
+
+/* ── STATUS TICKER ── */
+#ticker-wrap{background:rgba(0,229,255,0.05);border-bottom:1px solid var(--border);height:28px;overflow:hidden;white-space:nowrap;}
+#ticker{display:inline-block;animation:ticker 28s linear infinite;font-size:9px;letter-spacing:2px;color:var(--cyan);line-height:28px;padding-left:100%;}
+@keyframes ticker{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+
+/* ── HERO ── */
+#hero{min-height:100vh;display:grid;grid-template-columns:1fr 1fr;position:relative;overflow:hidden;}
+.hero-left{display:flex;flex-direction:column;justify-content:center;padding:80px 60px 60px 80px;position:relative;z-index:2;}
+.hero-overline{font-size:9px;letter-spacing:3px;color:var(--amber);margin-bottom:20px;display:flex;align-items:center;gap:8px;}
+.hero-overline::before{content:'';width:24px;height:1px;background:var(--amber);}
+.hero-title{font-family:var(--font-head);font-size:clamp(72px,9vw,108px);font-weight:900;line-height:0.9;color:var(--cyan);text-shadow:0 0 60px rgba(0,229,255,0.5),0 0 120px rgba(0,229,255,0.2);letter-spacing:8px;margin-bottom:8px;}
+.hero-subtitle{font-family:var(--font-head);font-size:clamp(13px,2vw,18px);font-weight:400;color:var(--white);letter-spacing:4px;opacity:0.7;margin-bottom:28px;}
+.hero-desc{font-size:12px;line-height:1.9;color:rgba(232,237,245,0.65);max-width:480px;margin-bottom:36px;border-left:2px solid var(--border);padding-left:16px;}
+.hero-btns{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:32px;}
+.hero-badges{display:flex;gap:8px;flex-wrap:wrap;}
+.badge-pill{display:inline-flex;align-items:center;gap:5px;font-size:9px;letter-spacing:1px;padding:4px 10px;border:1px solid var(--border);background:rgba(0,229,255,0.05);color:var(--muted);}
+.badge-pill .dot{width:5px;height:5px;border-radius:50%;background:var(--green);box-shadow:0 0 6px var(--green);animation:pulse 2s infinite;}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.3}}
+
+/* HERO CANVAS SIDE */
+.hero-right{position:relative;display:flex;align-items:center;justify-content:center;}
+#heroCanvas{width:100%;height:100%;display:block;}
+.hero-canvas-label{position:absolute;bottom:24px;left:50%;transform:translateX(-50%);font-size:9px;letter-spacing:2px;color:var(--cyan);opacity:0.6;white-space:nowrap;}
+.hero-vignette{position:absolute;inset:0;background:radial-gradient(ellipse at center,transparent 40%,rgba(8,10,15,0.8) 100%);pointer-events:none;}
+
+/* CORNER BRACKETS */
+.bracket{position:relative;}
+.bracket::before,.bracket::after{content:'';position:absolute;width:12px;height:12px;border-color:var(--cyan);border-style:solid;opacity:0.5;}
+.bracket::before{top:-2px;left:-2px;border-width:1px 0 0 1px;}
+.bracket::after{bottom:-2px;right:-2px;border-width:0 1px 1px 0;}
+
+/* ── STATS ROW ── */
+#stats{padding:60px 80px;display:grid;grid-template-columns:repeat(4,1fr);gap:20px;background:var(--bg2);}
+.stat-card{background:var(--bg3);border:1px solid var(--border);border-left:2px solid var(--cyan);padding:24px 20px;position:relative;transition:all 0.3s;cursor:default;}
+.stat-card:hover{border-color:var(--cyan);box-shadow:var(--glow-cyan);transform:translateY(-3px);}
+.stat-card::before,.stat-card::after{content:'';position:absolute;width:8px;height:8px;border-color:var(--cyan);border-style:solid;opacity:0.4;}
+.stat-card::before{top:6px;left:6px;border-width:1px 0 0 1px;}
+.stat-card::after{bottom:6px;right:6px;border-width:0 1px 1px 0;}
+.stat-num{font-family:var(--font-head);font-size:48px;font-weight:900;color:var(--cyan);text-shadow:0 0 30px rgba(0,229,255,0.4);line-height:1;}
+.stat-label{font-size:9px;letter-spacing:2px;color:var(--muted);margin-top:6px;}
+
+/* ── SCENARIOS ── */
+#scenarios{padding:80px;}
+.section-head{text-align:center;margin-bottom:56px;}
+.section-head h2{font-family:var(--font-head);font-size:32px;font-weight:900;color:var(--white);letter-spacing:4px;text-shadow:0 0 30px rgba(0,229,255,0.2);margin-bottom:10px;}
+.section-head p{font-size:11px;color:var(--muted);letter-spacing:2px;}
+.section-divider{width:60px;height:2px;background:linear-gradient(90deg,transparent,var(--cyan),transparent);margin:16px auto 0;}
+
+.scenario-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;}
+.scenario-card{background:var(--bg3);border:1px solid var(--border);padding:0;overflow:hidden;transition:all 0.35s;cursor:pointer;position:relative;}
+.scenario-card:hover{transform:translateY(-8px);border-color:var(--cyan);box-shadow:0 20px 60px rgba(0,0,0,0.5),var(--glow-cyan);}
+.scenario-canvas-wrap{width:100%;height:140px;position:relative;overflow:hidden;background:#030508;}
+.scenario-canvas-wrap canvas{width:100%;height:100%;}
+.scenario-body{padding:20px;}
+.scenario-num{font-family:var(--font-head);font-size:10px;color:var(--muted);letter-spacing:3px;margin-bottom:8px;}
+.scenario-name{font-family:var(--font-head);font-size:17px;font-weight:700;color:var(--white);letter-spacing:2px;margin-bottom:10px;}
+.scenario-desc{font-size:10px;line-height:1.8;color:rgba(232,237,245,0.55);margin-bottom:14px;}
+.tag-row{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:12px;}
+.tag{font-size:8px;letter-spacing:1px;padding:2px 7px;border:1px solid rgba(0,229,255,0.25);color:var(--cyan);background:rgba(0,229,255,0.05);}
+.status-dot{font-size:9px;color:var(--green);letter-spacing:1px;display:flex;align-items:center;gap:5px;}
+.status-dot::before{content:'●';animation:pulse 2s infinite;}
+
+/* ── FEATURES ── */
+#features{padding:80px;background:var(--bg2);}
+.feature-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;}
+.feature-card{background:var(--bg);border:1px solid var(--border);padding:20px;transition:all 0.3s;position:relative;overflow:hidden;}
+.feature-card::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(0,229,255,0.03),transparent);opacity:0;transition:opacity 0.3s;}
+.feature-card:hover{border-color:var(--cyan);transform:translateY(-4px);}
+.feature-card:hover::before{opacity:1;}
+.feature-card:hover .feat-icon{text-shadow:0 0 20px var(--cyan);}
+.feat-icon{font-size:28px;margin-bottom:12px;display:block;}
+.feat-name{font-family:var(--font-head);font-size:11px;font-weight:700;color:var(--white);letter-spacing:2px;margin-bottom:6px;}
+.feat-desc{font-size:9px;line-height:1.7;color:var(--muted);}
+.feat-tag{display:inline-block;margin-top:10px;font-size:8px;padding:2px 7px;border:1px solid rgba(30,144,255,0.3);color:var(--blue);letter-spacing:1px;}
+
+/* ── TECH STACK ── */
+#techstack{padding:80px;}
+.tech-badges{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin-bottom:20px;}
+.tech-badge{display:inline-flex;align-items:center;gap:7px;font-size:10px;letter-spacing:1px;padding:8px 16px;border:1px solid var(--border);background:var(--bg3);color:var(--white);transition:all 0.2s;}
+.tech-badge:hover{border-color:var(--cyan);color:var(--cyan);box-shadow:var(--glow-cyan);}
+
+/* CIRCUIT DIVIDER */
+.circuit-divider{display:flex;align-items:center;gap:0;margin:40px auto;width:80%;max-width:700px;}
+.circuit-line{flex:1;height:1px;background:var(--border);}
+.circuit-node{width:6px;height:6px;background:var(--cyan);box-shadow:0 0 10px var(--cyan);}
+.circuit-dot{width:3px;height:3px;background:var(--muted);margin:0 12px;}
+
+/* ── FOOTER CTA ── */
+#footer-cta{padding:80px;background:var(--bg2);display:grid;grid-template-columns:1fr 1fr;gap:60px;align-items:center;}
+.cta-left h2{font-family:var(--font-head);font-size:56px;font-weight:900;color:var(--cyan);text-shadow:0 0 60px rgba(0,229,255,0.4);letter-spacing:6px;line-height:1;margin-bottom:12px;}
+.cta-left p{font-size:11px;color:var(--muted);letter-spacing:2px;margin-bottom:28px;}
+.cta-note{font-size:9px;color:var(--muted);margin-top:10px;opacity:0.6;}
+.project-card{background:var(--bg3);border:1px solid var(--border);padding:24px;}
+.project-card-title{font-family:var(--font-head);font-size:12px;color:var(--cyan);letter-spacing:2px;margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid var(--border);}
+.kv-row{display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid rgba(255,255,255,0.04);font-size:10px;}
+.kv-row .k{color:var(--muted);}
+.kv-row .v{color:var(--cyan);font-family:var(--font-head);font-size:11px;font-weight:700;}
+.kv-row .v.green{color:var(--green);}
+
+footer{padding:16px 80px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;font-size:9px;color:var(--muted);letter-spacing:1px;}
+
+/* ── SCROLL ANIMATIONS ── */
+.reveal{opacity:0;transform:translateY(24px);transition:opacity 0.7s ease,transform 0.7s ease;}
+.reveal.visible{opacity:1;transform:none;}
+.reveal-delay-1{transition-delay:0.1s;}
+.reveal-delay-2{transition-delay:0.2s;}
+.reveal-delay-3{transition-delay:0.3s;}
+.reveal-delay-4{transition-delay:0.4s;}
+
+/* RESPONSIVE */
+@media(max-width:900px){
+  #hero{grid-template-columns:1fr;min-height:auto;}
+  .hero-left{padding:80px 24px 40px;}
+  .hero-right{height:300px;}
+  #stats{grid-template-columns:1fr 1fr;padding:40px 24px;}
+  #scenarios{padding:60px 24px;}
+  .scenario-grid{grid-template-columns:1fr;}
+  #features{padding:60px 24px;}
+  .feature-grid{grid-template-columns:1fr 1fr;}
+  #techstack{padding:60px 24px;}
+  #footer-cta{grid-template-columns:1fr;padding:60px 24px;}
+  footer{padding:16px 24px;flex-direction:column;gap:8px;text-align:center;}
+  .nav-links{display:none;}
+}
+</style>
+</head>
+<body class="grid-bg">
+
+<!-- STICKY NAV -->
+<nav id="sticky-nav">
+  <a href="#" class="nav-logo">HIVE</a>
+  <div class="nav-links">
+    <a href="#scenarios">SCENARIOS</a>
+    <a href="#features">FEATURES</a>
+    <a href="#techstack">STACK</a>
+  </div>
+  <div class="nav-spacer"></div>
+  <a href="../hive.html" class="btn btn-primary btn-sm">▶ LAUNCH</a>
+</nav>
+
+<!-- TICKER -->
+<div id="ticker-wrap">
+  <div id="ticker">
+    ● SYSTEM ONLINE &nbsp;|&nbsp; 4 AGENTS ACTIVE &nbsp;|&nbsp; WAREHOUSE MODE READY &nbsp;|&nbsp; BUILD v2.0.0 &nbsp;|&nbsp; ALL SYSTEMS NOMINAL &nbsp;|&nbsp; A* PATHFINDING LOADED &nbsp;|&nbsp; SWARM INTELLIGENCE ACTIVE &nbsp;|&nbsp; BATTERY MANAGEMENT ONLINE &nbsp;|&nbsp; COLLISION AVOIDANCE NOMINAL &nbsp;|&nbsp; FRONTIER EXPLORATION READY &nbsp;&nbsp;&nbsp;&nbsp;
+    ● SYSTEM ONLINE &nbsp;|&nbsp; 4 AGENTS ACTIVE &nbsp;|&nbsp; WAREHOUSE MODE READY &nbsp;|&nbsp; BUILD v2.0.0 &nbsp;|&nbsp; ALL SYSTEMS NOMINAL &nbsp;|&nbsp; A* PATHFINDING LOADED &nbsp;|&nbsp; SWARM INTELLIGENCE ACTIVE &nbsp;|&nbsp; BATTERY MANAGEMENT ONLINE &nbsp;|&nbsp; COLLISION AVOIDANCE NOMINAL &nbsp;|&nbsp; FRONTIER EXPLORATION READY &nbsp;&nbsp;&nbsp;&nbsp;
+  </div>
+</div>
+
+<!-- HERO -->
+<section id="hero">
+  <div class="hero-left">
+    <div class="hero-overline">SEMESTER VI MINI PROJECT — AUTOMATION & ROBOTICS ENGINEERING</div>
+    <div class="hero-title">HIVE</div>
+    <div class="hero-subtitle">Industrial Swarm Robotics Simulator</div>
+    <p class="hero-desc">A real-time multi-agent simulation platform featuring 4 autonomous robots collaborating across 3 industrial scenarios. Built on A* pathfinding, priority task queues, battery management, and frontier-based exploration — all rendered in a custom isometric 2.5D engine.</p>
+    <div class="hero-btns">
+      <a href="../hive.html" class="btn btn-primary">▶ LAUNCH SIMULATOR</a>
+      <a href="#scenarios" class="btn btn-outline">↓ EXPLORE FEATURES</a>
+    </div>
+    <div class="hero-badges">
+      <span class="badge-pill"><span class="dot"></span>OPERATIONAL</span>
+      <span class="badge-pill">VANILLA JS</span>
+      <span class="badge-pill">CANVAS 2D</span>
+      <span class="badge-pill">ZERO DEPS</span>
+    </div>
+  </div>
+  <div class="hero-right">
+    <canvas id="heroCanvas"></canvas>
+    <div class="hero-vignette"></div>
+    <div class="hero-canvas-label">LIVE PREVIEW — 4 AGENTS SIMULATED</div>
+  </div>
+</section>
+
+<!-- STATS -->
+<section id="stats">
+  <div class="stat-card bracket reveal">
+    <div class="stat-num" data-target="4" data-suffix="">0</div>
+    <div class="stat-label">AUTONOMOUS ROBOTS</div>
+  </div>
+  <div class="stat-card bracket reveal reveal-delay-1">
+    <div class="stat-num" data-target="3" data-suffix="">0</div>
+    <div class="stat-label">INDUSTRIAL SCENARIOS</div>
+  </div>
+  <div class="stat-card bracket reveal reveal-delay-2">
+    <div class="stat-num" data-target="36" data-suffix="²">0</div>
+    <div class="stat-label">GRID WAREHOUSE</div>
+  </div>
+  <div class="stat-card bracket reveal reveal-delay-3">
+    <div class="stat-num" style="font-size:32px;padding-top:8px;" data-target="0" data-text="A*+">A*+</div>
+    <div class="stat-label">PATHFINDING ENGINE</div>
+  </div>
+</section>
+
+<!-- SCENARIOS -->
+<section id="scenarios" class="grid-bg">
+  <div class="section-head reveal">
+    <h2>OPERATIONAL SCENARIOS</h2>
+    <p>THREE INDUSTRIAL ENVIRONMENTS — ONE UNIFIED CONTROL SYSTEM</p>
+    <div class="section-divider"></div>
+  </div>
+  <div class="scenario-grid">
+    <div class="scenario-card reveal">
+      <div class="scenario-canvas-wrap"><canvas id="sc1" width="400" height="140"></canvas></div>
+      <div class="scenario-body">
+        <div class="scenario-num">01 — WAREHOUSE</div>
+        <div class="scenario-name">INVENTORY MANAGEMENT</div>
+        <p class="scenario-desc">Robots autonomously pick inventory items and deliver to dispatch. Priority-based task queues ensure urgent SKUs are handled first.</p>
+        <div class="tag-row"><span class="tag">A* PATHFINDING</span><span class="tag">TASK QUEUE</span><span class="tag">COLLISION AVOID</span></div>
+        <div class="status-dot">AVAILABLE</div>
+      </div>
+    </div>
+    <div class="scenario-card reveal reveal-delay-1">
+      <div class="scenario-canvas-wrap"><canvas id="sc2" width="400" height="140"></canvas></div>
+      <div class="scenario-body">
+        <div class="scenario-num">02 — ASSEMBLY</div>
+        <div class="scenario-name">LINE COLLABORATION</div>
+        <p class="scenario-desc">Four robots service sequential workstations along a conveyor belt, maintaining throughput and tracking cycle completion times.</p>
+        <div class="tag-row"><span class="tag">SEQUENTIAL TASKS</span><span class="tag">STATION LOGIC</span><span class="tag">CYCLE COUNTER</span></div>
+        <div class="status-dot">AVAILABLE</div>
+      </div>
+    </div>
+    <div class="scenario-card reveal reveal-delay-2">
+      <div class="scenario-canvas-wrap"><canvas id="sc3" width="400" height="140"></canvas></div>
+      <div class="scenario-body">
+        <div class="scenario-num">03 — MAPPING</div>
+        <div class="scenario-name">AUTONOMOUS EXPLORATION</div>
+        <p class="scenario-desc">Frontier-based exploration with fog-of-war. Robots partition the map into zones and reveal the environment in real-time.</p>
+        <div class="tag-row"><span class="tag">FRONTIER EXPLORE</span><span class="tag">FOG OF WAR</span><span class="tag">ZONE PARTITION</span></div>
+        <div class="status-dot">AVAILABLE</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FEATURES -->
+<section id="features">
+  <div class="section-head reveal">
+    <h2>CORE SYSTEMS</h2>
+    <p>EVERY SUBSYSTEM BUILT FROM SCRATCH IN VANILLA JAVASCRIPT</p>
+    <div class="section-divider"></div>
+  </div>
+  <div class="feature-grid">
+    <div class="feature-card reveal"><span class="feat-icon">🧭</span><div class="feat-name">A* PATHFINDING</div><p class="feat-desc">Grid-based shortest path with Manhattan heuristic and diagonal movement. Dynamic re-routing around moving robots.</p><span class="feat-tag">[ALGORITHM]</span></div>
+    <div class="feature-card reveal reveal-delay-1"><span class="feat-icon">⚡</span><div class="feat-name">BATTERY SYSTEM</div><p class="feat-desc">Per-robot energy sim. Drains on movement, auto-charges at 20%. Interrupted tasks resume after full charge.</p><span class="feat-tag">[SIMULATION]</span></div>
+    <div class="feature-card reveal reveal-delay-2"><span class="feat-icon">🔄</span><div class="feat-name">COLLISION AVOIDANCE</div><p class="feat-desc">Dynamic path recalculation on conflict. Priority-based yielding prevents deadlocks between agents.</p><span class="feat-tag">[MULTI-AGENT]</span></div>
+    <div class="feature-card reveal reveal-delay-3"><span class="feat-icon">📋</span><div class="feat-name">PRIORITY QUEUE</div><p class="feat-desc">FIFO queue with urgent override. Nearest idle robot assignment with battery threshold gating.</p><span class="feat-tag">[LOGISTICS]</span></div>
+    <div class="feature-card reveal"><span class="feat-icon">🗺</span><div class="feat-name">FRONTIER EXPLORE</div><p class="feat-desc">Quadrant-partitioned frontier search. Each robot claims a zone to prevent redundant coverage overlap.</p><span class="feat-tag">[MAPPING]</span></div>
+    <div class="feature-card reveal reveal-delay-1"><span class="feat-icon">📊</span><div class="feat-name">LIVE ANALYTICS</div><p class="feat-desc">Battery charts, task distribution pie, odometer bars, state timeline, and throughput sparkline.</p><span class="feat-tag">[MONITORING]</span></div>
+    <div class="feature-card reveal reveal-delay-2"><span class="feat-icon">🔥</span><div class="feat-name">HEATMAP TRACKING</div><p class="feat-desc">Tile visit frequency shown as warm floor tints. Reveals robot traffic patterns over time.</p><span class="feat-tag">[VISUALIZATION]</span></div>
+    <div class="feature-card reveal reveal-delay-3"><span class="feat-icon">📐</span><div class="feat-name">ISOMETRIC ENGINE</div><p class="feat-desc">Custom 2.5D isometric renderer built from scratch. Depth-sorted draw order, glow effects, particle system.</p><span class="feat-tag">[RENDERING]</span></div>
+  </div>
+</section>
+
+<!-- TECH STACK -->
+<section id="techstack" class="grid-bg">
+  <div class="section-head reveal">
+    <h2>BUILT WITH</h2>
+    <p>ZERO FRAMEWORKS — ZERO DEPENDENCIES — PURE WEB STACK</p>
+    <div class="section-divider"></div>
+  </div>
+  <div class="tech-badges reveal">
+    <span class="tech-badge">🌐 HTML5</span>
+    <span class="tech-badge">🎨 CSS3</span>
+    <span class="tech-badge">⚡ Vanilla JS</span>
+    <span class="tech-badge">🎮 Canvas 2D</span>
+    <span class="tech-badge">🔤 Google Fonts</span>
+  </div>
+  <div class="tech-badges reveal reveal-delay-1">
+    <span class="tech-badge">📐 A* Algorithm</span>
+    <span class="tech-badge">🤖 Swarm Intelligence</span>
+    <span class="tech-badge">🗺 Frontier Exploration</span>
+    <span class="tech-badge">📊 Isometric Math</span>
+    <span class="tech-badge">🔋 State Machines</span>
+    <span class="tech-badge">⚙ Priority Queues</span>
+  </div>
+  <div class="circuit-divider reveal reveal-delay-2">
+    <div class="circuit-line"></div>
+    <div class="circuit-dot"></div>
+    <div class="circuit-node"></div>
+    <div class="circuit-dot"></div>
+    <div class="circuit-node"></div>
+    <div class="circuit-dot"></div>
+    <div class="circuit-node"></div>
+    <div class="circuit-dot"></div>
+    <div class="circuit-line"></div>
+  </div>
+</section>
+
+<!-- FOOTER CTA -->
+<section id="footer-cta">
+  <div class="cta-left reveal">
+    <h2>READY?</h2>
+    <p>LAUNCH THE SIMULATOR AND TAKE CONTROL OF THE SWARM.</p>
+    <a href="../hive.html" class="btn btn-primary" style="font-size:13px;padding:14px 36px;">▶ LAUNCH HIVE SIMULATOR</a>
+    <div class="cta-note">Opens hive.html in the same tab</div>
+  </div>
+  <div class="project-card bracket reveal reveal-delay-1">
+    <div class="project-card-title">PROJECT INFORMATION</div>
+    <div class="kv-row"><span class="k">Title</span><span class="v">HIVE v2.0</span></div>
+    <div class="kv-row"><span class="k">Type</span><span class="v">Mini Project</span></div>
+    <div class="kv-row"><span class="k">Subject</span><span class="v">Robotics Simulation</span></div>
+    <div class="kv-row"><span class="k">Stack</span><span class="v">Vanilla JS</span></div>
+    <div class="kv-row"><span class="k">Renderer</span><span class="v">HTML5 Canvas</span></div>
+    <div class="kv-row"><span class="k">Grid</span><span class="v">36 × 36 Tiles</span></div>
+    <div class="kv-row"><span class="k">Agents</span><span class="v">4 Autonomous</span></div>
+    <div class="kv-row"><span class="k">Scenarios</span><span class="v">3 Industrial</span></div>
+    <div class="kv-row"><span class="k">Status</span><span class="v green">● OPERATIONAL</span></div>
+  </div>
+</section>
+
+<footer>
+  <span>HIVE — INDUSTRIAL SWARM ROBOTICS SIMULATOR</span>
+  <span>SEMESTER VI &nbsp;|&nbsp; AUTOMATION & ROBOTICS ENGINEERING &nbsp;|&nbsp; SPPU</span>
+</footer>
+
+<script>
+// ══════════════════════════════════════
+//  HERO CANVAS — Live swarm preview
+// ══════════════════════════════════════
+(function(){
+  const canvas = document.getElementById('heroCanvas');
+  const ctx = canvas.getContext('2d');
+  let W, H, animId;
+
+  const COLORS = ['#1E90FF','#00E676','#FF6B35','#B44FFF'];
+  const TW = 48, TH = 24;
+  const GCOLS = 9, GROWS = 9;
+  let OX, OY;
+
+  // Simple grid obstacles
+  const obstacles = new Set(['2,2','2,3','5,2','5,3','2,6','2,7','5,6','5,7']);
+  const charger = {gx:0,gy:0};
+  const dispatch = {gx:8,gy:8};
+
+  const bots = COLORS.map((c,i) => ({
+    gx: [0,1,0,1][i]*1.0,
+    gy: [0,0,1,1][i]*1.0,
+    tx: 4+Math.random()*3|0, ty: 4+Math.random()*3|0,
+    color: c,
+    carrying: false,
+    trail: [],
+    speed: 0.018 + Math.random()*0.01,
+    flashTimer: 0,
+  }));
+
+  function resize(){
+    W = canvas.parentElement.clientWidth;
+    H = canvas.parentElement.clientHeight;
+    canvas.width = W; canvas.height = H;
+    OX = W/2; OY = H*0.18;
+  }
+
+  function iso(gx,gy){
+    return {
+      x: OX + (gx-gy)*(TW/2),
+      y: OY + (gx+gy)*(TH/2)
+    };
+  }
+
+  function drawTile(gx,gy,col,h=0){
+    const s = iso(gx,gy), hw=TW/2, hh=TH/2;
+    if(h>0){
+      ctx.beginPath();ctx.moveTo(s.x-hw,s.y+hh);ctx.lineTo(s.x-hw,s.y+hh-h);ctx.lineTo(s.x,s.y+hh+hh-h);ctx.lineTo(s.x,s.y+hh+hh);ctx.closePath();
+      ctx.fillStyle='#1a2535';ctx.fill();
+      ctx.beginPath();ctx.moveTo(s.x+hw,s.y+hh);ctx.lineTo(s.x+hw,s.y+hh-h);ctx.lineTo(s.x,s.y+hh+hh-h);ctx.lineTo(s.x,s.y+hh+hh);ctx.closePath();
+      ctx.fillStyle='#141b28';ctx.fill();
+    }
+    ctx.beginPath();ctx.moveTo(s.x,s.y-hh+h);ctx.lineTo(s.x+hw,s.y+h);ctx.lineTo(s.x,s.y+hh+h);ctx.lineTo(s.x-hw,s.y+h);ctx.closePath();
+    ctx.fillStyle=col;ctx.fill();
+    ctx.strokeStyle='rgba(0,229,255,0.06)';ctx.lineWidth=0.5;ctx.stroke();
+  }
+
+  function frame(ts){
+    if(document.hidden){animId=requestAnimationFrame(frame);return;}
+    ctx.clearRect(0,0,W,H);
+    ctx.fillStyle='#050810';ctx.fillRect(0,0,W,H);
+
+    // Grid
+    for(let x=0;x<GCOLS;x++) for(let y=0;y<GROWS;y++){
+      const k=x+','+y;
+      if(obstacles.has(k)) drawTile(x,y,'#1e2840',16);
+      else drawTile(x,y,'#0d1220');
+    }
+
+    // Charger glow
+    const cg=iso(charger.gx,charger.gy);
+    ctx.beginPath();ctx.moveTo(cg.x,cg.y-TH/2);ctx.lineTo(cg.x+TW/2,cg.y);ctx.lineTo(cg.x,cg.y+TH/2);ctx.lineTo(cg.x-TW/2,cg.y);ctx.closePath();
+    ctx.fillStyle='rgba(0,230,118,0.25)';ctx.shadowBlur=18;ctx.shadowColor='#00E676';ctx.fill();ctx.shadowBlur=0;
+
+    // Dispatch glow
+    const dg=iso(dispatch.gx,dispatch.gy);
+    ctx.beginPath();ctx.moveTo(dg.x,dg.y-TH/2);ctx.lineTo(dg.x+TW/2,dg.y);ctx.lineTo(dg.x,dg.y+TH/2);ctx.lineTo(dg.x-TW/2,dg.y);ctx.closePath();
+    ctx.fillStyle='rgba(255,179,0,0.25)';ctx.shadowBlur=18;ctx.shadowColor='#FFB300';ctx.fill();ctx.shadowBlur=0;
+
+    // Bots
+    bots.forEach(b=>{
+      // Move toward target
+      const dx=b.tx-b.gx, dy=b.ty-b.gy, dist=Math.sqrt(dx*dx+dy*dy);
+      if(dist<0.12){
+        // Arrived — pick new target
+        if(b.carrying){b.tx=dispatch.gx;b.ty=dispatch.gy;}
+        else{
+          const near=Math.round(b.gx)===dispatch.gx&&Math.round(b.gy)===dispatch.gy;
+          if(near){b.carrying=false;b.flashTimer=15;}
+          b.tx=1+Math.floor(Math.random()*6);b.ty=1+Math.floor(Math.random()*6);
+          // avoid obstacles
+          let tries=0;while(obstacles.has(b.tx+','+b.ty)&&tries<10){b.tx=1+Math.floor(Math.random()*6);b.ty=1+Math.floor(Math.random()*6);tries++;}
+          if(Math.random()<0.4){b.carrying=true;b.flashTimer=15;}
+        }
+      } else {
+        b.gx+=dx/dist*b.speed;b.gy+=dy/dist*b.speed;
+      }
+      b.flashTimer=Math.max(0,b.flashTimer-1);
+      // Trail
+      const sp=iso(b.gx,b.gy);
+      b.trail.push({x:sp.x,y:sp.y});
+      if(b.trail.length>30)b.trail.shift();
+      // Draw trail
+      if(b.trail.length>2){
+        ctx.beginPath();ctx.moveTo(b.trail[0].x,b.trail[0].y);
+        b.trail.forEach(p=>ctx.lineTo(p.x,p.y));
+        ctx.strokeStyle=b.color+'55';ctx.lineWidth=1.5;ctx.setLineDash([3,4]);ctx.stroke();ctx.setLineDash([]);
+      }
+      // Draw bot
+      const s=iso(b.gx,b.gy);
+      const col=b.flashTimer>0?'#FFB300':b.color;
+      ctx.beginPath();ctx.arc(s.x,s.y-4,7,0,Math.PI*2);
+      ctx.fillStyle=col;ctx.shadowBlur=16;ctx.shadowColor=col;ctx.fill();ctx.shadowBlur=0;
+      if(b.carrying){
+        ctx.beginPath();ctx.arc(s.x,s.y-14,3,0,Math.PI*2);
+        ctx.fillStyle='#00E5FF';ctx.shadowBlur=8;ctx.shadowColor='#00E5FF';ctx.fill();ctx.shadowBlur=0;
+      }
+    });
+
+    // Vignette
+    const vg=ctx.createRadialGradient(W/2,H/2,H*0.2,W/2,H/2,H*0.8);
+    vg.addColorStop(0,'transparent');vg.addColorStop(1,'rgba(5,8,16,0.7)');
+    ctx.fillStyle=vg;ctx.fillRect(0,0,W,H);
+
+    animId=requestAnimationFrame(frame);
+  }
+
+  resize();
+  window.addEventListener('resize',()=>{resize();});
+  animId=requestAnimationFrame(frame);
+})();
+
+// ══════════════════════════════════════
+//  SCENARIO MINI CANVASES
+// ══════════════════════════════════════
+function makeWarehouseAnim(id){
+  const c=document.getElementById(id);
+  if(!c)return;
+  const ctx=c.getContext('2d');
+  const W=c.width,H=c.height;
+  const bots=[
+    {x:60,y:90,tx:200,ty:40,color:'#1E90FF',trail:[]},
+    {x:200,y:110,tx:80,ty:50,color:'#00E676',trail:[]},
+    {x:120,y:50,tx:320,ty:100,color:'#FF6B35',trail:[]},
+    {x:300,y:70,tx:60,ty:110,color:'#B44FFF',trail:[]},
+  ];
+  const shelves=[{x:100,y:30,w:20,h:60},{x:160,y:30,w:20,h:60},{x:220,y:30,w:20,h:60},{x:280,y:30,w:20,h:60}];
+  function anim(){
+    ctx.fillStyle='#030508';ctx.fillRect(0,0,W,H);
+    // Grid lines
+    ctx.strokeStyle='rgba(0,229,255,0.05)';ctx.lineWidth=1;
+    for(let x=0;x<W;x+=20){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke();}
+    for(let y=0;y<H;y+=20){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke();}
+    // Shelves
+    shelves.forEach(s=>{
+      ctx.fillStyle='#1e2840';ctx.fillRect(s.x,s.y,s.w,s.h);
+      ctx.strokeStyle='rgba(30,144,255,0.3)';ctx.lineWidth=1;ctx.strokeRect(s.x,s.y,s.w,s.h);
+    });
+    // Dispatch
+    ctx.fillStyle='rgba(255,179,0,0.2)';ctx.fillRect(350,100,40,30);
+    ctx.strokeStyle='#FFB300';ctx.lineWidth=1;ctx.strokeRect(350,100,40,30);
+    // Charger
+    ctx.fillStyle='rgba(0,230,118,0.2)';ctx.fillRect(10,100,30,30);
+    ctx.strokeStyle='#00E676';ctx.lineWidth=1;ctx.strokeRect(10,100,30,30);
+    bots.forEach(b=>{
+      const dx=b.tx-b.x,dy=b.ty-b.y,d=Math.sqrt(dx*dx+dy*dy);
+      if(d<5){b.tx=30+Math.floor(Math.random()*330);b.ty=10+Math.floor(Math.random()*120);}
+      else{b.x+=dx/d*1.2;b.y+=dy/d*1.2;}
+      b.trail.push({x:b.x,y:b.y});if(b.trail.length>20)b.trail.shift();
+      if(b.trail.length>1){
+        ctx.beginPath();ctx.moveTo(b.trail[0].x,b.trail[0].y);
+        b.trail.forEach(p=>ctx.lineTo(p.x,p.y));
+        ctx.strokeStyle=b.color+'44';ctx.lineWidth=1.5;ctx.setLineDash([2,3]);ctx.stroke();ctx.setLineDash([]);
+      }
+      ctx.beginPath();ctx.arc(b.x,b.y,5,0,Math.PI*2);
+      ctx.fillStyle=b.color;ctx.shadowBlur=12;ctx.shadowColor=b.color;ctx.fill();ctx.shadowBlur=0;
+    });
+    requestAnimationFrame(anim);
+  }
+  anim();
+}
+
+function makeAssemblyAnim(id){
+  const c=document.getElementById(id);if(!c)return;
+  const ctx=c.getContext('2d'),W=c.width,H=c.height;
+  const stations=[{x:80},{x:160},{x:240},{x:320}];
+  const bots=[
+    {x:20,y:H/2,stIdx:0,progress:0,color:'#1E90FF',atStation:false,wait:0},
+    {x:100,y:H/2,stIdx:1,progress:0,color:'#00E676',atStation:false,wait:0},
+    {x:180,y:H/2,stIdx:2,progress:0,color:'#FF6B35',atStation:false,wait:0},
+    {x:260,y:H/2,stIdx:3,progress:0,color:'#B44FFF',atStation:false,wait:0},
+  ];
+  function anim(){
+    ctx.fillStyle='#030508';ctx.fillRect(0,0,W,H);
+    // Conveyor
+    ctx.fillStyle='#1a2030';ctx.fillRect(0,H/2-6,W,12);
+    ctx.strokeStyle='rgba(30,144,255,0.2)';ctx.lineWidth=1;
+    ctx.setLineDash([8,6]);ctx.beginPath();ctx.moveTo(0,H/2);ctx.lineTo(W,H/2);ctx.stroke();ctx.setLineDash([]);
+    // Stations
+    stations.forEach((s,i)=>{
+      ctx.fillStyle='#1e2840';ctx.fillRect(s.x-12,H/2-22,24,20);
+      ctx.strokeStyle='rgba(0,229,255,0.4)';ctx.lineWidth=1;ctx.strokeRect(s.x-12,H/2-22,24,20);
+      ctx.font='8px Share Tech Mono';ctx.fillStyle='#00E5FF';ctx.textAlign='center';
+      ctx.fillText('S'+(i+1),s.x,H/2-8);
+    });
+    bots.forEach(b=>{
+      const st=stations[b.stIdx%4];
+      if(b.atStation){
+        b.progress+=0.012;
+        if(b.progress>=1){b.progress=0;b.atStation=false;b.stIdx++;}
+      } else {
+        const dx=st.x-b.x;
+        if(Math.abs(dx)<2){b.atStation=true;}
+        else b.x+=dx*0.04;
+        if(b.x>W+10){b.x=-10;b.stIdx=0;}
+      }
+      // Progress bar
+      if(b.atStation){
+        ctx.fillStyle='rgba(0,229,255,0.15)';ctx.fillRect(st.x-14,H/2+10,28,5);
+        ctx.fillStyle='#00E5FF';ctx.fillRect(st.x-14,H/2+10,28*b.progress,5);
+      }
+      ctx.beginPath();ctx.arc(b.x,H/2,6,0,Math.PI*2);
+      ctx.fillStyle=b.color;ctx.shadowBlur=12;ctx.shadowColor=b.color;ctx.fill();ctx.shadowBlur=0;
+    });
+    requestAnimationFrame(anim);
+  }
+  anim();
+}
+
+function makeMappingAnim(id){
+  const c=document.getElementById(id);if(!c)return;
+  const ctx=c.getContext('2d'),W=c.width,H=c.height;
+  const COLS=18,ROWS=8,TW=W/COLS,TH=H/ROWS;
+  const fog=Array.from({length:COLS},()=>Array(ROWS).fill(false));
+  const bots=[
+    {gx:1,gy:1,tx:3,ty:2,color:'#1E90FF'},
+    {gx:14,gy:1,tx:12,ty:2,color:'#00E676'},
+    {gx:1,gy:6,tx:3,ty:5,color:'#FF6B35'},
+    {gx:14,gy:6,tx:12,ty:5,color:'#B44FFF'},
+  ];
+  let explored=0;
+  function reveal(x,y){
+    const ix=Math.round(x),iy=Math.round(y);
+    for(let dx=-1;dx<=1;dx++)for(let dy=-1;dy<=1;dy++){
+      const nx=ix+dx,ny=iy+dy;
+      if(nx>=0&&nx<COLS&&ny>=0&&ny<ROWS&&!fog[nx][ny]){fog[nx][ny]=true;explored++;}
+    }
+  }
+  function anim(){
+    ctx.fillStyle='#030508';ctx.fillRect(0,0,W,H);
+    for(let x=0;x<COLS;x++)for(let y=0;y<ROWS;y++){
+      ctx.fillStyle=fog[x][y]?'#0d1828':'#030508';
+      ctx.fillRect(x*TW,y*TH,TW-1,TH-1);
+      if(fog[x][y]){ctx.strokeStyle='rgba(0,229,255,0.08)';ctx.lineWidth=0.5;ctx.strokeRect(x*TW,y*TH,TW-1,TH-1);}
+    }
+    bots.forEach(b=>{
+      const dx=b.tx-b.gx,dy=b.ty-b.gy,d=Math.sqrt(dx*dx+dy*dy);
+      if(d<0.2){b.tx=Math.random()*COLS|0;b.ty=Math.random()*ROWS|0;}
+      else{b.gx+=dx/d*0.04;b.gy+=dy/d*0.04;}
+      reveal(b.gx,b.gy);
+      ctx.beginPath();ctx.arc(b.gx*TW+TW/2,b.gy*TH+TH/2,5,0,Math.PI*2);
+      ctx.fillStyle=b.color;ctx.shadowBlur=14;ctx.shadowColor=b.color;ctx.fill();ctx.shadowBlur=0;
+    });
+    const pct=Math.floor(explored/(COLS*ROWS)*100);
+    ctx.font='9px Share Tech Mono';ctx.fillStyle='rgba(0,229,255,0.7)';ctx.textAlign='right';
+    ctx.fillText(pct+'% MAPPED',W-8,H-6);
+    requestAnimationFrame(anim);
+  }
+  anim();
+}
+
+makeWarehouseAnim('sc1');
+makeAssemblyAnim('sc2');
+makeMappingAnim('sc3');
+
+// ══════════════════════════════════════
+//  SCROLL ANIMATIONS
+// ══════════════════════════════════════
+const revealEls = document.querySelectorAll('.reveal');
+const revealObs = new IntersectionObserver((entries)=>{
+  entries.forEach(e=>{
+    if(e.isIntersecting){e.target.classList.add('visible');revealObs.unobserve(e.target);}
+  });
+},{threshold:0.15});
+revealEls.forEach(el=>revealObs.observe(el));
+
+// STAT COUNTER
+const statNums = document.querySelectorAll('.stat-num[data-target]');
+const statObs = new IntersectionObserver((entries)=>{
+  entries.forEach(e=>{
+    if(e.isIntersecting){
+      const el=e.target,target=+el.dataset.target,suffix=el.dataset.suffix||'';
+      if(target===0)return;
+      let cur=0,dur=1200,start=null;
+      function count(ts){
+        if(!start)start=ts;
+        const p=Math.min((ts-start)/dur,1);
+        cur=Math.floor(p*target);
+        el.textContent=cur+(p<1?'':suffix);
+        if(p<1)requestAnimationFrame(count);
+      }
+      requestAnimationFrame(count);
+      statObs.unobserve(el);
+    }
+  });
+},{threshold:0.5});
+statNums.forEach(el=>statObs.observe(el));
+
+// STICKY NAV
+const nav=document.getElementById('sticky-nav');
+const hero=document.getElementById('hero');
+const navObs=new IntersectionObserver((entries)=>{
+  nav.classList.toggle('visible',!entries[0].isIntersecting);
+},{threshold:0.1});
+navObs.observe(hero);
+
+// Scenario card hover → speed up canvas (via CSS class)
+document.querySelectorAll('.scenario-card').forEach(card=>{
+  card.addEventListener('click',()=>{ window.location.href='../hive.html'; });
+});
+</script>
+</body>
+</html>

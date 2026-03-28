@@ -374,8 +374,10 @@
             <button class="tab-btn" data-target="mod-swarm">SWARM</button>
             <button class="tab-btn" id="btn-about">ABOUT</button>
         </div>
-        <div style="font-size: 0.8rem; color: var(--text-muted); display:flex; gap:15px; align-items:center;">
-            <span>HOTKEYS: [SPACE], [R], [H]</span>
+        <div style="font-size: 0.8rem; color: var(--text-muted); display:flex; gap:12px; align-items:center;">
+            <span style="font-size:0.7rem;">HOTKEYS: [SPACE],[R],[H],[P]</span>
+            <span id="fps-counter" style="color:var(--cyan);font-family:var(--font-data);font-size:0.75rem;min-width:56px;text-align:right;letter-spacing:1px;">-- FPS</span>
+            <button id="btn-screenshot" class="btn" style="font-size:0.65rem;padding:5px 12px;" title="Screenshot active view [P]">📷 SNAP</button>
             <span style="color: var(--cyan); text-shadow: 0 0 5px var(--cyan);">[ ONLINE ]</span>
         </div>
     </nav>
@@ -419,8 +421,28 @@
                         <input type="checkbox" id="check-safety-stop" checked>
                         <label for="check-safety-stop" style="color: #f55; font-size: 0.8rem; cursor:pointer; font-weight:bold;">HARD SAFETY STOP</label>
                     </div>
+                    <div class="control-row" style="margin-top:10px;">
+                        <span class="control-label">Duration</span>
+                        <span class="control-value" id="val-traj-dur">2.0s</span>
+                    </div>
+                    <input type="range" id="slider-traj-dur" min="0.5" max="5" step="0.5" value="2">
                 </div>
 
+                <h2 class="panel-title" style="margin-top:20px;">Preset Poses <span style="color:var(--violet);font-size:0.65rem;">⚡</span></h2>
+                <div class="control-group">
+                    <select id="preset-select" style="width:100%;background:rgba(0,0,0,0.5);border:1px solid var(--glass-border);color:var(--cyan);font-family:var(--font-data);padding:6px 8px;outline:none;cursor:pointer;">
+                        <option value="">— SELECT POSE —</option>
+                        <option value="home">🏠 Home (Zero)</option>
+                        <option value="ready">✅ Ready</option>
+                        <option value="pick">📦 Pick &amp; Place</option>
+                        <option value="carry">🤲 Carry</option>
+                        <option value="stretch">↗ Full Stretch</option>
+                    </select>
+                    <div style="display:flex;gap:8px;margin-top:6px;">
+                        <button class="btn" id="btn-load-preset" style="flex:1;">LOAD POSE</button>
+                        <button class="btn" id="btn-clear-trail" style="flex:1;border-color:#f55;color:#f55;">TRAIL ✕</button>
+                    </div>
+                </div>
                 <div class="data-box" id="data-readout" style="margin-top: auto;">SYS_RDY...</div>
             </div>
 
@@ -592,10 +614,25 @@
                 const loader = document.getElementById('loader');
                 loader.style.opacity = '0';
                 setTimeout(() => loader.style.display = 'none', 1000);
-                
+
                 // Init Modules automatically since the hub handles selection
                 initKinematics();
                 initSwarm();
+
+                // FEATURE 3: Screenshot Button
+                document.getElementById('btn-screenshot').addEventListener('click', () => {
+                    const kineActive = document.getElementById('mod-kine').classList.contains('active');
+                    let dataURL, fname;
+                    if(kineActive && window.kineRenderer) {
+                        dataURL = window.kineRenderer.domElement.toDataURL('image/png');
+                        fname = `nexus_kinematics_${Date.now()}.png`;
+                    } else {
+                        dataURL = document.getElementById('swarmCanvas').toDataURL('image/png');
+                        fname = `nexus_swarm_${Date.now()}.png`;
+                    }
+                    const a = document.createElement('a');
+                    a.href = dataURL; a.download = fname; a.click();
+                });
             }, 1200);
         });
 
@@ -696,6 +733,11 @@
                 e.preventDefault();
                 document.getElementById('btn-swarm-play').click();
             }
+            // FEATURE 3: [P] Screenshot
+            if(e.key.toLowerCase() === 'p') {
+                const btn = document.getElementById('btn-screenshot');
+                if(btn) btn.click();
+            }
         });
 
         // Resize Handling
@@ -724,7 +766,7 @@
             camera.position.set(30, 20, 40);
             window.kineCamera = camera;
 
-            const renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('kineCanvas'), antialias: true, alpha: true });
+            const renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('kineCanvas'), antialias: true, alpha: true, preserveDrawingBuffer: true });
             renderer.setSize(container.clientWidth, container.clientHeight);
             renderer.setPixelRatio(window.devicePixelRatio);
             window.kineRenderer = renderer;
@@ -812,6 +854,20 @@
             const targetMesh = new THREE.Mesh(targetGeo, targetMat);
             targetMesh.position.set(12, 8, 0);
             scene.add(targetMesh);
+
+            // ==========================================
+            // FEATURE 1: END-EFFECTOR PATH TRACE
+            // ==========================================
+            const TRAIL_MAX = 600;
+            const trailPositions = new Float32Array(TRAIL_MAX * 3);
+            const trailGeo = new THREE.BufferGeometry();
+            trailGeo.setAttribute('position', new THREE.BufferAttribute(trailPositions, 3));
+            trailGeo.setDrawRange(0, 0);
+            const trailMat = new THREE.LineBasicMaterial({ color: 0x00ffaa, transparent: true, opacity: 0.85 });
+            const trailLine = new THREE.Line(trailGeo, trailMat);
+            scene.add(trailLine);
+            let trailCount = 0;
+            let lastTrailPt = null;
 
             const fkContainer = document.getElementById('fk-sliders');
             jointAngles.forEach((a, i) => {
@@ -1259,9 +1315,43 @@
                 return collisions.length > 0;
             }
 
+            // FPS tracking state
+            let _fpsLast = performance.now();
+            let _fpsFrames = 0;
+
             function animate() {
                 requestAnimationFrame(animate);
-                
+
+                // FEATURE 5: FPS Counter
+                _fpsFrames++;
+                const _fpsNow = performance.now();
+                if(_fpsNow - _fpsLast >= 600) {
+                    const fps = Math.round(_fpsFrames / ((_fpsNow - _fpsLast) / 1000));
+                    const fpsEl = document.getElementById('fps-counter');
+                    if(fpsEl) { fpsEl.textContent = fps + ' FPS'; fpsEl.style.color = fps >= 50 ? 'var(--cyan)' : fps >= 30 ? '#f59e0b' : '#f55'; }
+                    _fpsLast = _fpsNow; _fpsFrames = 0;
+                }
+
+                // FEATURE 1: Trail update
+                const effPt = getEndEffectorPos();
+                const minDist = trajActive ? 0.05 : 0.2;
+                if(!lastTrailPt || effPt.distanceTo(lastTrailPt) > minDist) {
+                    if(trailCount < TRAIL_MAX) {
+                        trailPositions[trailCount*3]   = effPt.x;
+                        trailPositions[trailCount*3+1] = effPt.y;
+                        trailPositions[trailCount*3+2] = effPt.z;
+                        trailCount++;
+                    } else {
+                        trailPositions.copyWithin(0, 3);
+                        trailPositions[(TRAIL_MAX-1)*3]   = effPt.x;
+                        trailPositions[(TRAIL_MAX-1)*3+1] = effPt.y;
+                        trailPositions[(TRAIL_MAX-1)*3+2] = effPt.z;
+                    }
+                    trailGeo.attributes.position.needsUpdate = true;
+                    trailGeo.setDrawRange(0, trailCount);
+                    lastTrailPt = effPt.clone();
+                }
+
                 checkCollisions(); // Real-time monitor
                 
                 if(trajActive) {
@@ -1348,6 +1438,58 @@
                 renderer.render(scene, camera);
             }
             
+            // FEATURE 2: Preset Poses
+            const POSE_PRESETS = {
+                home:    [0,   0,   0,   0,   0,   0],
+                ready:   [0,  30, -60,   0,  45,   0],
+                pick:    [0,  60,-120,   0,  60,   0],
+                carry:   [0,  45, -90,   0,  45,  90],
+                stretch: [0, -10, -20,   0,  10,   0]
+            };
+            document.getElementById('btn-load-preset').addEventListener('click', () => {
+                const key = document.getElementById('preset-select').value;
+                if(!key || !POSE_PRESETS[key]) return;
+                const targets = POSE_PRESETS[key];
+                const isSafe = document.getElementById('check-safety-stop').checked;
+                let allClear = true;
+                if(isSafe) allClear = !checkCollisions(targets);
+                if(!allClear) { showKineNotify('PRESET BLOCKED — SAFETY STOP', 'rgba(200,50,50,0.9)'); return; }
+                // Animate each joint with GSAP
+                targets.forEach((deg, i) => {
+                    gsap.to({ v: jointAngles[i] }, {
+                        v: deg, duration: 0.6, ease: 'power2.inOut',
+                        onUpdate: function() {
+                            jointAngles[i] = this.targets()[0].v;
+                            updateRobotAngles();
+                            const sl = document.getElementById(`slider-j${i}`);
+                            const vl = document.getElementById(`val-j${i}`);
+                            if(sl) sl.value = Math.round(this.targets()[0].v);
+                            if(vl) vl.innerHTML = `${Math.round(this.targets()[0].v)}&deg;`;
+                        },
+                        onComplete: () => { updateReadout(); updateDynamics(); }
+                    });
+                });
+            });
+
+            // FEATURE 1: Trail Clear
+            document.getElementById('btn-clear-trail').addEventListener('click', () => {
+                trailCount = 0; lastTrailPt = null;
+                trailPositions.fill(0);
+                trailGeo.attributes.position.needsUpdate = true;
+                trailGeo.setDrawRange(0, 0);
+                showKineNotify('TRAIL CLEARED', 'rgba(0,100,80,0.85)');
+            });
+
+            // FEATURE 4: Trajectory Duration Slider
+            const durSlider = document.getElementById('slider-traj-dur');
+            const durValEl  = document.getElementById('val-traj-dur');
+            if(durSlider) {
+                durSlider.addEventListener('input', () => {
+                    trajDuration = parseFloat(durSlider.value);
+                    if(durValEl) durValEl.textContent = trajDuration.toFixed(1) + 's';
+                });
+            }
+
             updateRobotAngles();
             updateReadout();
             updateDynamics();

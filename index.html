@@ -117,9 +117,39 @@
     .btn-xl{padding:16px 48px;font-family:var(--font-hd);font-size:0.85rem;letter-spacing:3px;cursor:pointer;border:1px solid var(--cyan);color:var(--cyan);background:linear-gradient(135deg,rgba(0,245,255,0.15),rgba(155,93,229,0.15));transition:all 0.3s;border-radius:6px}
     .btn-xl:hover{box-shadow:0 0 40px rgba(0,245,255,0.3),0 0 80px rgba(155,93,229,0.15);transform:translateY(-2px)}
 
+    /* ═══ DONATE BUTTON ═══ */
+    .btn-donate{background:linear-gradient(135deg,rgba(245,159,11,0.18),rgba(245,159,11,0.08));border:1px solid var(--amber);color:var(--amber);font-family:var(--font-hd);font-size:0.65rem;letter-spacing:2px;padding:8px 18px;cursor:pointer;transition:all 0.3s;border-radius:4px;display:flex;align-items:center;gap:6px;text-decoration:none}
+    .btn-donate:hover{box-shadow:0 0 24px rgba(245,159,11,0.4),0 0 60px rgba(245,159,11,0.1);transform:translateY(-1px);background:linear-gradient(135deg,rgba(245,159,11,0.28),rgba(245,159,11,0.15))}
+    .btn-donate-lg{padding:14px 32px;font-family:var(--font-hd);font-size:0.75rem;letter-spacing:2px;cursor:pointer;transition:all 0.3s;border-radius:4px;background:linear-gradient(135deg,rgba(245,159,11,0.18),rgba(245,159,11,0.08));border:1px solid var(--amber);color:var(--amber);display:flex;align-items:center;gap:8px}
+    .btn-donate-lg:hover{box-shadow:0 0 30px rgba(245,159,11,0.35);transform:translateY(-2px)}
+
+    /* ═══ DONATE MODAL ═══ */
+    .donate-overlay{position:fixed;inset:0;z-index:999;display:flex;align-items:center;justify-content:center;background:rgba(5,8,16,0.85);backdrop-filter:blur(12px);opacity:0;pointer-events:none;transition:opacity 0.35s ease}
+    .donate-overlay.open{opacity:1;pointer-events:all}
+    .donate-modal{background:linear-gradient(145deg,rgba(10,15,30,0.95),rgba(8,12,24,0.98));border:1px solid rgba(245,159,11,0.3);border-radius:24px;padding:40px 36px;max-width:420px;width:90%;position:relative;box-shadow:0 0 80px rgba(245,159,11,0.12),0 40px 80px rgba(0,0,0,0.6);transform:translateY(24px) scale(0.96);transition:transform 0.35s cubic-bezier(0.175,0.885,0.32,1.275)}
+    .donate-overlay.open .donate-modal{transform:translateY(0) scale(1)}
+    .donate-modal::before{content:'';position:absolute;top:0;left:15%;right:15%;height:1px;background:linear-gradient(90deg,transparent,var(--amber),transparent)}
+    .donate-close{position:absolute;top:16px;right:18px;background:transparent;border:1px solid rgba(255,255,255,0.1);color:var(--muted);font-size:1rem;width:32px;height:32px;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.2s;line-height:1}
+    .donate-close:hover{border-color:rgba(245,159,11,0.4);color:var(--amber);box-shadow:0 0 12px rgba(245,159,11,0.2)}
+    .donate-badge{display:inline-block;font-family:var(--font-hd);font-size:0.5rem;letter-spacing:3px;color:var(--amber);border:1px solid rgba(245,159,11,0.3);background:rgba(245,159,11,0.07);padding:4px 14px;border-radius:20px;margin-bottom:16px}
+    .donate-title{font-family:var(--font-hd);font-size:1.4rem;font-weight:700;margin-bottom:8px;letter-spacing:2px}
+    .donate-sub{color:var(--muted);font-size:0.82rem;line-height:1.7;margin-bottom:28px}
+    .donate-qr-wrap{background:white;border-radius:16px;padding:16px;display:flex;align-items:center;justify-content:center;margin:0 auto 24px;width:220px;height:220px;box-shadow:0 0 40px rgba(245,159,11,0.15),0 8px 32px rgba(0,0,0,0.4)}
+    .donate-qr-wrap img{width:100%;height:100%;object-fit:contain;border-radius:8px}
+    .donate-note{font-size:0.72rem;color:var(--muted);text-align:center;letter-spacing:0.5px}
+    .donate-note span{color:var(--amber)}
+
     /* Footer */
     .landing-footer{text-align:center;padding:32px 20px;color:var(--muted);font-size:0.75rem;border-top:1px solid rgba(255,255,255,0.05)}
     .landing-footer strong{color:var(--text)}
+    .footer-social{display:flex;align-items:center;justify-content:center;gap:16px;margin-top:14px}
+    .footer-social-link{display:flex;align-items:center;gap:7px;color:var(--muted);text-decoration:none;font-family:var(--font-hd);font-size:0.6rem;letter-spacing:1.5px;padding:7px 14px;border:1px solid rgba(255,255,255,0.08);border-radius:8px;background:rgba(255,255,255,0.02);transition:all 0.25s}
+    .footer-social-link svg{flex-shrink:0;transition:transform 0.25s}
+    .footer-social-link:hover{transform:translateY(-2px)}
+    .footer-social-link.gh:hover{color:#e0e6ed;border-color:rgba(224,230,237,0.3);background:rgba(224,230,237,0.05);box-shadow:0 0 16px rgba(224,230,237,0.08)}
+    .footer-social-link.li:hover{color:#0a66c2;border-color:rgba(10,102,194,0.4);background:rgba(10,102,194,0.07);box-shadow:0 0 16px rgba(10,102,194,0.15)}
+    .footer-social-link.gh:hover svg{transform:rotate(-8deg) scale(1.1)}
+    .footer-social-link.li:hover svg{transform:scale(1.1)}
 
     /* ═══ LOGIN SCREEN ═══ */
     #screen-login{display:flex;align-items:center;justify-content:center;min-height:100vh}
@@ -198,6 +228,7 @@
     <div class="nav-links">
       <a href="#overview">Simulators</a>
       <a href="#tech">Tech</a>
+      <button class="btn-donate" onclick="openDonate()">♥ DONATE</button>
       <a id="nav-login-btn" class="nav-btn" href="#login">SIGN IN →</a>
     </div>
   </nav>
@@ -211,6 +242,7 @@
       <div class="hero-cta">
         <button class="btn-lg btn-cyan" onclick="showScreen('screen-login')">GET STARTED →</button>
         <a href="#overview" class="btn-lg btn-ghost">EXPLORE ↓</a>
+        <button class="btn-donate-lg" onclick="openDonate()">♥ DONATE</button>
       </div>
     </div>
 
@@ -325,8 +357,34 @@
   </section>
 
   <footer class="landing-footer">
-    <span>TOTO Robotics Suite · Built by <strong>Yash Surve</strong> · MESWCOE Automation & Robotics</span>
+    <span>TOTO Robotics Suite · Built by <strong>Yash Surve</strong> · MESWCOE Automation &amp; Robotics</span>
+    <div class="footer-social">
+      <a href="https://github.com/Yashs2024" target="_blank" rel="noopener noreferrer" class="footer-social-link gh" title="GitHub Profile">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path></svg>
+        GITHUB
+      </a>
+      <a href="https://www.linkedin.com/in/yash-surve-3b6a72253" target="_blank" rel="noopener noreferrer" class="footer-social-link li" title="LinkedIn Profile">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"></path><rect x="2" y="9" width="4" height="12"></rect><circle cx="4" cy="4" r="2"></circle></svg>
+        LINKEDIN
+      </a>
+    </div>
   </footer>
+</div>
+
+<!-- ═══════════════════════════════════════
+     DONATE MODAL
+═══════════════════════════════════════ -->
+<div id="donate-overlay" class="donate-overlay" onclick="closeDonateOnOverlay(event)">
+  <div class="donate-modal">
+    <button class="donate-close" onclick="closeDonate()" aria-label="Close">✕</button>
+    <div class="donate-badge">SUPPORT THE PROJECT</div>
+    <div class="donate-title">Buy Me a <span style="color:var(--amber)">Coffee ☕</span></div>
+    <div class="donate-sub">TOTO Robotics Suite is built with passion. If it helped you learn, research, or just have fun — a small donation keeps the project alive!</div>
+    <div class="donate-qr-wrap">
+      <img src="/donate.jpeg" alt="Donation QR Code" loading="lazy" />
+    </div>
+    <div class="donate-note">Scan the QR code to donate · <span>Thank you ♥</span></div>
+  </div>
 </div>
 
 <!-- ═══════════════════════════════════════
@@ -396,7 +454,7 @@
       <div class="sim-features"><span class="feat-tag ft-v">FK/IK Solver</span><span class="feat-tag ft-v">LSPB Trajectory</span><span class="feat-tag ft-v">Boids Swarm</span><span class="feat-tag ft-v">Torque Analytics</span></div>
       <div class="sim-launch-btn lv">LAUNCH NEXUS <span>→</span></div>
     </a>
-    <a href="./hive.html" class="sim-card hive">
+    <a href="./src/hive_landing.html" class="sim-card hive">
       <div class="sim-top-bar"><div class="sim-icon-wrap ic3">🏭</div><div class="sim-status" style="color:var(--amber)"><div class="status-dot" style="background:var(--amber);box-shadow:0 0 6px var(--amber)"></div>READY</div></div>
       <div class="sim-name">HIVE LOGISTICS</div>
       <div class="sim-desc">Industrial warehouse swarm simulation with isometric 2.5D and A* task coordination.</div>
@@ -411,6 +469,19 @@
 </div>
 
 <script>
+function openDonate(){
+  document.getElementById('donate-overlay').classList.add('open');
+  document.body.style.overflow='hidden';
+}
+function closeDonate(){
+  document.getElementById('donate-overlay').classList.remove('open');
+  document.body.style.overflow='';
+}
+function closeDonateOnOverlay(e){
+  if(e.target===document.getElementById('donate-overlay')) closeDonate();
+}
+document.addEventListener('keydown',e=>{if(e.key==='Escape') closeDonate();});
+
 function showScreen(id){
   document.querySelectorAll('.screen').forEach(s=>s.classList.add('hidden'));
   const el=document.getElementById(id);
