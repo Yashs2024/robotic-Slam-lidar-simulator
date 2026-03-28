@@ -9,6 +9,7 @@ export default defineConfig({
         slam: resolve(__dirname, 'slam.html'),
         nexus: resolve(__dirname, 'nexus.html'),
         hive: resolve(__dirname, 'hive.html'),
+        hive_landing: resolve(__dirname, 'src/hive_landing.html'),
       },
     },
   },
