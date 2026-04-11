@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>TOTO Robotics Suite — Simulation Platform</title>
+  <title>RoboAI Suite — Robotics Simulation Platform</title>
   <meta name="description" content="Unified robotics simulation platform featuring SLAM, NEXUS kinematics engine, and HIVE industrial swarm logistics." />
   <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
   <style>
@@ -224,7 +224,7 @@
 
   <!-- Navbar -->
   <nav class="navbar">
-    <div class="nav-brand"><span>TOTO</span> // SUITE</div>
+    <div class="nav-brand"><span>ROBOAI</span> // SUITE</div>
     <div class="nav-links">
       <a href="#overview">Simulators</a>
       <a href="#tech">Tech</a>
@@ -357,7 +357,7 @@
   </section>
 
   <footer class="landing-footer">
-    <span>TOTO Robotics Suite · Built by <strong>Yash Surve</strong> · MESWCOE Automation &amp; Robotics</span>
+    <span>RoboAI Suite · Built by <strong>Yash Surve</strong> · MESWCOE Automation &amp; Robotics</span>
     <div class="footer-social">
       <a href="https://github.com/Yashs2024" target="_blank" rel="noopener noreferrer" class="footer-social-link gh" title="GitHub Profile">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path></svg>
@@ -379,7 +379,7 @@
     <button class="donate-close" onclick="closeDonate()" aria-label="Close">✕</button>
     <div class="donate-badge">SUPPORT THE PROJECT</div>
     <div class="donate-title">Buy Me a <span style="color:var(--amber)">Coffee ☕</span></div>
-    <div class="donate-sub">TOTO Robotics Suite is built with passion. If it helped you learn, research, or just have fun — a small donation keeps the project alive!</div>
+    <div class="donate-sub">RoboAI Suite is built with passion. If it helped you learn, research, or just have fun — a small donation keeps the project alive!</div>
     <div class="donate-qr-wrap">
       <img src="/donate.jpeg" alt="Donation QR Code" loading="lazy" />
     </div>
@@ -396,13 +396,13 @@
   <div class="glow-orb b"></div>
   <div style="display:flex;align-items:center;justify-content:center;min-height:100vh;padding:20px">
     <div class="auth-card">
-      <div class="auth-logo">TOTO // SUITE</div>
+      <div class="auth-logo">ROBOAI // SUITE</div>
       <div class="auth-title">Welcome Back</div>
       <div class="auth-sub">Sign in to access your simulation environments</div>
       <form id="login-form" novalidate>
         <div class="input-group">
           <label for="login-email">EMAIL</label>
-          <input type="email" id="login-email" class="auth-input" placeholder="admin@toto.io" value="admin@toto.io" autocomplete="username"/>
+          <input type="email" id="login-email" class="auth-input" placeholder="admin@roboai.io" value="admin@roboai.io" autocomplete="username"/>
         </div>
         <div class="input-group">
           <label for="login-pass">PASSWORD</label>
@@ -414,7 +414,7 @@
         </div>
         <button type="submit" class="auth-btn" id="login-btn">SIGN IN →</button>
       </form>
-      <div class="auth-hint">Any credentials work | Mock: <code>admin@toto.io</code></div>
+      <div class="auth-hint">Any credentials work | Mock: <code>admin@roboai.io</code></div>
       <button class="back-link" onclick="showScreen('screen-landing')">← Back to Home</button>
     </div>
   </div>
@@ -428,10 +428,10 @@
   <div class="glow-orb a"></div>
   <div class="glow-orb b"></div>
   <nav class="hub-nav">
-    <div class="hub-brand"><span>TOTO</span> // SUITE</div>
+    <div class="hub-brand"><span>ROBOAI</span> // SUITE</div>
     <div class="hub-user-row">
       <div class="hub-avatar" id="hub-avatar">YS</div>
-      <span class="hub-username" id="hub-username">admin@toto.io</span>
+      <span class="hub-username" id="hub-username">admin@roboai.io</span>
       <button class="logout-btn" id="logout-btn">LOGOUT</button>
     </div>
   </nav>
@@ -463,7 +463,7 @@
     </a>
   </div>
   <div class="hub-footer">
-    <span>TOTO Robotics Suite · Built by <strong style="color:var(--text)">Yash Surve</strong></span>
+    <span>RoboAI Suite · Built by <strong style="color:var(--text)">Yash Surve</strong></span>
     <span style="color:var(--green);font-family:var(--font-hd);font-size:0.65rem;letter-spacing:2px">● ALL SYSTEMS ONLINE</span>
   </div>
 </div>
@@ -491,7 +491,7 @@ function showScreen(id){
 }
 function getUserInitials(e){const p=e.split('@')[0].split(/[.\-_]/).filter(Boolean);return p.length>=2?(p[0][0]+p[1][0]).toUpperCase():e.slice(0,2).toUpperCase()}
 function loginSuccess(email){
-  sessionStorage.setItem('toto_user',email);
+  sessionStorage.setItem('roboai_user',email);
   document.getElementById('hub-avatar').textContent=getUserInitials(email);
   document.getElementById('hub-username').textContent=email;
   showScreen('screen-hub');
@@ -505,10 +505,10 @@ document.getElementById('login-form').addEventListener('submit',e=>{
   btn.textContent='SIGNING IN...';btn.style.opacity='0.7';
   setTimeout(()=>{btn.textContent='SIGN IN →';btn.style.opacity='1';loginSuccess(email)},800);
 });
-document.getElementById('logout-btn').addEventListener('click',()=>{sessionStorage.removeItem('toto_user');showScreen('screen-landing')});
+document.getElementById('logout-btn').addEventListener('click',()=>{sessionStorage.removeItem('roboai_user');showScreen('screen-landing')});
 document.getElementById('nav-login-btn').addEventListener('click',e=>{e.preventDefault();showScreen('screen-login')});
 // Auto-login check
-(function(){const s=sessionStorage.getItem('toto_user');if(s)loginSuccess(s);else showScreen('screen-landing')})();
+(function(){const s=sessionStorage.getItem('roboai_user');if(s)loginSuccess(s);else showScreen('screen-landing')})();
 </script>
 </body>
 </html>
