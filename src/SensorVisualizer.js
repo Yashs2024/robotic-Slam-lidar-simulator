@@ -75,7 +75,7 @@ export class SensorVisualizer {
         `;
 
         // Append to canvas container
-        const canvasContainer = document.querySelector('.canvas-container');
+        const canvasContainer = document.querySelector('.canvas-area') || document.querySelector('.canvas-container');
         if (canvasContainer) {
             canvasContainer.appendChild(this.container);
         }

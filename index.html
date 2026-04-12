@@ -146,8 +146,10 @@
     .footer-social-link{display:flex;align-items:center;gap:7px;color:var(--muted);text-decoration:none;font-family:var(--font-hd);font-size:0.6rem;letter-spacing:1.5px;padding:7px 14px;border:1px solid rgba(255,255,255,0.08);border-radius:8px;background:rgba(255,255,255,0.02);transition:all 0.25s}
     .footer-social-link svg{flex-shrink:0;transition:transform 0.25s}
     .footer-social-link:hover{transform:translateY(-2px)}
+    .footer-social-link.pf:hover{color:var(--cyan);border-color:rgba(0,245,255,0.4);background:rgba(0,245,255,0.07);box-shadow:0 0 16px rgba(0,245,255,0.15)}
     .footer-social-link.gh:hover{color:#e0e6ed;border-color:rgba(224,230,237,0.3);background:rgba(224,230,237,0.05);box-shadow:0 0 16px rgba(224,230,237,0.08)}
     .footer-social-link.li:hover{color:#0a66c2;border-color:rgba(10,102,194,0.4);background:rgba(10,102,194,0.07);box-shadow:0 0 16px rgba(10,102,194,0.15)}
+    .footer-social-link.pf:hover svg{transform:scale(1.1)}
     .footer-social-link.gh:hover svg{transform:rotate(-8deg) scale(1.1)}
     .footer-social-link.li:hover svg{transform:scale(1.1)}
 
@@ -320,24 +322,24 @@
     <h2 class="section-title">Three Engines, <span class="gradient-text">One Platform</span></h2>
     <p class="section-sub">Each simulator is a standalone environment built for education, research, and experimentation.</p>
     <div class="sim-overview-grid">
-      <div class="ov-card c1">
+      <a href="./slam.html" class="ov-card c1" style="text-decoration:none; color:inherit; display:block;">
         <div class="ov-icon ic1">🤖</div>
         <div class="ov-name">SLAM SIMULATOR</div>
         <div class="ov-desc">Real-time LiDAR mapping with Bayesian occupancy grids, A* pathfinding, particle filters, loop closure, and autonomous frontier exploration.</div>
         <div class="ov-tags"><span class="ov-tag">LiDAR Sensor</span><span class="ov-tag">Bayesian Grid</span><span class="ov-tag">A* / Dijkstra</span><span class="ov-tag">Particle Filter</span><span class="ov-tag">3D Point Cloud</span></div>
-      </div>
-      <div class="ov-card c2">
+      </a>
+      <a href="./nexus.html" class="ov-card c2" style="text-decoration:none; color:inherit; display:block;">
         <div class="ov-icon ic2">⚙️</div>
         <div class="ov-name">NEXUS ENGINE</div>
         <div class="ov-desc">6-DOF robot arm with FK/IK solvers, LSPB trajectory planning, dynamic torque analysis, and Reynolds Boids swarm intelligence simulation.</div>
         <div class="ov-tags"><span class="ov-tag">Forward Kinematics</span><span class="ov-tag">IK Solver</span><span class="ov-tag">LSPB Trajectory</span><span class="ov-tag">Boids Swarm</span><span class="ov-tag">Torque Charts</span></div>
-      </div>
-      <div class="ov-card c3">
+      </a>
+      <a href="./src/hive_landing.html" class="ov-card c3" style="text-decoration:none; color:inherit; display:block;">
         <div class="ov-icon ic3">🏭</div>
         <div class="ov-name">HIVE LOGISTICS</div>
         <div class="ov-desc">Isometric 2.5D warehouse simulation with multi-robot task assignment, battery management, A* coordination, and operational analytics.</div>
         <div class="ov-tags"><span class="ov-tag">Task Assignment</span><span class="ov-tag">A* Routing</span><span class="ov-tag">Battery Mgmt</span><span class="ov-tag">Live Analytics</span><span class="ov-tag">Isometric 2.5D</span></div>
-      </div>
+      </a>
     </div>
   </section>
 
@@ -359,6 +361,10 @@
   <footer class="landing-footer">
     <span>RoboAI Suite · Built by <strong>Yash Surve</strong> · MESWCOE Automation &amp; Robotics</span>
     <div class="footer-social">
+      <a href="https://yashsurve.vercel.app/" target="_blank" rel="noopener noreferrer" class="footer-social-link pf" title="Portfolio">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>
+        PORTFOLIO
+      </a>
       <a href="https://github.com/Yashs2024" target="_blank" rel="noopener noreferrer" class="footer-social-link gh" title="GitHub Profile">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path></svg>
         GITHUB
@@ -490,6 +496,7 @@ function showScreen(id){
   window.scrollTo(0,0);
 }
 function getUserInitials(e){const p=e.split('@')[0].split(/[.\-_]/).filter(Boolean);return p.length>=2?(p[0][0]+p[1][0]).toUpperCase():e.slice(0,2).toUpperCase()}
+
 function loginSuccess(email){
   sessionStorage.setItem('roboai_user',email);
   document.getElementById('hub-avatar').textContent=getUserInitials(email);

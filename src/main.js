@@ -561,6 +561,8 @@ let isSimulatorRunning = false;
 
 function launchSimulator() {
   if (landingPage) landingPage.style.display = 'none';
+  const simNav = document.getElementById('sim-nav');
+  if (simNav) simNav.style.display = 'flex';
   appSimulator.style.display = 'flex'; // Use flex to maintain sidebar/canvas layout
 
   // Now that #app is visible, resize canvases to fit the actual container

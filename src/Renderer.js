@@ -17,7 +17,7 @@ export class Renderer {
     }
 
     resizeCanvas() {
-        const container = document.querySelector('.canvas-container');
+        const container = document.querySelector('.canvas-area') || document.querySelector('.canvas-container');
         // If container is hidden (display: none), clientWidth/Height are 0.
         // Fall back to window calculations (sidebar is 320px).
         const width = container.clientWidth || (window.innerWidth - 320);
