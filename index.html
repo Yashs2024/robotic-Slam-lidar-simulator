@@ -32,8 +32,31 @@
 
     /* ═══ NAVBAR ═══ */
     .navbar{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:center;justify-content:space-between;padding:0 40px;height:64px;background:rgba(5,8,16,0.88);backdrop-filter:blur(16px);border-bottom:1px solid rgba(0,245,255,0.08)}
-    .nav-brand{font-family:var(--font-hd);font-size:1.2rem;letter-spacing:4px;color:var(--text)}
-    .nav-brand span{color:var(--cyan)}
+    
+    /* Animated Shiny Text - React Component Native Port */
+    .shiny-text {
+      background: linear-gradient(90deg, rgba(224,230,237,0.4) 0%, #fff 25%, rgba(224,230,237,0.4) 50%, #fff 75%, rgba(224,230,237,0.4) 100%);
+      background-size: 200% auto;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      animation: shinySweep 2s linear infinite;
+      transition: text-shadow 0.3s ease;
+    }
+    .shiny-text-cyan {
+      background: linear-gradient(90deg, rgba(0,245,255,0.4) 0%, #00F5FF 25%, rgba(0,245,255,0.4) 50%, #00F5FF 75%, rgba(0,245,255,0.4) 100%);
+      background-size: 200% auto;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      animation: shinySweep 2s linear infinite reverse;
+    }
+    .nav-brand:hover .shiny-text, .auth-logo:hover .shiny-text, .hub-brand:hover .shiny-text {
+      text-shadow: 0 0 12px rgba(255,255,255,0.3);
+    }
+    @keyframes shinySweep {
+      100% { background-position: -200% center; }
+    }
+
+    .nav-brand{font-family:var(--font-hd);font-size:1.2rem;letter-spacing:4px;cursor:pointer}
     .nav-links{display:flex;gap:24px;align-items:center}
     .nav-links a{color:var(--muted);font-size:0.8rem;letter-spacing:1px;text-decoration:none;transition:color 0.2s}
     .nav-links a:hover{color:var(--cyan)}
@@ -157,7 +180,7 @@
     #screen-login{display:flex;align-items:center;justify-content:center;min-height:100vh}
     .auth-card{background:var(--glass);border:1px solid var(--glass-b);backdrop-filter:blur(24px);border-radius:20px;padding:48px 44px;width:100%;max-width:420px;position:relative;box-shadow:0 0 60px rgba(0,245,255,0.06),0 40px 80px rgba(0,0,0,0.5)}
     .auth-card::before{content:'';position:absolute;top:0;left:20%;right:20%;height:1px;background:linear-gradient(90deg,transparent,var(--cyan),transparent)}
-    .auth-logo{font-family:var(--font-hd);font-size:1rem;letter-spacing:6px;color:var(--cyan);text-align:center;margin-bottom:32px}
+    .auth-logo{font-family:var(--font-hd);font-size:1rem;letter-spacing:6px;text-align:center;margin-bottom:32px;cursor:pointer}
     .auth-title{font-family:var(--font-hd);font-size:1.4rem;font-weight:700;text-align:center;margin-bottom:8px}
     .auth-sub{color:var(--muted);font-size:0.85rem;text-align:center;margin-bottom:36px}
     .input-group{margin-bottom:20px}
@@ -176,8 +199,7 @@
 
     /* ═══ HUB SCREEN ═══ */
     .hub-nav{position:sticky;top:0;z-index:100;display:flex;align-items:center;justify-content:space-between;padding:0 48px;height:64px;background:rgba(5,8,16,0.9);backdrop-filter:blur(16px);border-bottom:1px solid rgba(0,245,255,0.08)}
-    .hub-brand{font-family:var(--font-hd);font-size:1.1rem;letter-spacing:4px}
-    .hub-brand span{color:var(--cyan)}
+    .hub-brand{font-family:var(--font-hd);font-size:1.1rem;letter-spacing:4px;cursor:pointer}
     .hub-user-row{display:flex;align-items:center;gap:16px}
     .hub-avatar{width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,rgba(0,245,255,0.3),rgba(155,93,229,0.3));border:1px solid var(--glass-b);display:flex;align-items:center;justify-content:center;font-family:var(--font-hd);font-size:0.75rem;color:var(--cyan)}
     .hub-username{font-size:0.85rem;color:var(--muted)}
@@ -212,9 +234,104 @@
     .la{background:rgba(245,159,11,0.1);border:1px solid rgba(245,159,11,0.3);color:var(--amber)}
     .sim-card:hover .sim-launch-btn{box-shadow:0 0 20px currentColor}
     .hub-footer{padding:24px 48px;border-top:1px solid rgba(255,255,255,0.05);display:flex;align-items:center;justify-content:space-between;color:var(--muted);font-size:0.75rem;flex-wrap:wrap;gap:12px}
+
+    /* ═══ SPLINE 3D SECTION ═══ */
+    .spline-section {
+      padding: 60px 48px 0;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    .spline-card {
+      background: rgba(0, 0, 0, 0.96);
+      border: 1px solid var(--glass-b);
+      border-radius: 16px;
+      height: 500px;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 0 40px rgba(0, 245, 255, 0.05);
+      display: flex;
+      flex-direction: column;
+    }
+    .spline-spotlight {
+      position: absolute;
+      top: -20%;
+      left: 0;
+      width: 138%;
+      height: 169%;
+      background: radial-gradient(ellipse at center, rgba(255,255,255,0.08) 0%, transparent 50%);
+      pointer-events: none;
+      z-index: 1;
+      transform: rotate(-15deg);
+    }
+    @media(min-width: 768px) {
+      .spline-card {
+        flex-direction: row;
+      }
+      .spline-spotlight {
+        left: 20%;
+        width: 84%;
+      }
+    }
+    .spline-text {
+      flex: 1;
+      padding: 3rem;
+      position: relative;
+      z-index: 10;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+    .spline-text h2 {
+      font-family: var(--font-hd);
+      font-size: clamp(2rem, 4.5vw, 3rem);
+      font-weight: 700;
+      background: linear-gradient(to bottom, #FAFAFA, #a3a3a3);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 1rem;
+    }
+    .spline-text p {
+      color: #d4d4d4;
+      max-width: 32rem;
+      line-height: 1.6;
+      font-size: 1.05rem;
+    }
+    .spline-visual {
+      flex: 1;
+      position: relative;
+      min-height: 300px;
+    }
+    spline-viewer {
+      width: 100%;
+      height: 100%;
+    }
+
+    /* ═══ DOTTED SURFACE BACKGROUND ═══ */
+    #dotted-surface {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      z-index: 0;
+      pointer-events: none;
+      opacity: 0.6;
+    }
+
+    /* Ensure content on top stays clickable and readable */
+    .navbar, .hero, .stats-bar, .spline-section, .overview, .tech-strip, .cta-section, .landing-footer {
+      position: relative;
+      z-index: 10;
+    }
   </style>
+  <script type="module" src="https://unpkg.com/@splinetool/viewer@1.9.5/build/spline-viewer.js"></script>
 </head>
 <body>
+
+<!-- ═══════════════════════════════════════
+     DOTTED SURFACE BACKGROUND CONTAINER
+═══════════════════════════════════════ -->
+<div id="dotted-surface"></div>
 
 <!-- ═══════════════════════════════════════
      SCREEN 1: LANDING PAGE
@@ -226,7 +343,7 @@
 
   <!-- Navbar -->
   <nav class="navbar">
-    <div class="nav-brand"><span>ROBOAI</span> // SUITE</div>
+    <div class="nav-brand"><span class="shiny-text-cyan">ROBOAI</span> <span class="shiny-text">// SUITE</span></div>
     <div class="nav-links">
       <a href="#overview">Simulators</a>
       <a href="#tech">Tech</a>
@@ -239,7 +356,7 @@
   <section class="hero">
     <div class="hero-text">
       <div class="hero-badge">v3.0 — ROBOTICS SIMULATION PLATFORM</div>
-      <h1 class="hero-title">The Future of<br/><span class="gradient-text">Robotics Simulation</span></h1>
+      <h1 class="hero-title"><span class="shiny-text">The Future of</span><br/><span class="shiny-text-cyan">Robotics Simulation</span></h1>
       <p class="hero-sub">Three powerful engines in one unified platform. Master SLAM mapping, robotic arm kinematics, and industrial swarm logistics — all in your browser.</p>
       <div class="hero-cta">
         <button class="btn-lg btn-cyan" onclick="showScreen('screen-login')">GET STARTED →</button>
@@ -316,7 +433,27 @@
     <div class="stat-item"><span class="stat-num" style="color:var(--green)">100%</span><span class="stat-lbl">BROWSER BASED</span></div>
   </div>
 
+  <!-- Interactive 3D Section (Spline integration) -->
+  <section class="spline-section">
+    <div class="spline-card">
+      <div class="spline-spotlight"></div>
+      
+      <div class="spline-text">
+        <h2>Interactive 3D</h2>
+        <p>
+          Bring your UI to life with beautiful 3D scenes. Create immersive experiences 
+          that capture attention and enhance your design.
+        </p>
+      </div>
+
+      <div class="spline-visual">
+        <spline-viewer url="https://prod.spline.design/kZDDjO5HuC9GJUM2/scene.splinecode"></spline-viewer>
+      </div>
+    </div>
+  </section>
+
   <!-- Simulators Overview -->
+
   <section class="overview" id="overview">
     <div class="section-label">THE PLATFORM</div>
     <h2 class="section-title">Three Engines, <span class="gradient-text">One Platform</span></h2>
@@ -402,7 +539,7 @@
   <div class="glow-orb b"></div>
   <div style="display:flex;align-items:center;justify-content:center;min-height:100vh;padding:20px">
     <div class="auth-card">
-      <div class="auth-logo">ROBOAI // SUITE</div>
+      <div class="auth-logo"><span class="shiny-text-cyan">ROBOAI</span> <span class="shiny-text">// SUITE</span></div>
       <div class="auth-title">Welcome Back</div>
       <div class="auth-sub">Sign in to access your simulation environments</div>
       <form id="login-form" novalidate>
@@ -434,7 +571,7 @@
   <div class="glow-orb a"></div>
   <div class="glow-orb b"></div>
   <nav class="hub-nav">
-    <div class="hub-brand"><span>ROBOAI</span> // SUITE</div>
+    <div class="hub-brand"><span class="shiny-text-cyan">ROBOAI</span> <span class="shiny-text">// SUITE</span></div>
     <div class="hub-user-row">
       <div class="hub-avatar" id="hub-avatar">YS</div>
       <span class="hub-username" id="hub-username">admin@roboai.io</span>
@@ -516,6 +653,98 @@ document.getElementById('logout-btn').addEventListener('click',()=>{sessionStora
 document.getElementById('nav-login-btn').addEventListener('click',e=>{e.preventDefault();showScreen('screen-login')});
 // Auto-login check
 (function(){const s=sessionStorage.getItem('roboai_user');if(s)loginSuccess(s);else showScreen('screen-landing')})();
+</script>
+
+<script type="module">
+  import * as THREE from 'three';
+
+  // Dotted Surface Three.js implementation (React hook translated to Vanilla JS)
+  const initDottedSurface = () => {
+    const container = document.getElementById('dotted-surface');
+    if (!container) return;
+
+    const SEPARATION = 150;
+    const AMOUNTX = 40;
+    const AMOUNTY = 60;
+
+    const scene = new THREE.Scene();
+    scene.fog = new THREE.Fog(0x050810, 2000, 10000); 
+
+    const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 1, 10000);
+    camera.position.set(0, 355, 1220);
+
+    const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+    renderer.setPixelRatio(window.devicePixelRatio);
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setClearColor(scene.fog.color, 0);
+
+    container.appendChild(renderer.domElement);
+
+    const positions = [];
+    const colors = [];
+    const geometry = new THREE.BufferGeometry();
+
+    for (let ix = 0; ix < AMOUNTX; ix++) {
+      for (let iy = 0; iy < AMOUNTY; iy++) {
+        const x = ix * SEPARATION - (AMOUNTX * SEPARATION) / 2;
+        const y = 0; 
+        const z = iy * SEPARATION - (AMOUNTY * SEPARATION) / 2;
+
+        positions.push(x, y, z);
+        // Using light colors since the theme is dark
+        colors.push(0.8, 0.8, 0.8);
+      }
+    }
+
+    geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+    geometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
+
+    const material = new THREE.PointsMaterial({
+      size: 5,
+      vertexColors: true,
+      transparent: true,
+      opacity: 0.15,
+      sizeAttenuation: true,
+    });
+
+    const points = new THREE.Points(geometry, material);
+    scene.add(points);
+
+    let count = 0;
+
+    const animate = () => {
+      requestAnimationFrame(animate);
+
+      const positionAttribute = geometry.attributes.position;
+      const positions = positionAttribute.array;
+
+      let i = 0;
+      for (let ix = 0; ix < AMOUNTX; ix++) {
+        for (let iy = 0; iy < AMOUNTY; iy++) {
+          const index = i * 3;
+          // Wave animation algorithm from 21st.dev
+          positions[index + 1] = Math.sin((ix + count) * 0.3) * 50 + Math.sin((iy + count) * 0.5) * 50;
+          i++;
+        }
+      }
+
+      positionAttribute.needsUpdate = true;
+      renderer.render(scene, camera);
+      count += 0.05; // Slightly slower for elegance
+    };
+
+    const handleResize = () => {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    };
+
+    window.addEventListener('resize', handleResize);
+    animate();
+  };
+
+  // Run initialiser once DOM is fully available
+  document.addEventListener("DOMContentLoaded", initDottedSurface);
 </script>
 </body>
 </html>
