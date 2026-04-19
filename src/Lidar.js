@@ -79,7 +79,11 @@ export class Lidar {
         return hits;
     }
 
-    drawRays(hits, robot, ctx) {
+    drawRays(hits, robot, ctx, style = {}) {
+        const strokeHit = style.strokeHit || 'rgba(239, 68, 68, 0.4)';
+        const strokeFree = style.strokeFree || 'rgba(16, 185, 129, 0.2)';
+        const hitDot = style.hitDot || '#ef4444';
+
         ctx.save();
         ctx.lineWidth = 1;
 
@@ -89,9 +93,9 @@ export class Lidar {
             ctx.lineTo(hit.x, hit.y);
 
             if (hit.hit) {
-                ctx.strokeStyle = 'rgba(239, 68, 68, 0.4)'; // Red for hit
+                ctx.strokeStyle = strokeHit;
             } else {
-                ctx.strokeStyle = 'rgba(16, 185, 129, 0.2)'; // Green for max range pass
+                ctx.strokeStyle = strokeFree;
             }
             ctx.stroke();
 
@@ -99,7 +103,7 @@ export class Lidar {
             if (hit.hit) {
                 ctx.beginPath();
                 ctx.arc(hit.x, hit.y, 2, 0, Math.PI * 2);
-                ctx.fillStyle = '#ef4444';
+                ctx.fillStyle = hitDot;
                 ctx.fill();
             }
         });

@@ -1,92 +1,192 @@
 /**
  * TutorialManager.js
  *
- * Interactive step-by-step tutorial that teaches SLAM concepts.
- * Each step highlights a UI element and explains the concept behind it.
+ * Modular guided lessons with checkpoints (user must perform an action
+ * before "Next" advances).
  */
 export class TutorialManager {
-    constructor() {
-        this.steps = [
+    constructor(options = {}) {
+        this.getState =
+            typeof options.getState === 'function'
+                ? options.getState
+                : () => ({});
+
+        this.modules = [
             {
-                title: '🤖 Welcome to SLAM!',
-                description: 'SLAM stands for <strong>Simultaneous Localization and Mapping</strong>. The robot must build a map of its environment while simultaneously figuring out where it is in that map. Let\'s explore how it works!',
-                highlight: '#realWorldCanvas',
-                position: 'center'
+                id: 'intro',
+                label: 'Intro',
+                steps: [
+                    {
+                        title: 'Welcome to SLAM',
+                        description:
+                            '<strong>SLAM</strong> (Simultaneous Localization and Mapping) means the robot builds a map while estimating its pose inside that map. Use the module tabs above to jump between lessons.',
+                        highlight: '#realWorldCanvas',
+                        position: 'center',
+                    },
+                    {
+                        title: 'How this simulator is organized',
+                        description:
+                            'You will explore <strong>raycasting</strong> (LiDAR), the <strong>occupancy grid</strong>, <strong>odometry drift</strong>, <strong>loop closure</strong>, and <strong>MCL</strong> (particle filter). Each module ends with a small hands-on checkpoint.',
+                        highlight: null,
+                        position: 'center',
+                    },
+                ],
             },
             {
-                title: '📡 LiDAR Sensor',
-                description: 'The red rays shooting from the robot are <strong>LiDAR beams</strong>. LiDAR (Light Detection and Ranging) measures distances by casting rays in a forward arc. Where a ray hits a wall, it reports the distance. This is how the robot "sees" its environment.',
-                highlight: '#realWorldCanvas',
-                position: 'center'
+                id: 'raycasting',
+                label: 'Raycasting',
+                steps: [
+                    {
+                        title: 'LiDAR raycasting',
+                        description:
+                            'LiDAR casts rays into the world and measures distances. In <strong>Real World</strong> view you can see each beam: red hits are obstacles; green rays reach max range in free space.',
+                        highlight: '#realWorldCanvas',
+                        position: 'center',
+                    },
+                    {
+                        title: 'Sensor noise',
+                        description:
+                            'Move the <strong>LiDAR Noise</strong> slider. Noise perturbs measured ranges so the map becomes less crisp — a core reason SLAM uses probabilistic fusion instead of trusting one scan.',
+                        highlight: '#noiseSlider',
+                        position: 'right',
+                        checkpoint: 'noise_changed',
+                        checkpointHint:
+                            'Move the LiDAR Noise slider at least once to continue.',
+                    },
+                    {
+                        title: 'Ray density',
+                        description:
+                            'Change <strong>Ray Density</strong>. More rays give finer angular resolution at higher CPU cost. Fewer rays are faster but can miss thin obstacles.',
+                        highlight: '#rayDensitySlider',
+                        position: 'right',
+                        checkpoint: 'ray_density_changed',
+                        checkpointHint:
+                            'Adjust the Ray Density slider at least once to continue.',
+                    },
+                ],
             },
             {
-                title: '🗺️ Occupancy Grid Mapping',
-                description: 'Switch to the <strong>SLAM Map</strong> view to see the occupancy grid. Each cell is either: <strong>Free</strong> (white — safe to travel), <strong>Occupied</strong> (black — wall detected), or <strong>Unknown</strong> (dark — not yet scanned). The robot builds this map in real-time from LiDAR data.',
-                highlight: '#btnSlamMap',
-                position: 'right',
-                action: 'clickSlamMap'
+                id: 'occupancy',
+                label: 'Occupancy grid',
+                steps: [
+                    {
+                        title: 'Open the SLAM map',
+                        description:
+                            'The <strong>occupancy grid</strong> stores beliefs about free vs occupied space. Click <strong>SLAM Map</strong> to view the grid and fog-of-war.',
+                        highlight: '#btnSlamMap',
+                        position: 'right',
+                        checkpoint: 'view_slam',
+                        checkpointHint:
+                            'Switch to the SLAM Map view (button above) to continue.',
+                    },
+                    {
+                        title: 'Reading the grid',
+                        description:
+                            'Cells become <strong>lighter</strong> when observed as free and <strong>darker</strong> when observed as walls. Unknown areas stay mid-gray until scanned.',
+                        highlight: '#slamCanvas',
+                        position: 'center',
+                    },
+                    {
+                        title: 'Navigation goal',
+                        description:
+                            'In Drive mode, <strong>click on the SLAM map</strong> to place a goal. The planner uses the current occupancy grid (A*, Dijkstra, or Bug2).',
+                        highlight: '#slamCanvas',
+                        position: 'center',
+                        checkpoint: 'goal_clicked',
+                        checkpointHint:
+                            'Click the SLAM map once so a valid path is planned (goal checkpoint).',
+                    },
+                ],
             },
             {
-                title: '🎯 Noise & Uncertainty',
-                description: 'Real sensors are never perfect! The <strong>Sensor Noise</strong> slider adds random error to LiDAR readings, simulating real-world conditions. Higher noise = fuzzier map. This is why SLAM algorithms need to handle uncertainty.',
-                highlight: '#noiseSlider',
-                position: 'right'
+                id: 'drift',
+                label: 'Drift',
+                steps: [
+                    {
+                        title: 'Odometry drift',
+                        description:
+                            'Wheel odometry integrates motion and accumulates error — <strong>drift</strong>. Raise <strong>Odometry Drift</strong> to see the orange <em>believed</em> pose diverge from the blue true robot.',
+                        highlight: '#driftSlider',
+                        position: 'right',
+                        checkpoint: 'drift_on',
+                        checkpointHint:
+                            'Set Odometry Drift above zero, then continue.',
+                    },
+                    {
+                        title: 'Why drift matters for SLAM',
+                        description:
+                            'Mapping uses sensor geometry tied to pose estimates. Drift mis-aligns scans, smearing walls unless the estimator (particles, loop closure, etc.) corrects the trajectory.',
+                        highlight: '#driftSlider',
+                        position: 'right',
+                    },
+                ],
             },
             {
-                title: '🧭 Autonomous Exploration',
-                description: '<strong>Frontier Exploration</strong> is how the robot decides where to go next. A "frontier" is the boundary between known and unknown space. The robot finds the nearest frontier and navigates to it, progressively revealing the entire map.',
-                highlight: '#btnAutoExplore',
-                position: 'right'
+                id: 'loop_closure',
+                label: 'Loop closure',
+                steps: [
+                    {
+                        title: 'Loop closure idea',
+                        description:
+                            'When the robot revisits a place, <strong>loop closure</strong> detects similarity between scans and applies a correction so the map stays globally consistent.',
+                        highlight: '#btnLoopClosure',
+                        position: 'right',
+                        checkpoint: 'loop_on',
+                        checkpointHint:
+                            'Enable Loop Closure (button above), then continue.',
+                    },
+                    {
+                        title: 'What to watch for',
+                        description:
+                            'Drive a loop around the environment. When a closure triggers, the system nudges the believed trajectory — watch the indicator and the SLAM map tighten up over time.',
+                        highlight: '#realWorldCanvas',
+                        position: 'center',
+                    },
+                ],
             },
             {
-                title: '🛤️ Pathfinding Algorithms',
-                description: 'When the robot needs to reach a goal, it uses pathfinding algorithms like <strong>A*</strong>, <strong>Dijkstra</strong>, or <strong>Bug2</strong> to find the shortest obstacle-free path through the occupancy grid. Click anywhere on the SLAM Map to set a goal.',
-                highlight: '#algorithmSelect',
-                position: 'right'
+                id: 'mcl',
+                label: 'MCL',
+                steps: [
+                    {
+                        title: 'Monte Carlo Localization',
+                        description:
+                            'The <strong>particle filter</strong> keeps many pose hypotheses weighted by how well each explains the latest LiDAR scan. Enable it to visualize belief spread and convergence.',
+                        highlight: '#btnParticleFilter',
+                        position: 'right',
+                        checkpoint: 'particle_on',
+                        checkpointHint:
+                            'Turn on the Particle Filter, then continue.',
+                    },
+                    {
+                        title: 'You are ready to experiment',
+                        description:
+                            'Try presets, build walls, compare path planners, and toggle drift / particles / loop closure together. Close this panel or press Finish when you are done.',
+                        highlight: null,
+                        position: 'center',
+                    },
+                ],
             },
-            {
-                title: '📊 Live Sensor Data',
-                description: 'This polar chart shows <strong>real-time LiDAR distances</strong> for each ray angle. Short bars = nearby walls, long bars = open space. Adjusting <strong>Ray Density</strong> changes how many measurements the sensor takes per sweep.',
-                highlight: '.chart-wrapper',
-                position: 'right'
-            },
-            {
-                title: '🎯 Particle Filter (MCL)',
-                description: 'Enable the <strong>Particle Filter</strong> to visualize Monte Carlo Localization. Each dot represents a hypothesis of where the robot might be. Green = high confidence, Red = low. Watch them converge as the robot gathers more data!',
-                highlight: '#btnParticleFilter',
-                position: 'right'
-            },
-            {
-                title: '📈 Odometry Drift',
-                description: '<strong>Odometry</strong> estimates position from wheel rotations, but errors accumulate over time — this is called <strong>drift</strong>. Enable the Odometry Drift slider to see the believed position (orange ghost) diverge from the true position.',
-                highlight: '#driftSlider',
-                position: 'right'
-            },
-            {
-                title: '🏗️ Build Your Own Map',
-                description: 'Switch to <strong>Build Mode</strong> to draw custom walls by clicking and dragging. Then switch back to Drive Mode to explore your creation! You can also use <strong>preset maps</strong> like Maze, Warehouse, or Office.',
-                highlight: '#btnBuildMode',
-                position: 'right'
-            },
-            {
-                title: '✅ You\'re Ready!',
-                description: 'You now understand the core concepts of SLAM! Try experimenting with different settings, maps, and features. The best way to learn robotics is by <strong>playing</strong> with it. Happy exploring! 🚀',
-                highlight: null,
-                position: 'center'
-            }
         ];
 
+        this.moduleIndex = 0;
+        this.stepIndex = 0;
         this.currentStep = 0;
         this.active = false;
         this.overlay = null;
         this.tooltip = null;
         this.highlightRing = null;
 
+        this._lastStepKey = '';
+        this._enterGoalClicks = 0;
+        this._enterRayDensityChanges = 0;
+        this._enterNoiseChanges = 0;
+
         this._buildDOM();
+        this._buildModuleTabs();
     }
 
     _buildDOM() {
-        // Overlay backdrop
         this.overlay = document.createElement('div');
         this.overlay.id = 'tutorialOverlay';
         this.overlay.className = 'tutorial-overlay';
@@ -96,8 +196,10 @@ export class TutorialManager {
                     <span class="tutorial-step-indicator" id="tutorialStepIndicator"></span>
                     <button class="tutorial-close" id="tutorialClose">✕</button>
                 </div>
+                <div class="tutorial-module-row" id="tutorialModuleRow"></div>
                 <h3 class="tutorial-title" id="tutorialTitle"></h3>
                 <p class="tutorial-desc" id="tutorialDesc"></p>
+                <div class="tutorial-checkpoint-hint" id="tutorialCheckpointHint"></div>
                 <div class="tutorial-nav">
                     <button class="tutorial-nav-btn" id="tutorialPrev">← Prev</button>
                     <button class="tutorial-nav-btn tutorial-nav-next" id="tutorialNext">Next →</button>
@@ -110,19 +212,39 @@ export class TutorialManager {
         this.tooltip = document.getElementById('tutorialTooltip');
         this.highlightRing = document.getElementById('tutorialHighlight');
 
-        // Bind navigation
         document.getElementById('tutorialClose').addEventListener('click', () => this.end());
         document.getElementById('tutorialPrev').addEventListener('click', () => this.prev());
         document.getElementById('tutorialNext').addEventListener('click', () => this.next());
 
-        // Close on overlay click (outside tooltip)
         this.overlay.addEventListener('click', (e) => {
             if (e.target === this.overlay) this.end();
         });
     }
 
+    _buildModuleTabs() {
+        const row = document.getElementById('tutorialModuleRow');
+        if (!row) return;
+        row.innerHTML = '';
+        this.modules.forEach((m, idx) => {
+            const b = document.createElement('button');
+            b.type = 'button';
+            b.className = 'tutorial-module-tab';
+            b.textContent = m.label;
+            b.addEventListener('click', () => {
+                this.moduleIndex = idx;
+                this.stepIndex = 0;
+                this._lastStepKey = '';
+                this._renderStep();
+            });
+            row.appendChild(b);
+        });
+    }
+
     start() {
+        this.moduleIndex = 0;
+        this.stepIndex = 0;
         this.currentStep = 0;
+        this._lastStepKey = '';
         this.active = true;
         this.overlay.classList.add('active');
         this._renderStep();
@@ -134,26 +256,110 @@ export class TutorialManager {
         this.highlightRing.style.display = 'none';
     }
 
+    _currentStepObj() {
+        const mod = this.modules[this.moduleIndex];
+        return mod.steps[this.stepIndex];
+    }
+
+    _stepKey() {
+        return `${this.moduleIndex}-${this.stepIndex}`;
+    }
+
+    _refreshBaselines() {
+        const key = this._stepKey();
+        if (this._lastStepKey === key) return;
+        this._lastStepKey = key;
+        const s = this.getState() || {};
+        this._enterGoalClicks = typeof s.goalClicks === 'number' ? s.goalClicks : 0;
+        this._enterRayDensityChanges =
+            typeof s.rayDensityChanges === 'number' ? s.rayDensityChanges : 0;
+        this._enterNoiseChanges =
+            typeof s.noiseChanges === 'number' ? s.noiseChanges : 0;
+    }
+
+    _checkpointMet(step) {
+        if (!step.checkpoint) return true;
+        const s = this.getState() || {};
+        switch (step.checkpoint) {
+            case 'view_slam':
+                return s.currentView === 'slam';
+            case 'goal_clicked':
+                return (
+                    typeof s.goalClicks === 'number' &&
+                    s.goalClicks > this._enterGoalClicks
+                );
+            case 'drift_on':
+                return typeof s.drift === 'number' && s.drift > 0;
+            case 'particle_on':
+                return !!s.particleEnabled;
+            case 'loop_on':
+                return !!s.loopClosureEnabled;
+            case 'ray_density_changed':
+                return (
+                    typeof s.rayDensityChanges === 'number' &&
+                    s.rayDensityChanges > this._enterRayDensityChanges
+                );
+            case 'noise_changed':
+                return (
+                    typeof s.noiseChanges === 'number' &&
+                    s.noiseChanges > this._enterNoiseChanges
+                );
+            default:
+                return true;
+        }
+    }
+
+    _updateCheckpointHint(step) {
+        const el = document.getElementById('tutorialCheckpointHint');
+        if (!el) return;
+        if (!step.checkpoint) {
+            el.textContent = '';
+            return;
+        }
+        if (this._checkpointMet(step)) {
+            el.textContent = '';
+        } else {
+            el.textContent =
+                step.checkpointHint ||
+                'Complete the highlighted action to continue.';
+        }
+    }
+
     next() {
-        if (this.currentStep < this.steps.length - 1) {
-            this.currentStep++;
-            this._renderStep();
+        const step = this._currentStepObj();
+        this._refreshBaselines();
+        if (step.checkpoint && !this._checkpointMet(step)) {
+            this._updateCheckpointHint(step);
+            return;
+        }
+
+        const mod = this.modules[this.moduleIndex];
+        if (this.stepIndex < mod.steps.length - 1) {
+            this.stepIndex++;
+        } else if (this.moduleIndex < this.modules.length - 1) {
+            this.moduleIndex++;
+            this.stepIndex = 0;
         } else {
             this.end();
+            return;
         }
+        this._lastStepKey = '';
+        this._renderStep();
     }
 
     prev() {
-        if (this.currentStep > 0) {
-            this.currentStep--;
-            this._renderStep();
+        if (this.stepIndex > 0) {
+            this.stepIndex--;
+        } else if (this.moduleIndex > 0) {
+            this.moduleIndex--;
+            this.stepIndex = this.modules[this.moduleIndex].steps.length - 1;
         }
+        this._lastStepKey = '';
+        this._renderStep();
     }
 
-    /** Execute tutorial step actions (like switching views) */
     _executeAction(action) {
         if (!action) return;
-
         switch (action) {
             case 'clickSlamMap': {
                 const btn = document.getElementById('btnSlamMap');
@@ -175,53 +381,63 @@ export class TutorialManager {
                 if (btn) btn.click();
                 break;
             }
+            default:
+                break;
         }
     }
 
-    _renderStep() {
-        const step = this.steps[this.currentStep];
-        const total = this.steps.length;
+    _syncModuleTabStyles() {
+        const row = document.getElementById('tutorialModuleRow');
+        if (!row) return;
+        const tabs = row.querySelectorAll('button.tutorial-module-tab');
+        tabs.forEach((btn, i) => {
+            btn.classList.toggle('active', i === this.moduleIndex);
+        });
+    }
 
-        // Execute any step action first (e.g. switch to SLAM map view)
+    _renderStep() {
+        const step = this._currentStepObj();
+        const mod = this.modules[this.moduleIndex];
+        const totalSteps = mod.steps.length;
+
+        this._refreshBaselines();
         this._executeAction(step.action);
 
-        // Update text
         document.getElementById('tutorialTitle').textContent = step.title;
         document.getElementById('tutorialDesc').innerHTML = step.description;
-        document.getElementById('tutorialStepIndicator').textContent = `${this.currentStep + 1} / ${total}`;
+        document.getElementById('tutorialStepIndicator').textContent =
+            `${mod.label} · ${this.stepIndex + 1} / ${totalSteps}`;
 
-        // Update nav buttons
         const prevBtn = document.getElementById('tutorialPrev');
         const nextBtn = document.getElementById('tutorialNext');
-        prevBtn.style.visibility = this.currentStep === 0 ? 'hidden' : 'visible';
-        nextBtn.textContent = this.currentStep === total - 1 ? 'Finish ✓' : 'Next →';
+        const atStart = this.moduleIndex === 0 && this.stepIndex === 0;
+        const atEnd =
+            this.moduleIndex === this.modules.length - 1 &&
+            this.stepIndex === this.modules[this.moduleIndex].steps.length - 1;
+        prevBtn.style.visibility = atStart ? 'hidden' : 'visible';
+        nextBtn.textContent = atEnd ? 'Finish ✓' : 'Next →';
 
-        // Highlight target element
+        this._syncModuleTabStyles();
+        this._updateCheckpointHint(step);
+
         const target = step.highlight ? document.querySelector(step.highlight) : null;
         if (target) {
-            // Scroll sidebar element into view if needed
             const sidebar = document.querySelector('.sidebar');
             if (sidebar && sidebar.contains(target)) {
                 target.scrollIntoView({ behavior: 'smooth', block: 'center' });
             }
 
-            // Wait a frame for scroll to settle before positioning
             requestAnimationFrame(() => {
                 const rect = target.getBoundingClientRect();
-
-                // Position highlight ring
                 this.highlightRing.style.display = 'block';
                 this.highlightRing.style.left = `${rect.left - 6}px`;
                 this.highlightRing.style.top = `${rect.top - 6}px`;
                 this.highlightRing.style.width = `${rect.width + 12}px`;
                 this.highlightRing.style.height = `${rect.height + 12}px`;
-
-                // Position tooltip
                 this._positionTooltip(rect, step.position);
             });
         } else {
             this.highlightRing.style.display = 'none';
-            // Center the tooltip on screen
             this._centerTooltip();
         }
     }
@@ -233,26 +449,29 @@ export class TutorialManager {
         tooltip.style.transform = 'translate(-50%, -50%)';
     }
 
+    /** Call from the main loop while the tutorial is open to refresh checkpoint hints live. */
+    tick() {
+        if (!this.active) return;
+        const step = this._currentStepObj();
+        if (step.checkpoint) this._updateCheckpointHint(step);
+    }
+
     _positionTooltip(targetRect, position) {
         const tooltip = this.tooltip;
         const margin = 20;
 
-        // For center position or large elements (like the canvas), center the tooltip on screen
         if (position === 'center') {
             this._centerTooltip();
             return;
         }
 
-        // Reset transform
         tooltip.style.transform = 'none';
 
         if (position === 'right') {
-            // Place to the right of the element, vertically centered
             tooltip.style.left = `${targetRect.right + margin}px`;
             tooltip.style.top = `${targetRect.top + targetRect.height / 2}px`;
             tooltip.style.transform = 'translateY(-50%)';
         } else if (position === 'left') {
-            // Place to the left
             tooltip.style.left = `${targetRect.left - margin}px`;
             tooltip.style.top = `${targetRect.top + targetRect.height / 2}px`;
             tooltip.style.transform = 'translate(-100%, -50%)';
@@ -262,14 +481,12 @@ export class TutorialManager {
             tooltip.style.transform = 'translateX(-50%)';
         }
 
-        // Clamp to viewport so tooltip never goes off-screen
         requestAnimationFrame(() => {
             const tooltipRect = tooltip.getBoundingClientRect();
             const vw = window.innerWidth;
             const vh = window.innerHeight;
             const pad = 10;
 
-            // Horizontal clamping
             if (tooltipRect.left < pad) {
                 tooltip.style.left = `${pad}px`;
                 tooltip.style.transform = 'none';
@@ -279,7 +496,6 @@ export class TutorialManager {
                 tooltip.style.transform = 'none';
             }
 
-            // Vertical clamping
             const newTooltipRect = tooltip.getBoundingClientRect();
             if (newTooltipRect.top < pad) {
                 tooltip.style.top = `${pad}px`;

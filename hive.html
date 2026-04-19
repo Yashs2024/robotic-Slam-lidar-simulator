@@ -116,12 +116,28 @@
         #cam-panel canvas{background:transparent}
         /* CRT scanline on cam */
         #cam-crt{position:absolute;top:24px;left:0;right:0;height:140px;background:repeating-linear-gradient(0deg,rgba(0,0,0,0.03) 0px,rgba(0,0,0,0.03) 1px,transparent 1px,transparent 2px);pointer-events:none;border-radius:0}
-        #heatmap-canvas{display:none}
+        /* FIX #15: heatmap canvas toggled via JS, not hardcoded hidden */
+        #heatmap-canvas{position:absolute;top:0;left:0;opacity:0.55;pointer-events:none;display:none}
+        /* ── Tab strip ── */
+        .tab{padding:6px 16px;font-family:var(--font-head);font-size:10px;font-weight:700;letter-spacing:2px;color:var(--muted);cursor:pointer;transition:color .2s,border-bottom .2s;border-bottom:3px solid transparent;flex-shrink:0;user-select:none}
+        .tab:hover{color:var(--white)}
+        .tab.active{color:var(--blue);border-bottom-color:var(--blue)}
+        /* FIX #12: print styles — dark background will not print on paper */
+        @media print{
+            body{background:#fff;color:#111;}
+            #topbar,#left-panel,#right-panel,#bottom-panel,#cam-panel,#mini-chart,#map-progress-wrap,#zoom-label,#follow-btn{display:none!important;}
+            #main{display:block;}
+            #canvas-area{width:100%;height:auto;}
+            #modal-overlay{position:static;display:block!important;background:#fff;}
+            #modal-box{border:1px solid #ccc;color:#111;background:#fff;max-height:none;max-width:100%;}
+            #modal-box h2,#modal-box .section-title{color:#1E90FF;}
+            #modal-box .rk{color:#555;} #modal-box .rv{color:#1E90FF;}
+        }
     </style>
 </head>
 <body>
-    <a href="./index.html" id="back-hub-btn" style="position:fixed;top:8px;left:8px;z-index:9999;background:rgba(10,15,30,0.8);border:1px solid rgba(30,144,255,0.25);backdrop-filter:blur(10px);color:#1E90FF;font-family:'Rajdhani',sans-serif;font-size:11px;font-weight:700;letter-spacing:2px;padding:6px 14px;text-decoration:none;border-radius:4px;transition:all 0.2s;display:flex;align-items:center;gap:5px;" onmouseover="this.style.borderColor='#1E90FF';this.style.boxShadow='0 0 12px rgba(30,144,255,0.25)'" onmouseout="this.style.borderColor='rgba(30,144,255,0.25)';this.style.boxShadow='none'">← HUB</a>
     <div id="topbar">
+        <a href="./index.html" id="back-hub-btn" style="background:rgba(10,15,30,0.6);border:1px solid rgba(30,144,255,0.25);color:#1E90FF;font-family:'Rajdhani',sans-serif;font-size:11px;font-weight:700;letter-spacing:2px;padding:5px 13px;text-decoration:none;border-radius:4px;transition:border-color .2s,box-shadow .2s;display:flex;align-items:center;gap:5px;flex-shrink:0;" onmouseover="this.style.borderColor='#1E90FF';this.style.boxShadow='0 0 12px rgba(30,144,255,0.25)'" onmouseout="this.style.borderColor='rgba(30,144,255,0.25)';this.style.boxShadow='none'">← HUB</a>
         <div><div class="logo">HIVE</div><div class="subtitle">INDUSTRIAL SWARM CONTROLLER v3.0</div></div>
         <div class="spacer"></div>
         <div class="topstat"><span class="val" id="stat-done">0</span><span class="lbl">TASKS</span></div>
@@ -143,6 +159,8 @@
                 <button class="danger" onclick="addUrgentTask()">⚡ URGENT</button>
                 <button onclick="addBulkTasks()">⊕ BULK×3</button>
                 <button id="wall-btn" onclick="toggleWallMode()">🧱 ADD WALL</button>
+                <!-- FIX #15: heatmap toggle button -->
+                <button id="heatmap-btn" onclick="toggleHeatmap()" title="Toggle activity heatmap">🔥 HEATMAP</button>
             </div>
             <div class="task-list" id="task-list"></div>
             <div class="task-stats">
@@ -166,7 +184,8 @@
             <div id="cam-panel">
                 <div id="cam-header">
                     <span class="rec-dot"></span><span class="rec-text">REC</span>
-                    <span class="cam-title" id="cam-title">CAM — ATLAS</span>
+                    <!-- FIX #10: label as RADAR (it's a top-down proximity view, not a camera) -->
+                    <span class="cam-title" id="cam-title">RADAR — ATLAS</span>
                     <button onclick="cycleCamRobot(-1)">◄</button>
                     <button onclick="cycleCamRobot(1)">►</button>
                     <button onclick="toggleCamPanel()">×</button>
@@ -349,7 +368,8 @@
         ];
         document.getElementById('map-progress-wrap').style.display='none';
         document.getElementById('scenario-badge').textContent='WAREHOUSE INVENTORY MANAGEMENT';
-        camX=0; camY=-200; // Start centered on action area
+        // FIX #11: lower camY so dispatch zone (x=30,y=28) is partially visible on load
+        camX=0; camY=-80;
     }
 
     function buildAssemblyGrid(){
@@ -400,23 +420,41 @@
         robots.forEach(r=>{const s=isoToScreen(r.gx,r.gy);r.px=s.x;r.py=s.y;});
     }
 
-    // ── A* ────────────────────────────────────────────────
+    // ── MIN-HEAP (O(log n) priority queue for A*) ─────────
+    class MinHeap{
+        constructor(){this.h=[];}
+        push(n){this.h.push(n);this._up(this.h.length-1);}
+        pop(){const top=this.h[0],last=this.h.pop();if(this.h.length){this.h[0]=last;this._down(0);}return top;}
+        get size(){return this.h.length;}
+        _up(i){while(i>0){const p=(i-1)>>1;if(this.h[p].f<=this.h[i].f)break;[this.h[p],this.h[i]]=[this.h[i],this.h[p]];i=p;}}
+        _down(i){const n=this.h.length;for(;;){let s=i;const l=2*i+1,r=2*i+2;if(l<n&&this.h[l].f<this.h[s].f)s=l;if(r<n&&this.h[r].f<this.h[s].f)s=r;if(s===i)break;[this.h[s],this.h[i]]=[this.h[i],this.h[s]];i=s;}}
+    }
+
+    // ── A* (O(E log V) with MinHeap) ───────────────────────
     function astar(sx,sy,ex,ey,rid){
         const K=(x,y)=>x*100+y;
         const blocked=new Set();
-        grid.forEach((col,x)=>col.forEach((v,y)=>{if(v>0)blocked.add(K(x,y));}));
-        robots.forEach((r,i)=>{if(i===rid)return;blocked.add(K(Math.round(r.gx),Math.round(r.gy)));});
+        grid.forEach((col,x)=>col.forEach((v,y)=>{if(v>0)blocked.add(K(x,y));}))
+        // FIX: only treat truly stationary robots as hard blockers.
+        // Moving robots (NAVIGATING, CARRYING, etc.) will vacate their cell;
+        // treating them as permanent walls causes ghost re-routes.
+        robots.forEach((r,i)=>{
+            if(i===rid)return;
+            if(r.state==='IDLE'||r.state==='CHARGING'||r.state==='ERROR')
+                blocked.add(K(Math.round(r.gx),Math.round(r.gy)));
+        });
         if(sx===ex&&sy===ey)return[];
-        const open=[{x:sx,y:sy,g:0,h:0,f:0,parent:null}];
+        const open=new MinHeap();
+        open.push({x:sx,y:sy,g:0,h:0,f:0,parent:null});
         const closed=new Set(),best={};
         best[K(sx,sy)]=0;
-        while(open.length){
-            open.sort((a,b)=>a.f-b.f);
-            const cur=open.shift();
+        while(open.size){
+            const cur=open.pop();
             if(cur.x===ex&&cur.y===ey){
                 const path=[];let c=cur;while(c){path.unshift({x:c.x,y:c.y});c=c.parent;}
                 return path.slice(1);
             }
+            if(closed.has(K(cur.x,cur.y)))continue;
             closed.add(K(cur.x,cur.y));
             for(const[dx,dy]of[[-1,0],[1,0],[0,-1],[0,1],[-1,-1],[-1,1],[1,-1],[1,1]]){
                 const nx=cur.x+dx,ny=cur.y+dy;
@@ -464,7 +502,14 @@
             task.assignedRobot=r.id;task.status='active';
             r.task=task;r.state='NAVIGATING';
             const p=astar(Math.round(r.gx),Math.round(r.gy),task.pickX,task.pickY,r.id);
-            r.path=p||[];r.pathIdx=0;
+            if(!p){
+                // FIX: trigger ERROR state instead of silently getting an empty path
+                setState(r,'ERROR');r.stateTimer=3000;
+                task.assignedRobot=null;task.status='queued';r.task=null;
+                addLog(`⛔ ${r.shortName}: no path to task — route blocked`,'red');
+                return;
+            }
+            r.path=p;r.pathIdx=0;
             addLog(`${r.shortName} → ${task.name} [#${task.id}]`,'blue');
             updateTaskUI();
         });
@@ -497,11 +542,15 @@
                 r.prevTask=r.task&&r.task.status==='active'?r.task:null;
                 r.task=null;r.state='NAVIGATING';
                 const p=astar(Math.round(r.gx),Math.round(r.gy),chargingStation.x,chargingStation.y,r.id);
-                r.path=p||[];r.pathIdx=0;r.flashTimer=3000;
+                if(p){r.path=p;r.pathIdx=0;}
+                else{setState(r,'ERROR');r.stateTimer=5000;addLog(`⛔ ${r.shortName}: cannot reach charger!`,'red');}
+                r.flashTimer=3000;
             }
 
             r.flashTimer=Math.max(0,r.flashTimer-dt);
             r.stateTimer=Math.max(0,r.stateTimer-dt);
+            // FIX: auto-recover from ERROR state after stateTimer expires
+            if(r.state==='ERROR'&&r.stateTimer<=0){setState(r,'IDLE');addLog(`${r.shortName} recovered — retrying`,'amber');}
 
             if(r.path.length&&r.pathIdx<r.path.length&&r.stateTimer<=0){
                 const next=r.path[r.pathIdx];
@@ -601,12 +650,24 @@
 
     function tickAssembly(r,dt){
         if(r.state==='IDLE'){
-            const s=r.workStation,stations=[{x:5,y:10},{x:8,y:10},{x:13,y:10},{x:16,y:10}],sup={x:1,y:2};
-            if(!r.carrying){setState(r,'NAVIGATING');const p=astar(Math.round(r.gx),Math.round(r.gy),sup.x,sup.y,r.id);r.path=p||[];r.pathIdx=0;r.task={pickX:sup.x,pickY:sup.y,dropX:stations[s].x,dropY:stations[s].y,name:`COMP→S${s+1}`};}
+            const s=r.workStation;
+            const stations=[{x:5,y:10},{x:8,y:10},{x:13,y:10},{x:16,y:10}];
+            // FIX #13: each robot has its own supply point so they don't all queue at (1,2)
+            const supplyPoints=[{x:1,y:2},{x:2,y:3},{x:1,y:4},{x:2,y:5}];
+            const sup=supplyPoints[s];
+            if(!r.carrying){
+                setState(r,'NAVIGATING');
+                const p=astar(Math.round(r.gx),Math.round(r.gy),sup.x,sup.y,r.id);
+                if(p){r.path=p;r.pathIdx=0;}else{setState(r,'ERROR');r.stateTimer=2000;return;}
+                r.task={pickX:sup.x,pickY:sup.y,dropX:stations[s].x,dropY:stations[s].y,name:`COMP→S${s+1}`};
+            }
         }
         if(r.path.length&&r.pathIdx>=r.path.length&&r.state==='NAVIGATING'){
-            if(!r.carrying&&r.task){r.carrying=true;setState(r,'CARRYING');const p=astar(Math.round(r.gx),Math.round(r.gy),r.task.dropX,r.task.dropY,r.id);r.path=p||[];r.pathIdx=0;}
-            else if(r.carrying&&r.task){
+            if(!r.carrying&&r.task){
+                r.carrying=true;setState(r,'CARRYING');
+                const p=astar(Math.round(r.gx),Math.round(r.gy),r.task.dropX,r.task.dropY,r.id);
+                if(p){r.path=p;r.pathIdx=0;}else{setState(r,'ERROR');r.stateTimer=2000;}
+            } else if(r.carrying&&r.task){
                 stationProgress[r.workStation]=Math.min(100,stationProgress[r.workStation]+25);
                 if(stationProgress[r.workStation]>=100){stationProgress[r.workStation]=0;assemblyCycles++;tasksDone++;addLog(`Station ${r.workStation+1} cycle complete! Total: ${assemblyCycles}`,'green');}
                 r.carrying=false;r.task=null;setState(r,'IDLE');spawnParticles(r.px,r.py,'complete',r.color);
@@ -617,19 +678,38 @@
     function tickMapping(r,dt){
         if((r.state==='IDLE'||!r.frontierTarget||r.path.length===0)&&r.state!=='EXPLORING'){
             const f=findFrontier(r.id);
-            if(f){r.frontierTarget=f;setState(r,'EXPLORING');const p=astar(Math.round(r.gx),Math.round(r.gy),f.x,f.y,r.id);r.path=p||[];r.pathIdx=0;}
+            if(f){
+                r.frontierTarget=f;setState(r,'EXPLORING');
+                const p=astar(Math.round(r.gx),Math.round(r.gy),f.x,f.y,r.id);
+                if(p){r.path=p;r.pathIdx=0;}
+                else{r.frontierTarget=null;setState(r,'ERROR');r.stateTimer=2000;addLog(`⚠ ${r.shortName}: no frontier path found`,'amber');}
+            }
         }
         if(r.path.length&&r.pathIdx>=r.path.length&&r.state==='EXPLORING'){r.frontierTarget=null;setState(r,'IDLE');}
     }
 
+    // FIX #7: true Yamauchi-style frontier exploration
+    // A frontier cell is an unvisited, unblocked cell that is ADJACENT to at least one visited cell.
+    // We pick the globally nearest frontier cell (not a fixed zone) so the swarm
+    // dynamically divides coverage without pre-partitioning.
     function findFrontier(rid){
-        const r=robots[rid];let best=null,bestDist=9999;
-        const zone=rid%4,half=Math.floor(GRID/2);
-        for(let x=0;x<GRID;x++)for(let y=0;y<GRID;y++){
+        const r=robots[rid];
+        let best=null,bestDist=Infinity;
+        // Collect cells already targeted by other robots to reduce overlap
+        const claimed=new Set(robots.filter((_,i)=>i!==rid&&robots[i].frontierTarget)
+            .map(o=>`${o.frontierTarget.x},${o.frontierTarget.y}`));
+        for(let x=1;x<GRID-1;x++) for(let y=1;y<GRID-1;y++){
             if(fogGrid[x][y]||grid[x][y]>0)continue;
-            const iz=(zone===0&&x<half&&y<half)||(zone===1&&x>=half&&y<half)||(zone===2&&x<half&&y>=half)||(zone===3&&x>=half&&y>=half);
-            if(!iz)continue;
-            const d=Math.abs(r.gx-x)+Math.abs(r.gy-y);
+            // Frontier condition: at least one neighbour is already visited
+            const isFrontier=[[-1,0],[1,0],[0,-1],[0,1]].some(([dx,dy])=>{
+                const nx=x+dx,ny=y+dy;
+                return nx>=0&&nx<GRID&&ny>=0&&ny<GRID&&fogGrid[nx][ny];
+            });
+            if(!isFrontier)continue;
+            const key=`${x},${y}`;
+            // Lightly penalise claimed targets (don't hard-exclude, to avoid deadlock)
+            const penalty=claimed.has(key)?8:0;
+            const d=Math.abs(r.gx-x)+Math.abs(r.gy-y)+penalty;
             if(d<bestDist){bestDist=d;best={x,y};}
         }
         return best;
@@ -923,14 +1003,13 @@
         const sx=mw/GRID,sy=mh/GRID;
         for(let x=0;x<GRID;x++)for(let y=0;y<GRID;y++){
             const v=grid[x][y];
-            let c='#999999'; // Floor dots
-            if(v===1)c='#8B6914';else if(v===2)c='#CC3333'; // Shelves, Obstacles
-            if(x>=1&&x<=2&&y>=1&&y<=2)c='#00CC44'; // Charge
-            if(x>=30&&x<=32&&y>=28&&y<=29)c='#FFB300'; // Dispatch
-            
-            // Wall overrides
-            if((x===14&&y<=18)||(y===26&&x>=15)) c='#DDDDDD';
-            
+            // FIX #6: use grid value directly — catches ALL obstacles (initial + user-placed)
+            // v===0: floor, v===1: shelf/wall (brown), v===2: obstacle (red)
+            let c='#404040';
+            if(v===1)c='#8B6914';
+            if(v===2)c='#CC3333'; // user-placed obstacles now correctly show as red
+            if(x>=1&&x<=2&&y>=1&&y<=2)c='#00CC44'; // Charging station
+            if(x>=30&&x<=32&&y>=28&&y<=29)c='#FFB300'; // Dispatch zone
             ctx.fillStyle=c;ctx.fillRect(mx+x*sx,my+y*sy,Math.max(sx,1),Math.max(sy,1));
         }
         robots.forEach(r=>{ctx.fillStyle=r.color;ctx.fillRect(mx+r.gx*sx-1,my+r.gy*sy-1,3,3);});
@@ -1012,7 +1091,7 @@
         const hdg=Math.round(Math.atan2(r.gy-r.prevGy,r.gx-r.prevGx)*180/Math.PI+360)%360;
         document.getElementById('cam-pos').textContent=`POS: X:${r.gx.toFixed(1)} Y:${r.gy.toFixed(1)}`;
         document.getElementById('cam-hdg').textContent=`HDG: ${hdg}° | SPD: ${speed.toFixed(1)} t/s`;
-        document.getElementById('cam-title').textContent=`CAM — ${r.shortName}`;
+        document.getElementById('cam-title').textContent=`RADAR — ${r.shortName}`;// FIX #10
         // Battery bar
         const bf=document.getElementById('cam-batt-fill');
         bf.style.height=r.battery+'%';bf.style.background=r.battery>50?'#00E676':r.battery>20?'#FFB300':'#FF1744';
@@ -1160,12 +1239,44 @@
         highlightRobotCard();
     }
 
-    // ── ANALYTICS CHARTS ─────────────────────────────────
+    // ── ANALYTICS CHARTS ─────────────────────────────────────────────────
     function updateAnalyticsCharts(){if(document.getElementById('analytics-tab').style.display==='none')return;drawBatteryChart();drawTaskChart();drawOdoChart();drawStateChart();}
-    function drawBatteryChart(){const c=document.getElementById('battChart'),ctx2=c.getContext('2d');ctx2.clearRect(0,0,c.width,c.height);const bw=c.width/4-4;robots.forEach((r,i)=>{const x=i*(c.width/4)+2,pct=r.battery/100,h=Math.max(pct*(c.height-16),2),col=pct>0.5?'#00E676':pct>0.2?'#FFB300':'#FF1744';ctx2.fillStyle=col+'33';ctx2.fillRect(x,c.height-16-h+1,bw-2,h);ctx2.fillStyle=col;ctx2.fillRect(x,c.height-16-h,bw-2,3);ctx2.font='8px Share Tech Mono';ctx2.textAlign='center';ctx2.fillStyle=col;ctx2.fillText(r.battery.toFixed(0)+'%',x+(bw-2)/2,c.height-4);ctx2.fillStyle=r.color;ctx2.fillText(r.shortName,x+(bw-2)/2,10);});}
-    function drawTaskChart(){const c=document.getElementById('taskChart'),ctx2=c.getContext('2d');ctx2.clearRect(0,0,c.width,c.height);const total=robots.reduce((s,r)=>s+r.tasksCompleted,0)||1;let angle=-Math.PI/2,cx2=c.width/2,cy2=c.height/2,rad=Math.min(cx2,cy2)-10;robots.forEach(r=>{const slice=(r.tasksCompleted/total)*Math.PI*2;ctx2.beginPath();ctx2.moveTo(cx2,cy2);ctx2.arc(cx2,cy2,rad,angle,angle+slice);ctx2.closePath();ctx2.fillStyle=r.color+'aa';ctx2.fill();ctx2.strokeStyle=r.color;ctx2.lineWidth=1.5;ctx2.stroke();if(r.tasksCompleted>0){const mid=angle+slice/2;ctx2.font='8px Share Tech Mono';ctx2.textAlign='center';ctx2.fillStyle=r.color;ctx2.fillText(r.tasksCompleted,cx2+Math.cos(mid)*(rad*0.6),cy2+Math.sin(mid)*(rad*0.6)+3);}angle+=slice;});ctx2.font='8px Share Tech Mono';ctx2.textAlign='center';ctx2.fillStyle='rgba(232,237,245,0.4)';ctx2.fillText('TASKS',cx2,cy2+3);}
-    function drawOdoChart(){const c=document.getElementById('odoChart'),ctx2=c.getContext('2d');ctx2.clearRect(0,0,c.width,c.height);const max=Math.max(...robots.map(r=>r.odo),1);const bw=c.width/4-4;robots.forEach((r,i)=>{const x=i*(c.width/4)+2,h=Math.max((r.odo/max)*(c.height-16),2);ctx2.fillStyle=r.color+'33';ctx2.fillRect(x,c.height-16-h,bw-2,h);ctx2.fillStyle=r.color;ctx2.fillRect(x,c.height-16-h,bw-2,2);ctx2.font='8px Share Tech Mono';ctx2.textAlign='center';ctx2.fillStyle=r.color;ctx2.fillText(r.odo,x+(bw-2)/2,c.height-4);ctx2.fillText(r.shortName,x+(bw-2)/2,10);});}
-    function drawStateChart(){const c=document.getElementById('stateChart'),ctx2=c.getContext('2d');ctx2.clearRect(0,0,c.width,c.height);const stateColors=Object.fromEntries(Object.entries(STATES).map(([k,v])=>[k,v.color]));const rh=(c.height-4)/4;robots.forEach((r,i)=>{const last=r.stateLog.slice(-8);const y=i*rh+2,rowH=rh-2;if(!last.length)return;const totalSpan=Math.max(simTime-last[0].t,1);last.forEach((entry,j)=>{const dur=(j<last.length-1?last[j+1].t:simTime)-entry.t;const x=(entry.t-last[0].t)/totalSpan*c.width;const w=dur/totalSpan*c.width;ctx2.fillStyle=(stateColors[entry.state]||'#888')+'88';ctx2.fillRect(x,y,Math.max(w,1),rowH);});ctx2.font='7px Share Tech Mono';ctx2.textAlign='left';ctx2.fillStyle=r.color;ctx2.fillText(r.shortName,2,y+rowH-1);});}
+
+    // FIX #14: scale all chart canvases by devicePixelRatio so they are crisp on retina displays
+    function scaleChart(c){
+        const dpr=window.devicePixelRatio||1;
+        const logW=c.offsetWidth||parseInt(c.getAttribute('width'))||210;
+        const logH=c.offsetHeight||parseInt(c.getAttribute('height'))||80;
+        if(c.width!==logW*dpr||c.height!==logH*dpr){
+            c.width=logW*dpr; c.height=logH*dpr;
+            c.style.width=logW+'px'; c.style.height=logH+'px';
+        }
+        const ctx2=c.getContext('2d');
+        ctx2.setTransform(dpr,0,0,dpr,0,0);
+        return {ctx2,w:logW,h:logH};
+    }
+
+    function drawBatteryChart(){const c=document.getElementById('battChart');const {ctx2,w,h}=scaleChart(c);ctx2.clearRect(0,0,w,h);const bw=w/4-4;robots.forEach((r,i)=>{const x=i*(w/4)+2,pct=r.battery/100,barH=Math.max(pct*(h-16),2),col=pct>0.5?'#00E676':pct>0.2?'#FFB300':'#FF1744';ctx2.fillStyle=col+'33';ctx2.fillRect(x,h-16-barH+1,bw-2,barH);ctx2.fillStyle=col;ctx2.fillRect(x,h-16-barH,bw-2,3);ctx2.font='8px Share Tech Mono';ctx2.textAlign='center';ctx2.fillStyle=col;ctx2.fillText(r.battery.toFixed(0)+'%',x+(bw-2)/2,h-4);ctx2.fillStyle=r.color;ctx2.fillText(r.shortName,x+(bw-2)/2,10);});}
+    function drawTaskChart(){const c=document.getElementById('taskChart');const {ctx2,w,h}=scaleChart(c);ctx2.clearRect(0,0,w,h);const total=robots.reduce((s,r)=>s+r.tasksCompleted,0)||1;let angle=-Math.PI/2,cx2=w/2,cy2=h/2,rad=Math.min(cx2,cy2)-10;robots.forEach(r=>{const slice=(r.tasksCompleted/total)*Math.PI*2;ctx2.beginPath();ctx2.moveTo(cx2,cy2);ctx2.arc(cx2,cy2,rad,angle,angle+slice);ctx2.closePath();ctx2.fillStyle=r.color+'aa';ctx2.fill();ctx2.strokeStyle=r.color;ctx2.lineWidth=1.5;ctx2.stroke();if(r.tasksCompleted>0){const mid=angle+slice/2;ctx2.font='8px Share Tech Mono';ctx2.textAlign='center';ctx2.fillStyle=r.color;ctx2.fillText(r.tasksCompleted,cx2+Math.cos(mid)*(rad*0.6),cy2+Math.sin(mid)*(rad*0.6)+3);}angle+=slice;});ctx2.font='8px Share Tech Mono';ctx2.textAlign='center';ctx2.fillStyle='rgba(232,237,245,0.4)';ctx2.fillText('TASKS',cx2,cy2+3);}
+    function drawOdoChart(){const c=document.getElementById('odoChart');const {ctx2,w,h}=scaleChart(c);ctx2.clearRect(0,0,w,h);const max=Math.max(...robots.map(r=>r.odo),1);const bw=w/4-4;robots.forEach((r,i)=>{const x=i*(w/4)+2,barH=Math.max((r.odo/max)*(h-16),2);ctx2.fillStyle=r.color+'33';ctx2.fillRect(x,h-16-barH,bw-2,barH);ctx2.fillStyle=r.color;ctx2.fillRect(x,h-16-barH,bw-2,2);ctx2.font='8px Share Tech Mono';ctx2.textAlign='center';ctx2.fillStyle=r.color;ctx2.fillText(r.odo,x+(bw-2)/2,h-4);ctx2.fillText(r.shortName,x+(bw-2)/2,10);});}
+    function drawStateChart(){const c=document.getElementById('stateChart');const {ctx2,w,h}=scaleChart(c);ctx2.clearRect(0,0,w,h);const stateColors=Object.fromEntries(Object.entries(STATES).map(([k,v])=>[k,v.color]));const rh=(h-4)/4;robots.forEach((r,i)=>{const last=r.stateLog.slice(-8);const y=i*rh+2,rowH=rh-2;if(!last.length)return;const totalSpan=Math.max(simTime-last[0].t,1);last.forEach((entry,j)=>{const dur=(j<last.length-1?last[j+1].t:simTime)-entry.t;const x=(entry.t-last[0].t)/totalSpan*w;const bw2=dur/totalSpan*w;ctx2.fillStyle=(stateColors[entry.state]||'#888')+'88';ctx2.fillRect(x,y,Math.max(bw2,1),rowH);});ctx2.font='7px Share Tech Mono';ctx2.textAlign='left';ctx2.fillStyle=r.color;ctx2.fillText(r.shortName,2,y+rowH-1);});}
+
+    // FIX #15: heatmap toggle
+    let heatmapVisible=false;
+    function toggleHeatmap(){
+        heatmapVisible=!heatmapVisible;
+        const hc=document.getElementById('heatmap-canvas');
+        const btn=document.getElementById('heatmap-btn');
+        if(heatmapVisible){
+            hc.style.display='block';
+            btn.style.background='rgba(255,100,0,0.2)';btn.style.borderColor='#FF6600';btn.style.color='#FF6600';
+            addLog('Heatmap ON','amber');
+        } else {
+            hc.style.display='none';
+            btn.style.background='';btn.style.borderColor='';btn.style.color='';
+            addLog('Heatmap OFF','amber');
+        }
+    }
 
     // ── LOG ───────────────────────────────────────────────
     let logCount=0,logData=[];
@@ -1246,6 +1357,9 @@
         if(scenario==='warehouse')scheduleAutoTask();
         addLog(`Scenario: ${scenario.toUpperCase()}`,'blue');
     });
+    // FIX #9: speedMult is used as a divisor in movement math (ms = 3*dt/1000/speedMult)
+    // so higher value = faster movement. Values 0.5/1/2/4 map to labels 0.5×/1×/2×/4×.
+    // The option values are correct; this comment documents the non-obvious inversion.
     document.getElementById('speed-select').addEventListener('change',e=>speedMult=parseFloat(e.target.value));
     document.getElementById('pause-btn').addEventListener('click',()=>{
         paused=!paused;
@@ -1263,8 +1377,12 @@
         addLog('Simulation RESET','red');
     });
     document.addEventListener('keydown',e=>{
+        // FIX #8: do not fire keyboard shortcuts when user is typing in a form element
+        const tag=e.target.tagName;
+        if(['INPUT','SELECT','TEXTAREA'].includes(tag))return;
         if(e.code==='Space'){e.preventDefault();document.getElementById('pause-btn').click();}
-        if(e.code==='KeyR'&&!e.ctrlKey)document.getElementById('reset-btn').click();
+        // FIX #8: R key guard (accidental reset when focused on dropdowns)
+        if(e.code==='KeyR'&&!e.ctrlKey&&!e.altKey)document.getElementById('reset-btn').click();
         if(e.code==='KeyA')switchRightTab(document.getElementById('tab-analytics').classList.contains('active')?'status':'analytics');
         if(e.code==='Escape')closeModal();
         if(e.code==='KeyH')openHelp();

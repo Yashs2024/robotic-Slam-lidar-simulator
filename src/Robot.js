@@ -207,6 +207,37 @@ export class Robot {
         return hitWall;
     }
 
+    /**
+     * Teleport-style pose update for non-keyboard agents (e.g. patrol partners).
+     * Returns false if the pose would intersect a static wall segment.
+     */
+    trySetPose(x, y, theta, environment) {
+        if (!environment) return false;
+        for (const wall of environment.getWalls()) {
+            if (this.circleLineIntersect(x, y, this.radius, wall.start, wall.end)) {
+                return false;
+            }
+        }
+        this.x = x;
+        this.y = y;
+        this.theta = theta;
+        if (this.driftAmount === 0) {
+            this.believedX = x;
+            this.believedY = y;
+            this.believedTheta = theta;
+        }
+        this._trailCounter++;
+        if (this._trailCounter % 3 === 0) {
+            this.trueTrail.push({ x: this.x, y: this.y });
+            this.believedTrail.push({ x: this.believedX, y: this.believedY });
+            if (this.trueTrail.length > this.maxTrailLength) {
+                this.trueTrail.shift();
+                this.believedTrail.shift();
+            }
+        }
+        return true;
+    }
+
     _updateBelievedPose(hitWall) {
         if (this.driftAmount === 0) {
             // Perfect odometry

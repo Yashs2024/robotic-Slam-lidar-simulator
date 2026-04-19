@@ -1,239 +1,1378 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>RoboAI Suite — Robotics Simulation Platform</title>
-  <meta name="description" content="Unified robotics simulation platform featuring SLAM, NEXUS kinematics engine, and HIVE industrial swarm logistics." />
-  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <meta name="description"
+    content="Unified robotics simulation platform featuring SLAM, NEXUS kinematics engine, and HIVE industrial swarm logistics." />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=Inter:wght@300;400;500;600&display=swap"
+    rel="stylesheet">
   <style>
     :root {
-      --bg:#050810;--bg2:#080d1a;--cyan:#00F5FF;--violet:#9B5DE5;--amber:#F59E0B;--green:#10B981;
-      --glass:rgba(10,15,30,0.65);--glass-b:rgba(0,245,255,0.15);--glass-bv:rgba(155,93,229,0.2);
-      --text:#E0E6ED;--muted:#64748b;--font-hd:'Orbitron',sans-serif;--font-body:'Inter',sans-serif;
+      --bg: #050810;
+      --bg2: #080d1a;
+      --cyan: #00F5FF;
+      --violet: #9B5DE5;
+      --amber: #F59E0B;
+      --green: #10B981;
+      --glass: rgba(10, 15, 30, 0.65);
+      --glass-b: rgba(0, 245, 255, 0.15);
+      --glass-bv: rgba(155, 93, 229, 0.2);
+      --text: #E0E6ED;
+      --muted: #64748b;
+      --font-hd: 'Orbitron', sans-serif;
+      --font-body: 'Inter', sans-serif;
     }
-    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-    html{scroll-behavior:smooth}
-    body{background:var(--bg);color:var(--text);font-family:var(--font-body);overflow-x:hidden}
-    .hidden{display:none!important}
-    .gradient-text{background:linear-gradient(135deg,var(--cyan),var(--violet));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0
+    }
+
+    html {
+      scroll-behavior: smooth
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font-body);
+      overflow-x: hidden
+    }
+
+    .hidden {
+      display: none !important
+    }
+
+    .gradient-text {
+      background: linear-gradient(135deg, var(--cyan), var(--violet));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text
+    }
 
     /* Animated BG */
-    .premium-bg{position:relative;background:radial-gradient(ellipse 80% 60% at 50% -10%,rgba(0,245,255,0.08) 0%,transparent 60%),radial-gradient(ellipse 60% 50% at 80% 80%,rgba(155,93,229,0.07) 0%,transparent 60%),var(--bg)}
-    .grid-overlay{position:absolute;inset:0;pointer-events:none;background-image:linear-gradient(rgba(0,245,255,0.04) 1px,transparent 1px),linear-gradient(90deg,rgba(0,245,255,0.04) 1px,transparent 1px);background-size:60px 60px;animation:gridDrift 20s linear infinite}
-    @keyframes gridDrift{from{background-position:0 0}to{background-position:60px 60px}}
-    .glow-orb{position:absolute;border-radius:50%;pointer-events:none;filter:blur(80px);animation:orbFloat 8s ease-in-out infinite alternate}
-    .glow-orb.a{width:400px;height:400px;background:rgba(0,245,255,0.06);top:-100px;left:-100px}
-    .glow-orb.b{width:300px;height:300px;background:rgba(155,93,229,0.07);bottom:10%;right:-80px;animation-delay:-4s}
-    @keyframes orbFloat{from{transform:translate(0,0)}to{transform:translate(30px,20px)}}
+    .premium-bg {
+      position: relative;
+      background: radial-gradient(ellipse 80% 60% at 50% -10%, rgba(0, 245, 255, 0.08) 0%, transparent 60%), radial-gradient(ellipse 60% 50% at 80% 80%, rgba(155, 93, 229, 0.07) 0%, transparent 60%), var(--bg)
+    }
+
+    .grid-overlay {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background-image: linear-gradient(rgba(0, 245, 255, 0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(0, 245, 255, 0.04) 1px, transparent 1px);
+      background-size: 60px 60px;
+      animation: gridDrift 20s linear infinite
+    }
+
+    @keyframes gridDrift {
+      from {
+        background-position: 0 0
+      }
+
+      to {
+        background-position: 60px 60px
+      }
+    }
+
+    .glow-orb {
+      position: absolute;
+      border-radius: 50%;
+      pointer-events: none;
+      filter: blur(80px);
+      animation: orbFloat 8s ease-in-out infinite alternate
+    }
+
+    .glow-orb.a {
+      width: 400px;
+      height: 400px;
+      background: rgba(0, 245, 255, 0.06);
+      top: -100px;
+      left: -100px
+    }
+
+    .glow-orb.b {
+      width: 300px;
+      height: 300px;
+      background: rgba(155, 93, 229, 0.07);
+      bottom: 10%;
+      right: -80px;
+      animation-delay: -4s
+    }
+
+    @keyframes orbFloat {
+      from {
+        transform: translate(0, 0)
+      }
+
+      to {
+        transform: translate(30px, 20px)
+      }
+    }
 
     /* Screen transitions */
-    .screen{min-height:100vh;transition:opacity 0.5s ease}
+    .screen {
+      min-height: 100vh;
+      transition: opacity 0.5s ease
+    }
 
     /* ═══ NAVBAR ═══ */
-    .navbar{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:center;justify-content:space-between;padding:0 40px;height:64px;background:rgba(5,8,16,0.88);backdrop-filter:blur(16px);border-bottom:1px solid rgba(0,245,255,0.08)}
-    
+    .navbar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 40px;
+      height: 64px;
+      background: rgba(5, 8, 16, 0.88);
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid rgba(0, 245, 255, 0.08)
+    }
+
     /* Animated Shiny Text - React Component Native Port */
     .shiny-text {
-      background: linear-gradient(90deg, rgba(224,230,237,0.4) 0%, #fff 25%, rgba(224,230,237,0.4) 50%, #fff 75%, rgba(224,230,237,0.4) 100%);
+      background: linear-gradient(90deg, rgba(224, 230, 237, 0.4) 0%, #fff 25%, rgba(224, 230, 237, 0.4) 50%, #fff 75%, rgba(224, 230, 237, 0.4) 100%);
       background-size: 200% auto;
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       animation: shinySweep 2s linear infinite;
       transition: text-shadow 0.3s ease;
     }
+
     .shiny-text-cyan {
-      background: linear-gradient(90deg, rgba(0,245,255,0.4) 0%, #00F5FF 25%, rgba(0,245,255,0.4) 50%, #00F5FF 75%, rgba(0,245,255,0.4) 100%);
+      background: linear-gradient(90deg, rgba(0, 245, 255, 0.4) 0%, #00F5FF 25%, rgba(0, 245, 255, 0.4) 50%, #00F5FF 75%, rgba(0, 245, 255, 0.4) 100%);
       background-size: 200% auto;
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       animation: shinySweep 2s linear infinite reverse;
     }
-    .nav-brand:hover .shiny-text, .auth-logo:hover .shiny-text, .hub-brand:hover .shiny-text {
-      text-shadow: 0 0 12px rgba(255,255,255,0.3);
-    }
-    @keyframes shinySweep {
-      100% { background-position: -200% center; }
+
+    .nav-brand:hover .shiny-text,
+    .auth-logo:hover .shiny-text,
+    .hub-brand:hover .shiny-text {
+      text-shadow: 0 0 12px rgba(255, 255, 255, 0.3);
     }
 
-    .nav-brand{font-family:var(--font-hd);font-size:1.2rem;letter-spacing:4px;cursor:pointer}
-    .nav-links{display:flex;gap:24px;align-items:center}
-    .nav-links a{color:var(--muted);font-size:0.8rem;letter-spacing:1px;text-decoration:none;transition:color 0.2s}
-    .nav-links a:hover{color:var(--cyan)}
-    .nav-btn{background:linear-gradient(135deg,rgba(0,245,255,0.15),rgba(155,93,229,0.15));border:1px solid var(--cyan);color:var(--cyan);font-family:var(--font-hd);font-size:0.65rem;letter-spacing:2px;padding:8px 20px;cursor:pointer;transition:all 0.3s;text-decoration:none}
-    .nav-btn:hover{box-shadow:0 0 20px rgba(0,245,255,0.3);transform:translateY(-1px)}
+    @keyframes shinySweep {
+      100% {
+        background-position: -200% center;
+      }
+    }
+
+    .nav-brand {
+      font-family: var(--font-hd);
+      font-size: 1.2rem;
+      letter-spacing: 4px;
+      cursor: pointer
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 24px;
+      align-items: center
+    }
+
+    .nav-links a {
+      color: var(--muted);
+      font-size: 0.8rem;
+      letter-spacing: 1px;
+      text-decoration: none;
+      transition: color 0.2s
+    }
+
+    .nav-links a:hover {
+      color: var(--cyan)
+    }
+
+    .nav-btn {
+      background: linear-gradient(135deg, rgba(0, 245, 255, 0.15), rgba(155, 93, 229, 0.15));
+      border: 1px solid var(--cyan);
+      color: var(--cyan);
+      font-family: var(--font-hd);
+      font-size: 0.65rem;
+      letter-spacing: 2px;
+      padding: 8px 20px;
+      cursor: pointer;
+      transition: all 0.3s;
+      text-decoration: none
+    }
+
+    .nav-btn:hover {
+      box-shadow: 0 0 20px rgba(0, 245, 255, 0.3);
+      transform: translateY(-1px)
+    }
 
     /* ═══ HERO ═══ */
-    .hero{display:flex;align-items:center;justify-content:center;min-height:100vh;padding:100px 48px 60px;gap:60px;flex-wrap:wrap;position:relative;overflow:hidden}
-    .hero-text{max-width:600px;flex:1;min-width:320px}
-    .hero-badge{display:inline-block;color:var(--cyan);border:1px solid rgba(0,245,255,0.3);background:rgba(0,245,255,0.05);font-family:var(--font-hd);font-size:0.55rem;letter-spacing:3px;padding:6px 16px;border-radius:20px;margin-bottom:28px}
-    .hero-title{font-family:var(--font-hd);font-size:clamp(2.2rem,5vw,4rem);font-weight:900;line-height:1.1;letter-spacing:2px;margin-bottom:20px}
-    .hero-sub{font-size:1.05rem;color:var(--muted);line-height:1.8;margin-bottom:36px;max-width:480px}
-    .hero-cta{display:flex;gap:16px;flex-wrap:wrap}
-    .btn-lg{padding:14px 32px;font-family:var(--font-hd);font-size:0.75rem;letter-spacing:2px;cursor:pointer;transition:all 0.3s;border-radius:4px}
-    .btn-cyan{background:linear-gradient(135deg,rgba(0,245,255,0.15),rgba(155,93,229,0.1));border:1px solid var(--cyan);color:var(--cyan)}
-    .btn-cyan:hover{box-shadow:0 0 30px rgba(0,245,255,0.3);transform:translateY(-2px)}
-    .btn-ghost{background:transparent;border:1px solid rgba(255,255,255,0.12);color:var(--muted)}
-    .btn-ghost:hover{border-color:var(--cyan);color:var(--cyan)}
+    .hero {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 100px 48px 60px;
+      gap: 60px;
+      flex-wrap: wrap;
+      position: relative;
+      overflow: hidden
+    }
+
+    .hero-text {
+      max-width: 600px;
+      flex: 1;
+      min-width: 320px
+    }
+
+    .hero-badge {
+      display: inline-block;
+      color: var(--cyan);
+      border: 1px solid rgba(0, 245, 255, 0.3);
+      background: rgba(0, 245, 255, 0.05);
+      font-family: var(--font-hd);
+      font-size: 0.55rem;
+      letter-spacing: 3px;
+      padding: 6px 16px;
+      border-radius: 20px;
+      margin-bottom: 28px
+    }
+
+    .hero-title {
+      font-family: var(--font-hd);
+      font-size: clamp(2.2rem, 5vw, 4rem);
+      font-weight: 900;
+      line-height: 1.1;
+      letter-spacing: 2px;
+      margin-bottom: 20px
+    }
+
+    .hero-sub {
+      font-size: 1.05rem;
+      color: var(--muted);
+      line-height: 1.8;
+      margin-bottom: 36px;
+      max-width: 480px
+    }
+
+    .hero-cta {
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap
+    }
+
+    .btn-lg {
+      padding: 14px 32px;
+      font-family: var(--font-hd);
+      font-size: 0.75rem;
+      letter-spacing: 2px;
+      cursor: pointer;
+      transition: all 0.3s;
+      border-radius: 4px
+    }
+
+    .btn-cyan {
+      background: linear-gradient(135deg, rgba(0, 245, 255, 0.15), rgba(155, 93, 229, 0.1));
+      border: 1px solid var(--cyan);
+      color: var(--cyan)
+    }
+
+    .btn-cyan:hover {
+      box-shadow: 0 0 30px rgba(0, 245, 255, 0.3);
+      transform: translateY(-2px)
+    }
+
+    .btn-ghost {
+      background: transparent;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      color: var(--muted)
+    }
+
+    .btn-ghost:hover {
+      border-color: var(--cyan);
+      color: var(--cyan)
+    }
 
     /* 3D Robot Visual */
-    .hero-visual{flex:1;min-width:300px;max-width:500px;display:flex;align-items:center;justify-content:center;position:relative}
-    .robot-scene{width:380px;height:380px;position:relative;perspective:800px}
-    .robot-body{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;animation:robotHover 4s ease-in-out infinite}
-    @keyframes robotHover{0%,100%{transform:translateY(0) rotateY(0deg)}50%{transform:translateY(-15px) rotateY(5deg)}}
-    .robot-svg{width:240px;height:240px;filter:drop-shadow(0 0 40px rgba(0,245,255,0.3))}
-    .orbit-ring{position:absolute;border-radius:50%;border:1px solid;animation:spinRing linear infinite}
-    .ring-1{inset:20px;border-color:rgba(0,245,255,0.15);animation-duration:12s}
-    .ring-2{inset:0;border-color:rgba(155,93,229,0.1);animation-duration:18s;animation-direction:reverse}
-    @keyframes spinRing{from{transform:rotateX(65deg) rotateZ(0deg)}to{transform:rotateX(65deg) rotateZ(360deg)}}
-    .orbit-dot{position:absolute;width:8px;height:8px;border-radius:50%;animation:dotPulse 2s infinite}
-    @keyframes dotPulse{0%,100%{opacity:1;box-shadow:0 0 6px currentColor}50%{opacity:0.4}}
-    .scan-line{position:absolute;left:50%;top:10%;height:80%;width:2px;background:linear-gradient(to bottom,transparent,var(--cyan),transparent);opacity:0.3;animation:scanMove 3s ease-in-out infinite;transform-origin:top}
-    @keyframes scanMove{0%,100%{transform:translateX(-60px)}50%{transform:translateX(60px)}}
+    .hero-visual {
+      flex: 1;
+      min-width: 300px;
+      max-width: 500px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative
+    }
+
+    .robot-scene {
+      width: 380px;
+      height: 380px;
+      position: relative;
+      perspective: 800px
+    }
+
+    .robot-body {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      animation: robotHover 4s ease-in-out infinite
+    }
+
+    @keyframes robotHover {
+
+      0%,
+      100% {
+        transform: translateY(0) rotateY(0deg)
+      }
+
+      50% {
+        transform: translateY(-15px) rotateY(5deg)
+      }
+    }
+
+    .robot-svg {
+      width: 240px;
+      height: 240px;
+      filter: drop-shadow(0 0 40px rgba(0, 245, 255, 0.3))
+    }
+
+    .orbit-ring {
+      position: absolute;
+      border-radius: 50%;
+      border: 1px solid;
+      animation: spinRing linear infinite
+    }
+
+    .ring-1 {
+      inset: 20px;
+      border-color: rgba(0, 245, 255, 0.15);
+      animation-duration: 12s
+    }
+
+    .ring-2 {
+      inset: 0;
+      border-color: rgba(155, 93, 229, 0.1);
+      animation-duration: 18s;
+      animation-direction: reverse
+    }
+
+    @keyframes spinRing {
+      from {
+        transform: rotateX(65deg) rotateZ(0deg)
+      }
+
+      to {
+        transform: rotateX(65deg) rotateZ(360deg)
+      }
+    }
+
+    .orbit-dot {
+      position: absolute;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      animation: dotPulse 2s infinite
+    }
+
+    @keyframes dotPulse {
+
+      0%,
+      100% {
+        opacity: 1;
+        box-shadow: 0 0 6px currentColor
+      }
+
+      50% {
+        opacity: 0.4
+      }
+    }
+
+    .scan-line {
+      position: absolute;
+      left: 50%;
+      top: 10%;
+      height: 80%;
+      width: 2px;
+      background: linear-gradient(to bottom, transparent, var(--cyan), transparent);
+      opacity: 0.3;
+      animation: scanMove 3s ease-in-out infinite;
+      transform-origin: top
+    }
+
+    @keyframes scanMove {
+
+      0%,
+      100% {
+        transform: translateX(-60px)
+      }
+
+      50% {
+        transform: translateX(60px)
+      }
+    }
 
     /* ═══ STATS BAR ═══ */
-    .stats-bar{display:flex;justify-content:center;gap:60px;padding:48px 20px;border-top:1px solid rgba(255,255,255,0.05);border-bottom:1px solid rgba(255,255,255,0.05);background:rgba(255,255,255,0.01);flex-wrap:wrap}
-    .stat-item{text-align:center}
-    .stat-num{font-family:var(--font-hd);font-size:2.2rem;font-weight:900;display:block}
-    .stat-lbl{font-size:0.65rem;letter-spacing:2px;color:var(--muted);margin-top:4px;display:block}
+    .stats-bar {
+      display: flex;
+      justify-content: center;
+      gap: 60px;
+      padding: 48px 20px;
+      border-top: 1px solid rgba(255, 255, 255, 0.05);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      background: rgba(255, 255, 255, 0.01);
+      flex-wrap: wrap
+    }
+
+    .stat-item {
+      text-align: center
+    }
+
+    .stat-num {
+      font-family: var(--font-hd);
+      font-size: 2.2rem;
+      font-weight: 900;
+      display: block
+    }
+
+    .stat-lbl {
+      font-size: 0.65rem;
+      letter-spacing: 2px;
+      color: var(--muted);
+      margin-top: 4px;
+      display: block
+    }
 
     /* ═══ SIMULATORS OVERVIEW ═══ */
-    .overview{padding:80px 48px;max-width:1200px;margin:0 auto}
-    .section-label{font-family:var(--font-hd);font-size:0.6rem;letter-spacing:4px;color:var(--cyan);text-align:center;margin-bottom:12px}
-    .section-title{font-family:var(--font-hd);font-size:clamp(1.4rem,3vw,2rem);font-weight:700;text-align:center;margin-bottom:12px}
-    .section-sub{color:var(--muted);text-align:center;font-size:0.9rem;max-width:520px;margin:0 auto 56px}
-    .sim-overview-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:24px}
+    .overview {
+      padding: 80px 48px;
+      max-width: 1200px;
+      margin: 0 auto
+    }
 
-    .ov-card{background:var(--glass);border:1px solid var(--glass-b);backdrop-filter:blur(16px);border-radius:16px;padding:32px;transition:all 0.4s cubic-bezier(0.175,0.885,0.32,1.275);position:relative;overflow:hidden}
-    .ov-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;opacity:0;transition:opacity 0.3s}
-    .ov-card:hover{transform:translateY(-8px)}
-    .ov-card:hover::before{opacity:1}
-    .ov-card.c1::before{background:linear-gradient(90deg,transparent,var(--cyan),transparent)}
-    .ov-card.c1:hover{border-color:rgba(0,245,255,0.35);box-shadow:0 16px 48px rgba(0,245,255,0.08)}
-    .ov-card.c2::before{background:linear-gradient(90deg,transparent,var(--violet),transparent)}
-    .ov-card.c2{border-color:rgba(155,93,229,0.15)}
-    .ov-card.c2:hover{border-color:rgba(155,93,229,0.4);box-shadow:0 16px 48px rgba(155,93,229,0.08)}
-    .ov-card.c3::before{background:linear-gradient(90deg,transparent,var(--amber),transparent)}
-    .ov-card.c3{border-color:rgba(245,159,11,0.15)}
-    .ov-card.c3:hover{border-color:rgba(245,159,11,0.4);box-shadow:0 16px 48px rgba(245,159,11,0.08)}
+    .section-label {
+      font-family: var(--font-hd);
+      font-size: 0.6rem;
+      letter-spacing: 4px;
+      color: var(--cyan);
+      text-align: center;
+      margin-bottom: 12px
+    }
 
-    .ov-icon{width:56px;height:56px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:1.8rem;margin-bottom:20px}
-    .ic1{background:rgba(0,245,255,0.1);border:1px solid rgba(0,245,255,0.2)}
-    .ic2{background:rgba(155,93,229,0.1);border:1px solid rgba(155,93,229,0.2)}
-    .ic3{background:rgba(245,159,11,0.1);border:1px solid rgba(245,159,11,0.2)}
-    .ov-name{font-family:var(--font-hd);font-size:1.1rem;letter-spacing:2px;margin-bottom:10px}
-    .ov-desc{color:var(--muted);font-size:0.82rem;line-height:1.7;margin-bottom:20px}
-    .ov-tags{display:flex;flex-wrap:wrap;gap:6px}
-    .ov-tag{font-size:0.65rem;padding:3px 10px;border-radius:20px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);color:var(--muted)}
+    .section-title {
+      font-family: var(--font-hd);
+      font-size: clamp(1.4rem, 3vw, 2rem);
+      font-weight: 700;
+      text-align: center;
+      margin-bottom: 12px
+    }
+
+    .section-sub {
+      color: var(--muted);
+      text-align: center;
+      font-size: 0.9rem;
+      max-width: 520px;
+      margin: 0 auto 56px
+    }
+
+    .sim-overview-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 24px
+    }
+
+    .ov-card {
+      background: var(--glass);
+      border: 1px solid var(--glass-b);
+      backdrop-filter: blur(16px);
+      border-radius: 16px;
+      padding: 32px;
+      transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      position: relative;
+      overflow: hidden
+    }
+
+    .ov-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 2px;
+      opacity: 0;
+      transition: opacity 0.3s
+    }
+
+    .ov-card:hover {
+      transform: translateY(-8px)
+    }
+
+    .ov-card:hover::before {
+      opacity: 1
+    }
+
+    .ov-card.c1::before {
+      background: linear-gradient(90deg, transparent, var(--cyan), transparent)
+    }
+
+    .ov-card.c1:hover {
+      border-color: rgba(0, 245, 255, 0.35);
+      box-shadow: 0 16px 48px rgba(0, 245, 255, 0.08)
+    }
+
+    .ov-card.c2::before {
+      background: linear-gradient(90deg, transparent, var(--violet), transparent)
+    }
+
+    .ov-card.c2 {
+      border-color: rgba(155, 93, 229, 0.15)
+    }
+
+    .ov-card.c2:hover {
+      border-color: rgba(155, 93, 229, 0.4);
+      box-shadow: 0 16px 48px rgba(155, 93, 229, 0.08)
+    }
+
+    .ov-card.c3::before {
+      background: linear-gradient(90deg, transparent, var(--amber), transparent)
+    }
+
+    .ov-card.c3 {
+      border-color: rgba(245, 159, 11, 0.15)
+    }
+
+    .ov-card.c3:hover {
+      border-color: rgba(245, 159, 11, 0.4);
+      box-shadow: 0 16px 48px rgba(245, 159, 11, 0.08)
+    }
+
+    .ov-icon {
+      width: 56px;
+      height: 56px;
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.8rem;
+      margin-bottom: 20px
+    }
+
+    .ic1 {
+      background: rgba(0, 245, 255, 0.1);
+      border: 1px solid rgba(0, 245, 255, 0.2)
+    }
+
+    .ic2 {
+      background: rgba(155, 93, 229, 0.1);
+      border: 1px solid rgba(155, 93, 229, 0.2)
+    }
+
+    .ic3 {
+      background: rgba(245, 159, 11, 0.1);
+      border: 1px solid rgba(245, 159, 11, 0.2)
+    }
+
+    .ov-name {
+      font-family: var(--font-hd);
+      font-size: 1.1rem;
+      letter-spacing: 2px;
+      margin-bottom: 10px
+    }
+
+    .ov-desc {
+      color: var(--muted);
+      font-size: 0.82rem;
+      line-height: 1.7;
+      margin-bottom: 20px
+    }
+
+    .ov-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px
+    }
+
+    .ov-tag {
+      font-size: 0.65rem;
+      padding: 3px 10px;
+      border-radius: 20px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      color: var(--muted)
+    }
 
     /* ═══ TECH SECTION ═══ */
-    .tech-strip{display:flex;justify-content:center;gap:40px;flex-wrap:wrap;padding:48px 20px;border-top:1px solid rgba(255,255,255,0.05)}
-    .tech-chip{display:flex;align-items:center;gap:10px;background:var(--glass);border:1px solid var(--glass-b);border-radius:10px;padding:12px 20px;backdrop-filter:blur(10px)}
-    .tech-chip .tc-icon{font-size:1.3rem}
-    .tech-chip .tc-label{font-family:var(--font-hd);font-size:0.55rem;letter-spacing:2px;color:var(--cyan)}
-    .tech-chip .tc-sub{font-size:0.7rem;color:var(--muted)}
+    .tech-strip {
+      display: flex;
+      justify-content: center;
+      gap: 40px;
+      flex-wrap: wrap;
+      padding: 48px 20px;
+      border-top: 1px solid rgba(255, 255, 255, 0.05)
+    }
+
+    .tech-chip {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: var(--glass);
+      border: 1px solid var(--glass-b);
+      border-radius: 10px;
+      padding: 12px 20px;
+      backdrop-filter: blur(10px)
+    }
+
+    .tech-chip .tc-icon {
+      font-size: 1.3rem
+    }
+
+    .tech-chip .tc-label {
+      font-family: var(--font-hd);
+      font-size: 0.55rem;
+      letter-spacing: 2px;
+      color: var(--cyan)
+    }
+
+    .tech-chip .tc-sub {
+      font-size: 0.7rem;
+      color: var(--muted)
+    }
 
     /* ═══ CTA SECTION ═══ */
-    .cta-section{padding:80px 20px;text-align:center;position:relative}
-    .cta-section .cta-title{font-family:var(--font-hd);font-size:clamp(1.5rem,3vw,2.2rem);font-weight:700;margin-bottom:16px}
-    .cta-section .cta-sub{color:var(--muted);font-size:0.95rem;margin-bottom:36px}
-    .btn-xl{padding:16px 48px;font-family:var(--font-hd);font-size:0.85rem;letter-spacing:3px;cursor:pointer;border:1px solid var(--cyan);color:var(--cyan);background:linear-gradient(135deg,rgba(0,245,255,0.15),rgba(155,93,229,0.15));transition:all 0.3s;border-radius:6px}
-    .btn-xl:hover{box-shadow:0 0 40px rgba(0,245,255,0.3),0 0 80px rgba(155,93,229,0.15);transform:translateY(-2px)}
+    .cta-section {
+      padding: 80px 20px;
+      text-align: center;
+      position: relative
+    }
+
+    .cta-section .cta-title {
+      font-family: var(--font-hd);
+      font-size: clamp(1.5rem, 3vw, 2.2rem);
+      font-weight: 700;
+      margin-bottom: 16px
+    }
+
+    .cta-section .cta-sub {
+      color: var(--muted);
+      font-size: 0.95rem;
+      margin-bottom: 36px
+    }
+
+    .btn-xl {
+      padding: 16px 48px;
+      font-family: var(--font-hd);
+      font-size: 0.85rem;
+      letter-spacing: 3px;
+      cursor: pointer;
+      border: 1px solid var(--cyan);
+      color: var(--cyan);
+      background: linear-gradient(135deg, rgba(0, 245, 255, 0.15), rgba(155, 93, 229, 0.15));
+      transition: all 0.3s;
+      border-radius: 6px
+    }
+
+    .btn-xl:hover {
+      box-shadow: 0 0 40px rgba(0, 245, 255, 0.3), 0 0 80px rgba(155, 93, 229, 0.15);
+      transform: translateY(-2px)
+    }
 
     /* ═══ DONATE BUTTON ═══ */
-    .btn-donate{background:linear-gradient(135deg,rgba(245,159,11,0.18),rgba(245,159,11,0.08));border:1px solid var(--amber);color:var(--amber);font-family:var(--font-hd);font-size:0.65rem;letter-spacing:2px;padding:8px 18px;cursor:pointer;transition:all 0.3s;border-radius:4px;display:flex;align-items:center;gap:6px;text-decoration:none}
-    .btn-donate:hover{box-shadow:0 0 24px rgba(245,159,11,0.4),0 0 60px rgba(245,159,11,0.1);transform:translateY(-1px);background:linear-gradient(135deg,rgba(245,159,11,0.28),rgba(245,159,11,0.15))}
-    .btn-donate-lg{padding:14px 32px;font-family:var(--font-hd);font-size:0.75rem;letter-spacing:2px;cursor:pointer;transition:all 0.3s;border-radius:4px;background:linear-gradient(135deg,rgba(245,159,11,0.18),rgba(245,159,11,0.08));border:1px solid var(--amber);color:var(--amber);display:flex;align-items:center;gap:8px}
-    .btn-donate-lg:hover{box-shadow:0 0 30px rgba(245,159,11,0.35);transform:translateY(-2px)}
+    .btn-donate {
+      background: linear-gradient(135deg, rgba(245, 159, 11, 0.18), rgba(245, 159, 11, 0.08));
+      border: 1px solid var(--amber);
+      color: var(--amber);
+      font-family: var(--font-hd);
+      font-size: 0.65rem;
+      letter-spacing: 2px;
+      padding: 8px 18px;
+      cursor: pointer;
+      transition: all 0.3s;
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      text-decoration: none
+    }
+
+    .btn-donate:hover {
+      box-shadow: 0 0 24px rgba(245, 159, 11, 0.4), 0 0 60px rgba(245, 159, 11, 0.1);
+      transform: translateY(-1px);
+      background: linear-gradient(135deg, rgba(245, 159, 11, 0.28), rgba(245, 159, 11, 0.15))
+    }
+
+    .btn-donate-lg {
+      padding: 14px 32px;
+      font-family: var(--font-hd);
+      font-size: 0.75rem;
+      letter-spacing: 2px;
+      cursor: pointer;
+      transition: all 0.3s;
+      border-radius: 4px;
+      background: linear-gradient(135deg, rgba(245, 159, 11, 0.18), rgba(245, 159, 11, 0.08));
+      border: 1px solid var(--amber);
+      color: var(--amber);
+      display: flex;
+      align-items: center;
+      gap: 8px
+    }
+
+    .btn-donate-lg:hover {
+      box-shadow: 0 0 30px rgba(245, 159, 11, 0.35);
+      transform: translateY(-2px)
+    }
 
     /* ═══ DONATE MODAL ═══ */
-    .donate-overlay{position:fixed;inset:0;z-index:999;display:flex;align-items:center;justify-content:center;background:rgba(5,8,16,0.85);backdrop-filter:blur(12px);opacity:0;pointer-events:none;transition:opacity 0.35s ease}
-    .donate-overlay.open{opacity:1;pointer-events:all}
-    .donate-modal{background:linear-gradient(145deg,rgba(10,15,30,0.95),rgba(8,12,24,0.98));border:1px solid rgba(245,159,11,0.3);border-radius:24px;padding:40px 36px;max-width:420px;width:90%;position:relative;box-shadow:0 0 80px rgba(245,159,11,0.12),0 40px 80px rgba(0,0,0,0.6);transform:translateY(24px) scale(0.96);transition:transform 0.35s cubic-bezier(0.175,0.885,0.32,1.275)}
-    .donate-overlay.open .donate-modal{transform:translateY(0) scale(1)}
-    .donate-modal::before{content:'';position:absolute;top:0;left:15%;right:15%;height:1px;background:linear-gradient(90deg,transparent,var(--amber),transparent)}
-    .donate-close{position:absolute;top:16px;right:18px;background:transparent;border:1px solid rgba(255,255,255,0.1);color:var(--muted);font-size:1rem;width:32px;height:32px;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.2s;line-height:1}
-    .donate-close:hover{border-color:rgba(245,159,11,0.4);color:var(--amber);box-shadow:0 0 12px rgba(245,159,11,0.2)}
-    .donate-badge{display:inline-block;font-family:var(--font-hd);font-size:0.5rem;letter-spacing:3px;color:var(--amber);border:1px solid rgba(245,159,11,0.3);background:rgba(245,159,11,0.07);padding:4px 14px;border-radius:20px;margin-bottom:16px}
-    .donate-title{font-family:var(--font-hd);font-size:1.4rem;font-weight:700;margin-bottom:8px;letter-spacing:2px}
-    .donate-sub{color:var(--muted);font-size:0.82rem;line-height:1.7;margin-bottom:28px}
-    .donate-qr-wrap{background:white;border-radius:16px;padding:16px;display:flex;align-items:center;justify-content:center;margin:0 auto 24px;width:220px;height:220px;box-shadow:0 0 40px rgba(245,159,11,0.15),0 8px 32px rgba(0,0,0,0.4)}
-    .donate-qr-wrap img{width:100%;height:100%;object-fit:contain;border-radius:8px}
-    .donate-note{font-size:0.72rem;color:var(--muted);text-align:center;letter-spacing:0.5px}
-    .donate-note span{color:var(--amber)}
+    .donate-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 999;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(5, 8, 16, 0.85);
+      backdrop-filter: blur(12px);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.35s ease
+    }
+
+    .donate-overlay.open {
+      opacity: 1;
+      pointer-events: all
+    }
+
+    .donate-modal {
+      background: linear-gradient(145deg, rgba(10, 15, 30, 0.95), rgba(8, 12, 24, 0.98));
+      border: 1px solid rgba(245, 159, 11, 0.3);
+      border-radius: 24px;
+      padding: 40px 36px;
+      max-width: 420px;
+      width: 90%;
+      position: relative;
+      box-shadow: 0 0 80px rgba(245, 159, 11, 0.12), 0 40px 80px rgba(0, 0, 0, 0.6);
+      transform: translateY(24px) scale(0.96);
+      transition: transform 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275)
+    }
+
+    .donate-overlay.open .donate-modal {
+      transform: translateY(0) scale(1)
+    }
+
+    .donate-modal::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 15%;
+      right: 15%;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--amber), transparent)
+    }
+
+    .donate-close {
+      position: absolute;
+      top: 16px;
+      right: 18px;
+      background: transparent;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: var(--muted);
+      font-size: 1rem;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+      line-height: 1
+    }
+
+    .donate-close:hover {
+      border-color: rgba(245, 159, 11, 0.4);
+      color: var(--amber);
+      box-shadow: 0 0 12px rgba(245, 159, 11, 0.2)
+    }
+
+    .donate-badge {
+      display: inline-block;
+      font-family: var(--font-hd);
+      font-size: 0.5rem;
+      letter-spacing: 3px;
+      color: var(--amber);
+      border: 1px solid rgba(245, 159, 11, 0.3);
+      background: rgba(245, 159, 11, 0.07);
+      padding: 4px 14px;
+      border-radius: 20px;
+      margin-bottom: 16px
+    }
+
+    .donate-title {
+      font-family: var(--font-hd);
+      font-size: 1.4rem;
+      font-weight: 700;
+      margin-bottom: 8px;
+      letter-spacing: 2px
+    }
+
+    .donate-sub {
+      color: var(--muted);
+      font-size: 0.82rem;
+      line-height: 1.7;
+      margin-bottom: 28px
+    }
+
+    .donate-qr-wrap {
+      background: white;
+      border-radius: 16px;
+      padding: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 24px;
+      width: 220px;
+      height: 220px;
+      box-shadow: 0 0 40px rgba(245, 159, 11, 0.15), 0 8px 32px rgba(0, 0, 0, 0.4)
+    }
+
+    .donate-qr-wrap img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      border-radius: 8px
+    }
+
+    .donate-note {
+      font-size: 0.72rem;
+      color: var(--muted);
+      text-align: center;
+      letter-spacing: 0.5px
+    }
+
+    .donate-note span {
+      color: var(--amber)
+    }
 
     /* Footer */
-    .landing-footer{text-align:center;padding:32px 20px;color:var(--muted);font-size:0.75rem;border-top:1px solid rgba(255,255,255,0.05)}
-    .landing-footer strong{color:var(--text)}
-    .footer-social{display:flex;align-items:center;justify-content:center;gap:16px;margin-top:14px}
-    .footer-social-link{display:flex;align-items:center;gap:7px;color:var(--muted);text-decoration:none;font-family:var(--font-hd);font-size:0.6rem;letter-spacing:1.5px;padding:7px 14px;border:1px solid rgba(255,255,255,0.08);border-radius:8px;background:rgba(255,255,255,0.02);transition:all 0.25s}
-    .footer-social-link svg{flex-shrink:0;transition:transform 0.25s}
-    .footer-social-link:hover{transform:translateY(-2px)}
-    .footer-social-link.pf:hover{color:var(--cyan);border-color:rgba(0,245,255,0.4);background:rgba(0,245,255,0.07);box-shadow:0 0 16px rgba(0,245,255,0.15)}
-    .footer-social-link.gh:hover{color:#e0e6ed;border-color:rgba(224,230,237,0.3);background:rgba(224,230,237,0.05);box-shadow:0 0 16px rgba(224,230,237,0.08)}
-    .footer-social-link.li:hover{color:#0a66c2;border-color:rgba(10,102,194,0.4);background:rgba(10,102,194,0.07);box-shadow:0 0 16px rgba(10,102,194,0.15)}
-    .footer-social-link.pf:hover svg{transform:scale(1.1)}
-    .footer-social-link.gh:hover svg{transform:rotate(-8deg) scale(1.1)}
-    .footer-social-link.li:hover svg{transform:scale(1.1)}
+    .landing-footer {
+      text-align: center;
+      padding: 32px 20px;
+      color: var(--muted);
+      font-size: 0.75rem;
+      border-top: 1px solid rgba(255, 255, 255, 0.05)
+    }
+
+    .landing-footer strong {
+      color: var(--text)
+    }
+
+    .footer-social {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      margin-top: 14px
+    }
+
+    .footer-social-link {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      color: var(--muted);
+      text-decoration: none;
+      font-family: var(--font-hd);
+      font-size: 0.6rem;
+      letter-spacing: 1.5px;
+      padding: 7px 14px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.02);
+      transition: all 0.25s
+    }
+
+    .footer-social-link svg {
+      flex-shrink: 0;
+      transition: transform 0.25s
+    }
+
+    .footer-social-link:hover {
+      transform: translateY(-2px)
+    }
+
+    .footer-social-link.pf:hover {
+      color: var(--cyan);
+      border-color: rgba(0, 245, 255, 0.4);
+      background: rgba(0, 245, 255, 0.07);
+      box-shadow: 0 0 16px rgba(0, 245, 255, 0.15)
+    }
+
+    .footer-social-link.gh:hover {
+      color: #e0e6ed;
+      border-color: rgba(224, 230, 237, 0.3);
+      background: rgba(224, 230, 237, 0.05);
+      box-shadow: 0 0 16px rgba(224, 230, 237, 0.08)
+    }
+
+    .footer-social-link.li:hover {
+      color: #0a66c2;
+      border-color: rgba(10, 102, 194, 0.4);
+      background: rgba(10, 102, 194, 0.07);
+      box-shadow: 0 0 16px rgba(10, 102, 194, 0.15)
+    }
+
+    .footer-social-link.pf:hover svg {
+      transform: scale(1.1)
+    }
+
+    .footer-social-link.gh:hover svg {
+      transform: rotate(-8deg) scale(1.1)
+    }
+
+    .footer-social-link.li:hover svg {
+      transform: scale(1.1)
+    }
 
     /* ═══ LOGIN SCREEN ═══ */
-    #screen-login{display:flex;align-items:center;justify-content:center;min-height:100vh}
-    .auth-card{background:var(--glass);border:1px solid var(--glass-b);backdrop-filter:blur(24px);border-radius:20px;padding:48px 44px;width:100%;max-width:420px;position:relative;box-shadow:0 0 60px rgba(0,245,255,0.06),0 40px 80px rgba(0,0,0,0.5)}
-    .auth-card::before{content:'';position:absolute;top:0;left:20%;right:20%;height:1px;background:linear-gradient(90deg,transparent,var(--cyan),transparent)}
-    .auth-logo{font-family:var(--font-hd);font-size:1rem;letter-spacing:6px;text-align:center;margin-bottom:32px;cursor:pointer}
-    .auth-title{font-family:var(--font-hd);font-size:1.4rem;font-weight:700;text-align:center;margin-bottom:8px}
-    .auth-sub{color:var(--muted);font-size:0.85rem;text-align:center;margin-bottom:36px}
-    .input-group{margin-bottom:20px}
-    .input-group label{display:block;font-size:0.7rem;letter-spacing:2px;color:var(--muted);margin-bottom:8px;font-family:var(--font-hd)}
-    .auth-input{width:100%;background:rgba(0,0,0,0.4);border:1px solid rgba(0,245,255,0.15);border-radius:8px;padding:12px 16px;color:var(--text);font-family:var(--font-body);font-size:0.9rem;outline:none;transition:border-color 0.2s,box-shadow 0.2s}
-    .auth-input:focus{border-color:var(--cyan);box-shadow:0 0 0 3px rgba(0,245,255,0.08)}
-    .remember-row{display:flex;align-items:center;gap:10px;margin-bottom:24px}
-    .remember-row input[type="checkbox"]{accent-color:var(--cyan);width:14px;height:14px}
-    .remember-row label{font-size:0.8rem;color:var(--muted);cursor:pointer}
-    .auth-btn{width:100%;background:linear-gradient(135deg,rgba(0,245,255,0.2),rgba(155,93,229,0.2));border:1px solid var(--cyan);color:var(--cyan);font-family:var(--font-hd);font-size:0.8rem;letter-spacing:3px;padding:14px;cursor:pointer;border-radius:8px;transition:all 0.3s}
-    .auth-btn:hover{background:linear-gradient(135deg,rgba(0,245,255,0.3),rgba(155,93,229,0.3));box-shadow:0 0 30px rgba(0,245,255,0.25);transform:translateY(-1px)}
-    .auth-hint{margin-top:20px;text-align:center;font-size:0.75rem;color:var(--muted)}
-    .auth-hint code{background:rgba(0,245,255,0.07);border:1px solid rgba(0,245,255,0.15);border-radius:4px;padding:2px 8px;color:var(--cyan);letter-spacing:1px}
-    .back-link{display:block;text-align:center;margin-top:24px;font-size:0.8rem;color:var(--muted);cursor:pointer;transition:color 0.2s;background:none;border:none}
-    .back-link:hover{color:var(--cyan)}
+    #screen-login {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh
+    }
+
+    .auth-card {
+      background: var(--glass);
+      border: 1px solid var(--glass-b);
+      backdrop-filter: blur(24px);
+      border-radius: 20px;
+      padding: 48px 44px;
+      width: 100%;
+      max-width: 420px;
+      position: relative;
+      box-shadow: 0 0 60px rgba(0, 245, 255, 0.06), 0 40px 80px rgba(0, 0, 0, 0.5)
+    }
+
+    .auth-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 20%;
+      right: 20%;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--cyan), transparent)
+    }
+
+    .auth-logo {
+      font-family: var(--font-hd);
+      font-size: 1rem;
+      letter-spacing: 6px;
+      text-align: center;
+      margin-bottom: 32px;
+      cursor: pointer
+    }
+
+    .auth-title {
+      font-family: var(--font-hd);
+      font-size: 1.4rem;
+      font-weight: 700;
+      text-align: center;
+      margin-bottom: 8px
+    }
+
+    .auth-sub {
+      color: var(--muted);
+      font-size: 0.85rem;
+      text-align: center;
+      margin-bottom: 36px
+    }
+
+    .input-group {
+      margin-bottom: 20px
+    }
+
+    .input-group label {
+      display: block;
+      font-size: 0.7rem;
+      letter-spacing: 2px;
+      color: var(--muted);
+      margin-bottom: 8px;
+      font-family: var(--font-hd)
+    }
+
+    .auth-input {
+      width: 100%;
+      background: rgba(0, 0, 0, 0.4);
+      border: 1px solid rgba(0, 245, 255, 0.15);
+      border-radius: 8px;
+      padding: 12px 16px;
+      color: var(--text);
+      font-family: var(--font-body);
+      font-size: 0.9rem;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s
+    }
+
+    .auth-input:focus {
+      border-color: var(--cyan);
+      box-shadow: 0 0 0 3px rgba(0, 245, 255, 0.08)
+    }
+
+    .remember-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 24px
+    }
+
+    .remember-row input[type="checkbox"] {
+      accent-color: var(--cyan);
+      width: 14px;
+      height: 14px
+    }
+
+    .remember-row label {
+      font-size: 0.8rem;
+      color: var(--muted);
+      cursor: pointer
+    }
+
+    .auth-btn {
+      width: 100%;
+      background: linear-gradient(135deg, rgba(0, 245, 255, 0.2), rgba(155, 93, 229, 0.2));
+      border: 1px solid var(--cyan);
+      color: var(--cyan);
+      font-family: var(--font-hd);
+      font-size: 0.8rem;
+      letter-spacing: 3px;
+      padding: 14px;
+      cursor: pointer;
+      border-radius: 8px;
+      transition: all 0.3s
+    }
+
+    .auth-btn:hover {
+      background: linear-gradient(135deg, rgba(0, 245, 255, 0.3), rgba(155, 93, 229, 0.3));
+      box-shadow: 0 0 30px rgba(0, 245, 255, 0.25);
+      transform: translateY(-1px)
+    }
+
+    .auth-hint {
+      margin-top: 20px;
+      text-align: center;
+      font-size: 0.75rem;
+      color: var(--muted)
+    }
+
+    .auth-hint code {
+      background: rgba(0, 245, 255, 0.07);
+      border: 1px solid rgba(0, 245, 255, 0.15);
+      border-radius: 4px;
+      padding: 2px 8px;
+      color: var(--cyan);
+      letter-spacing: 1px
+    }
+
+    .back-link {
+      display: block;
+      text-align: center;
+      margin-top: 24px;
+      font-size: 0.8rem;
+      color: var(--muted);
+      cursor: pointer;
+      transition: color 0.2s;
+      background: none;
+      border: none
+    }
+
+    .back-link:hover {
+      color: var(--cyan)
+    }
 
     /* ═══ HUB SCREEN ═══ */
-    .hub-nav{position:sticky;top:0;z-index:100;display:flex;align-items:center;justify-content:space-between;padding:0 48px;height:64px;background:rgba(5,8,16,0.9);backdrop-filter:blur(16px);border-bottom:1px solid rgba(0,245,255,0.08)}
-    .hub-brand{font-family:var(--font-hd);font-size:1.1rem;letter-spacing:4px;cursor:pointer}
-    .hub-user-row{display:flex;align-items:center;gap:16px}
-    .hub-avatar{width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,rgba(0,245,255,0.3),rgba(155,93,229,0.3));border:1px solid var(--glass-b);display:flex;align-items:center;justify-content:center;font-family:var(--font-hd);font-size:0.75rem;color:var(--cyan)}
-    .hub-username{font-size:0.85rem;color:var(--muted)}
-    .logout-btn{background:transparent;border:1px solid rgba(255,255,255,0.1);color:var(--muted);font-family:var(--font-hd);font-size:0.65rem;letter-spacing:2px;padding:6px 16px;cursor:pointer;border-radius:6px;transition:all 0.2s}
-    .logout-btn:hover{border-color:rgba(255,100,100,0.4);color:#ff7777}
-    .hub-hero{padding:60px 48px 40px}
-    .hub-greeting{font-family:var(--font-hd);font-size:clamp(1.5rem,3vw,2.2rem);font-weight:700;margin-bottom:8px}
-    .hub-tagline{color:var(--muted);font-size:0.95rem}
+    .hub-nav {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 48px;
+      height: 64px;
+      background: rgba(5, 8, 16, 0.9);
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid rgba(0, 245, 255, 0.08)
+    }
 
-    .sim-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:28px;padding:0 48px 80px}
-    .sim-card{background:var(--glass);border-radius:20px;padding:36px;border:1px solid var(--glass-b);backdrop-filter:blur(20px);cursor:pointer;text-decoration:none;color:inherit;display:block;transition:all 0.4s cubic-bezier(0.175,0.885,0.32,1.275);position:relative;overflow:hidden}
-    .sim-card:hover{transform:translateY(-10px) scale(1.01)}
-    .sim-card.slam{border-color:rgba(0,245,255,0.2)}.sim-card.slam:hover{border-color:rgba(0,245,255,0.5);box-shadow:0 20px 60px rgba(0,245,255,0.12)}
-    .sim-card.nexus{border-color:rgba(155,93,229,0.2)}.sim-card.nexus:hover{border-color:rgba(155,93,229,0.5);box-shadow:0 20px 60px rgba(155,93,229,0.12)}
-    .sim-card.hive{border-color:rgba(245,159,11,0.2)}.sim-card.hive:hover{border-color:rgba(245,159,11,0.5);box-shadow:0 20px 60px rgba(245,159,11,0.10)}
-    .sim-top-bar{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px}
-    .sim-icon-wrap{width:52px;height:52px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:1.6rem}
-    .sim-status{display:flex;align-items:center;gap:6px;font-size:0.6rem;letter-spacing:2px}
-    .status-dot{width:6px;height:6px;border-radius:50%;animation:blink 2s infinite}
-    @keyframes blink{0%,100%{opacity:1}50%{opacity:0.3}}
-    .sim-name{font-family:var(--font-hd);font-size:1.2rem;font-weight:700;letter-spacing:2px;margin-bottom:8px}
-    .sim-desc{color:var(--muted);font-size:0.82rem;line-height:1.7;margin-bottom:20px}
-    .sim-features{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:24px}
-    .feat-tag{font-size:0.65rem;padding:3px 10px;border-radius:20px}
-    .ft-c{background:rgba(0,245,255,0.07);border:1px solid rgba(0,245,255,0.2);color:var(--cyan)}
-    .ft-v{background:rgba(155,93,229,0.07);border:1px solid rgba(155,93,229,0.2);color:var(--violet)}
-    .ft-a{background:rgba(245,159,11,0.07);border:1px solid rgba(245,159,11,0.2);color:var(--amber)}
-    .ft-g{background:rgba(16,185,129,0.07);border:1px solid rgba(16,185,129,0.2);color:var(--green)}
-    .sim-launch-btn{width:100%;padding:12px;font-family:var(--font-hd);font-size:0.7rem;letter-spacing:3px;border-radius:10px;cursor:pointer;transition:all 0.3s;display:flex;align-items:center;justify-content:center;gap:8px}
-    .lc{background:rgba(0,245,255,0.1);border:1px solid rgba(0,245,255,0.3);color:var(--cyan)}
-    .lv{background:rgba(155,93,229,0.1);border:1px solid rgba(155,93,229,0.3);color:var(--violet)}
-    .la{background:rgba(245,159,11,0.1);border:1px solid rgba(245,159,11,0.3);color:var(--amber)}
-    .sim-card:hover .sim-launch-btn{box-shadow:0 0 20px currentColor}
-    .hub-footer{padding:24px 48px;border-top:1px solid rgba(255,255,255,0.05);display:flex;align-items:center;justify-content:space-between;color:var(--muted);font-size:0.75rem;flex-wrap:wrap;gap:12px}
+    .hub-brand {
+      font-family: var(--font-hd);
+      font-size: 1.1rem;
+      letter-spacing: 4px;
+      cursor: pointer
+    }
+
+    .hub-user-row {
+      display: flex;
+      align-items: center;
+      gap: 16px
+    }
+
+    .hub-avatar {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, rgba(0, 245, 255, 0.3), rgba(155, 93, 229, 0.3));
+      border: 1px solid var(--glass-b);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--font-hd);
+      font-size: 0.75rem;
+      color: var(--cyan)
+    }
+
+    .hub-username {
+      font-size: 0.85rem;
+      color: var(--muted)
+    }
+
+    .logout-btn {
+      background: transparent;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: var(--muted);
+      font-family: var(--font-hd);
+      font-size: 0.65rem;
+      letter-spacing: 2px;
+      padding: 6px 16px;
+      cursor: pointer;
+      border-radius: 6px;
+      transition: all 0.2s
+    }
+
+    .logout-btn:hover {
+      border-color: rgba(255, 100, 100, 0.4);
+      color: #ff7777
+    }
+
+    .hub-hero {
+      padding: 60px 48px 40px
+    }
+
+    .hub-greeting {
+      font-family: var(--font-hd);
+      font-size: clamp(1.5rem, 3vw, 2.2rem);
+      font-weight: 700;
+      margin-bottom: 8px
+    }
+
+    .hub-tagline {
+      color: var(--muted);
+      font-size: 0.95rem
+    }
+
+    .sim-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 28px;
+      padding: 0 48px 80px
+    }
+
+    .sim-card {
+      background: var(--glass);
+      border-radius: 20px;
+      padding: 36px;
+      border: 1px solid var(--glass-b);
+      backdrop-filter: blur(20px);
+      cursor: pointer;
+      text-decoration: none;
+      color: inherit;
+      display: block;
+      transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      position: relative;
+      overflow: hidden
+    }
+
+    .sim-card:hover {
+      transform: translateY(-10px) scale(1.01)
+    }
+
+    .sim-card.slam {
+      border-color: rgba(0, 245, 255, 0.2)
+    }
+
+    .sim-card.slam:hover {
+      border-color: rgba(0, 245, 255, 0.5);
+      box-shadow: 0 20px 60px rgba(0, 245, 255, 0.12)
+    }
+
+    .sim-card.nexus {
+      border-color: rgba(155, 93, 229, 0.2)
+    }
+
+    .sim-card.nexus:hover {
+      border-color: rgba(155, 93, 229, 0.5);
+      box-shadow: 0 20px 60px rgba(155, 93, 229, 0.12)
+    }
+
+    .sim-card.hive {
+      border-color: rgba(245, 159, 11, 0.2)
+    }
+
+    .sim-card.hive:hover {
+      border-color: rgba(245, 159, 11, 0.5);
+      box-shadow: 0 20px 60px rgba(245, 159, 11, 0.10)
+    }
+
+    .sim-top-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 24px
+    }
+
+    .sim-icon-wrap {
+      width: 52px;
+      height: 52px;
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.6rem
+    }
+
+    .sim-status {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.6rem;
+      letter-spacing: 2px
+    }
+
+    .status-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      animation: blink 2s infinite
+    }
+
+    @keyframes blink {
+
+      0%,
+      100% {
+        opacity: 1
+      }
+
+      50% {
+        opacity: 0.3
+      }
+    }
+
+    .sim-name {
+      font-family: var(--font-hd);
+      font-size: 1.2rem;
+      font-weight: 700;
+      letter-spacing: 2px;
+      margin-bottom: 8px
+    }
+
+    .sim-desc {
+      color: var(--muted);
+      font-size: 0.82rem;
+      line-height: 1.7;
+      margin-bottom: 20px
+    }
+
+    .sim-features {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-bottom: 24px
+    }
+
+    .feat-tag {
+      font-size: 0.65rem;
+      padding: 3px 10px;
+      border-radius: 20px
+    }
+
+    .ft-c {
+      background: rgba(0, 245, 255, 0.07);
+      border: 1px solid rgba(0, 245, 255, 0.2);
+      color: var(--cyan)
+    }
+
+    .ft-v {
+      background: rgba(155, 93, 229, 0.07);
+      border: 1px solid rgba(155, 93, 229, 0.2);
+      color: var(--violet)
+    }
+
+    .ft-a {
+      background: rgba(245, 159, 11, 0.07);
+      border: 1px solid rgba(245, 159, 11, 0.2);
+      color: var(--amber)
+    }
+
+    .ft-g {
+      background: rgba(16, 185, 129, 0.07);
+      border: 1px solid rgba(16, 185, 129, 0.2);
+      color: var(--green)
+    }
+
+    .sim-launch-btn {
+      width: 100%;
+      padding: 12px;
+      font-family: var(--font-hd);
+      font-size: 0.7rem;
+      letter-spacing: 3px;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: all 0.3s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px
+    }
+
+    .lc {
+      background: rgba(0, 245, 255, 0.1);
+      border: 1px solid rgba(0, 245, 255, 0.3);
+      color: var(--cyan)
+    }
+
+    .lv {
+      background: rgba(155, 93, 229, 0.1);
+      border: 1px solid rgba(155, 93, 229, 0.3);
+      color: var(--violet)
+    }
+
+    .la {
+      background: rgba(245, 159, 11, 0.1);
+      border: 1px solid rgba(245, 159, 11, 0.3);
+      color: var(--amber)
+    }
+
+    .sim-card:hover .sim-launch-btn {
+      box-shadow: 0 0 20px currentColor
+    }
+
+    .hub-footer {
+      padding: 24px 48px;
+      border-top: 1px solid rgba(255, 255, 255, 0.05);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      color: var(--muted);
+      font-size: 0.75rem;
+      flex-wrap: wrap;
+      gap: 12px
+    }
 
     /* ═══ SPLINE 3D SECTION ═══ */
     .spline-section {
@@ -241,6 +1380,7 @@
       max-width: 1200px;
       margin: 0 auto;
     }
+
     .spline-card {
       background: rgba(0, 0, 0, 0.96);
       border: 1px solid var(--glass-b);
@@ -252,26 +1392,30 @@
       display: flex;
       flex-direction: column;
     }
+
     .spline-spotlight {
       position: absolute;
       top: -20%;
       left: 0;
       width: 138%;
       height: 169%;
-      background: radial-gradient(ellipse at center, rgba(255,255,255,0.08) 0%, transparent 50%);
+      background: radial-gradient(ellipse at center, rgba(255, 255, 255, 0.08) 0%, transparent 50%);
       pointer-events: none;
       z-index: 1;
       transform: rotate(-15deg);
     }
+
     @media(min-width: 768px) {
       .spline-card {
         flex-direction: row;
       }
+
       .spline-spotlight {
         left: 20%;
         width: 84%;
       }
     }
+
     .spline-text {
       flex: 1;
       padding: 3rem;
@@ -281,6 +1425,7 @@
       flex-direction: column;
       justify-content: center;
     }
+
     .spline-text h2 {
       font-family: var(--font-hd);
       font-size: clamp(2rem, 4.5vw, 3rem);
@@ -290,17 +1435,20 @@
       -webkit-text-fill-color: transparent;
       margin-bottom: 1rem;
     }
+
     .spline-text p {
       color: #d4d4d4;
       max-width: 32rem;
       line-height: 1.6;
       font-size: 1.05rem;
     }
+
     .spline-visual {
       flex: 1;
       position: relative;
       min-height: 300px;
     }
+
     spline-viewer {
       width: 100%;
       height: 100%;
@@ -319,432 +1467,557 @@
     }
 
     /* Ensure content on top stays clickable and readable */
-    .navbar, .hero, .stats-bar, .spline-section, .overview, .tech-strip, .cta-section, .landing-footer {
+    .navbar,
+    .hero,
+    .stats-bar,
+    .spline-section,
+    .overview,
+    .tech-strip,
+    .cta-section,
+    .landing-footer {
       position: relative;
       z-index: 10;
     }
   </style>
   <script type="module" src="https://unpkg.com/@splinetool/viewer@1.9.5/build/spline-viewer.js"></script>
 </head>
+
 <body>
 
-<!-- ═══════════════════════════════════════
+  <!-- ═══════════════════════════════════════
      DOTTED SURFACE BACKGROUND CONTAINER
 ═══════════════════════════════════════ -->
-<div id="dotted-surface"></div>
+  <div id="dotted-surface"></div>
 
-<!-- ═══════════════════════════════════════
+  <!-- ═══════════════════════════════════════
      SCREEN 1: LANDING PAGE
 ═══════════════════════════════════════ -->
-<div id="screen-landing" class="screen premium-bg">
-  <div class="grid-overlay"></div>
-  <div class="glow-orb a"></div>
-  <div class="glow-orb b"></div>
+  <div id="screen-landing" class="screen premium-bg">
+    <div class="grid-overlay"></div>
+    <div class="glow-orb a"></div>
+    <div class="glow-orb b"></div>
 
-  <!-- Navbar -->
-  <nav class="navbar">
-    <div class="nav-brand"><span class="shiny-text-cyan">ROBOAI</span> <span class="shiny-text">// SUITE</span></div>
-    <div class="nav-links">
-      <a href="#overview">Simulators</a>
-      <a href="#tech">Tech</a>
-      <button class="btn-donate" onclick="openDonate()">♥ DONATE</button>
-      <a id="nav-login-btn" class="nav-btn" href="#login">SIGN IN →</a>
-    </div>
-  </nav>
-
-  <!-- Hero -->
-  <section class="hero">
-    <div class="hero-text">
-      <div class="hero-badge">v3.0 — ROBOTICS SIMULATION PLATFORM</div>
-      <h1 class="hero-title"><span class="shiny-text">The Future of</span><br/><span class="shiny-text-cyan">Robotics Simulation</span></h1>
-      <p class="hero-sub">Three powerful engines in one unified platform. Master SLAM mapping, robotic arm kinematics, and industrial swarm logistics — all in your browser.</p>
-      <div class="hero-cta">
-        <button class="btn-lg btn-cyan" onclick="showScreen('screen-login')">GET STARTED →</button>
-        <a href="#overview" class="btn-lg btn-ghost">EXPLORE ↓</a>
-        <button class="btn-donate-lg" onclick="openDonate()">♥ DONATE</button>
+    <!-- Navbar -->
+    <nav class="navbar">
+      <div class="nav-brand"><span class="shiny-text-cyan">ROBOAI</span> <span class="shiny-text">// SUITE</span></div>
+      <div class="nav-links">
+        <a href="#overview">Simulators</a>
+        <a href="#tech">Tech</a>
+        <button class="btn-donate" onclick="openDonate()">♥ DONATE</button>
+        <a id="nav-login-btn" class="nav-btn" href="#login">SIGN IN →</a>
       </div>
-    </div>
+    </nav>
 
-    <!-- 3D Robot Visual -->
-    <div class="hero-visual">
-      <div class="robot-scene">
-        <div class="orbit-ring ring-1"></div>
-        <div class="orbit-ring ring-2"></div>
-        <div class="scan-line"></div>
-        <div class="robot-body">
-          <svg class="robot-svg" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
-            <defs>
-              <linearGradient id="rg1" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#00F5FF"/><stop offset="100%" stop-color="#9B5DE5"/></linearGradient>
-              <linearGradient id="rg2" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#9B5DE5"/><stop offset="100%" stop-color="#00F5FF"/></linearGradient>
-              <filter id="glow"><feGaussianBlur stdDeviation="4" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
-              <filter id="glow2"><feGaussianBlur stdDeviation="6" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
-            </defs>
-            <!-- Head antenna -->
-            <line x1="100" y1="35" x2="100" y2="20" stroke="#00F5FF" stroke-width="2" filter="url(#glow)"/>
-            <circle cx="100" cy="16" r="4" fill="#00F5FF" filter="url(#glow)"><animate attributeName="opacity" values="0.4;1;0.4" dur="1.5s" repeatCount="indefinite"/></circle>
-            <!-- Head -->
-            <rect x="68" y="35" width="64" height="40" rx="12" fill="url(#rg1)" filter="url(#glow)"/>
-            <!-- Eyes -->
-            <circle cx="88" cy="52" r="6" fill="#050810"/><circle cx="88" cy="51" r="3" fill="#00F5FF" filter="url(#glow)"><animate attributeName="r" values="3;4;3" dur="2s" repeatCount="indefinite"/></circle>
-            <circle cx="112" cy="52" r="6" fill="#050810"/><circle cx="112" cy="51" r="3" fill="#00F5FF" filter="url(#glow)"><animate attributeName="r" values="3;4;3" dur="2s" begin="0.3s" repeatCount="indefinite"/></circle>
-            <!-- Mouth -->
-            <rect x="90" y="62" width="20" height="3" rx="1.5" fill="rgba(0,245,255,0.6)"><animate attributeName="width" values="20;14;20" dur="3s" repeatCount="indefinite"/><animate attributeName="x" values="90;93;90" dur="3s" repeatCount="indefinite"/></rect>
-            <!-- Neck -->
-            <rect x="94" y="75" width="12" height="10" rx="2" fill="#1a2035"/>
-            <!-- Body -->
-            <rect x="55" y="85" width="90" height="60" rx="16" fill="url(#rg2)" filter="url(#glow)"/>
-            <!-- Chest plate -->
-            <rect x="75" y="95" width="50" height="30" rx="8" fill="rgba(5,8,16,0.6)" stroke="rgba(0,245,255,0.3)" stroke-width="1"/>
-            <!-- Chest lights -->
-            <circle cx="90" cy="108" r="3" fill="#00F5FF"><animate attributeName="opacity" values="0.3;1;0.3" dur="1.2s" repeatCount="indefinite"/></circle>
-            <circle cx="100" cy="108" r="3" fill="#9B5DE5"><animate attributeName="opacity" values="1;0.3;1" dur="1.2s" repeatCount="indefinite"/></circle>
-            <circle cx="110" cy="108" r="3" fill="#F59E0B"><animate attributeName="opacity" values="0.3;1;0.3" dur="1.2s" begin="0.4s" repeatCount="indefinite"/></circle>
-            <!-- Arms -->
-            <rect x="35" y="90" width="18" height="45" rx="8" fill="#1a2035" stroke="rgba(0,245,255,0.2)" stroke-width="1"/>
-            <rect x="147" y="90" width="18" height="45" rx="8" fill="#1a2035" stroke="rgba(155,93,229,0.2)" stroke-width="1"/>
-            <!-- Arm joints -->
-            <circle cx="44" cy="92" r="5" fill="#0a0f1e" stroke="rgba(0,245,255,0.3)" stroke-width="1"/>
-            <circle cx="156" cy="92" r="5" fill="#0a0f1e" stroke="rgba(155,93,229,0.3)" stroke-width="1"/>
-            <!-- Hands -->
-            <circle cx="44" cy="140" r="7" fill="#0a0f1e" stroke="rgba(0,245,255,0.3)" stroke-width="1"/>
-            <circle cx="156" cy="140" r="7" fill="#0a0f1e" stroke="rgba(155,93,229,0.3)" stroke-width="1"/>
-            <!-- Legs -->
-            <rect x="70" y="145" width="22" height="35" rx="6" fill="#1a2035" stroke="rgba(0,245,255,0.15)" stroke-width="1"/>
-            <rect x="108" y="145" width="22" height="35" rx="6" fill="#1a2035" stroke="rgba(155,93,229,0.15)" stroke-width="1"/>
-            <!-- Feet -->
-            <rect x="64" y="178" width="34" height="10" rx="5" fill="url(#rg1)" opacity="0.7"/>
-            <rect x="102" y="178" width="34" height="10" rx="5" fill="url(#rg2)" opacity="0.7"/>
-          </svg>
+    <!-- Hero -->
+    <section class="hero">
+      <div class="hero-text">
+        <div class="hero-badge">v3.0 — ROBOTICS SIMULATION PLATFORM</div>
+        <h1 class="hero-title"><span class="shiny-text">The Future of</span><br /><span class="shiny-text-cyan">Robotics
+            Simulation</span></h1>
+        <p class="hero-sub">Three powerful engines in one unified platform. Master SLAM mapping, robotic arm kinematics,
+          and industrial swarm logistics — all in your browser.</p>
+        <div class="hero-cta">
+          <button class="btn-lg btn-cyan" onclick="showScreen('screen-login')">GET STARTED →</button>
+          <a href="#overview" class="btn-lg btn-ghost">EXPLORE ↓</a>
+          <button class="btn-donate-lg" onclick="openDonate()">♥ DONATE</button>
         </div>
-        <!-- Floating data particles -->
-        <div class="orbit-dot" style="top:15%;left:10%;color:var(--cyan);width:6px;height:6px;background:var(--cyan)"></div>
-        <div class="orbit-dot" style="top:70%;right:5%;color:var(--violet);width:8px;height:8px;background:var(--violet);animation-delay:-0.7s"></div>
-        <div class="orbit-dot" style="bottom:20%;left:20%;color:var(--amber);width:5px;height:5px;background:var(--amber);animation-delay:-1.4s"></div>
+      </div>
+
+      <!-- 3D Robot Visual -->
+      <div class="hero-visual">
+        <div class="robot-scene">
+          <div class="orbit-ring ring-1"></div>
+          <div class="orbit-ring ring-2"></div>
+          <div class="scan-line"></div>
+          <div class="robot-body">
+            <svg class="robot-svg" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+              <defs>
+                <linearGradient id="rg1" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stop-color="#00F5FF" />
+                  <stop offset="100%" stop-color="#9B5DE5" />
+                </linearGradient>
+                <linearGradient id="rg2" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stop-color="#9B5DE5" />
+                  <stop offset="100%" stop-color="#00F5FF" />
+                </linearGradient>
+                <filter id="glow">
+                  <feGaussianBlur stdDeviation="4" result="b" />
+                  <feMerge>
+                    <feMergeNode in="b" />
+                    <feMergeNode in="SourceGraphic" />
+                  </feMerge>
+                </filter>
+                <filter id="glow2">
+                  <feGaussianBlur stdDeviation="6" result="b" />
+                  <feMerge>
+                    <feMergeNode in="b" />
+                    <feMergeNode in="SourceGraphic" />
+                  </feMerge>
+                </filter>
+              </defs>
+              <!-- Head antenna -->
+              <line x1="100" y1="35" x2="100" y2="20" stroke="#00F5FF" stroke-width="2" filter="url(#glow)" />
+              <circle cx="100" cy="16" r="4" fill="#00F5FF" filter="url(#glow)">
+                <animate attributeName="opacity" values="0.4;1;0.4" dur="1.5s" repeatCount="indefinite" />
+              </circle>
+              <!-- Head -->
+              <rect x="68" y="35" width="64" height="40" rx="12" fill="url(#rg1)" filter="url(#glow)" />
+              <!-- Eyes -->
+              <circle cx="88" cy="52" r="6" fill="#050810" />
+              <circle cx="88" cy="51" r="3" fill="#00F5FF" filter="url(#glow)">
+                <animate attributeName="r" values="3;4;3" dur="2s" repeatCount="indefinite" />
+              </circle>
+              <circle cx="112" cy="52" r="6" fill="#050810" />
+              <circle cx="112" cy="51" r="3" fill="#00F5FF" filter="url(#glow)">
+                <animate attributeName="r" values="3;4;3" dur="2s" begin="0.3s" repeatCount="indefinite" />
+              </circle>
+              <!-- Mouth -->
+              <rect x="90" y="62" width="20" height="3" rx="1.5" fill="rgba(0,245,255,0.6)">
+                <animate attributeName="width" values="20;14;20" dur="3s" repeatCount="indefinite" />
+                <animate attributeName="x" values="90;93;90" dur="3s" repeatCount="indefinite" />
+              </rect>
+              <!-- Neck -->
+              <rect x="94" y="75" width="12" height="10" rx="2" fill="#1a2035" />
+              <!-- Body -->
+              <rect x="55" y="85" width="90" height="60" rx="16" fill="url(#rg2)" filter="url(#glow)" />
+              <!-- Chest plate -->
+              <rect x="75" y="95" width="50" height="30" rx="8" fill="rgba(5,8,16,0.6)" stroke="rgba(0,245,255,0.3)"
+                stroke-width="1" />
+              <!-- Chest lights -->
+              <circle cx="90" cy="108" r="3" fill="#00F5FF">
+                <animate attributeName="opacity" values="0.3;1;0.3" dur="1.2s" repeatCount="indefinite" />
+              </circle>
+              <circle cx="100" cy="108" r="3" fill="#9B5DE5">
+                <animate attributeName="opacity" values="1;0.3;1" dur="1.2s" repeatCount="indefinite" />
+              </circle>
+              <circle cx="110" cy="108" r="3" fill="#F59E0B">
+                <animate attributeName="opacity" values="0.3;1;0.3" dur="1.2s" begin="0.4s" repeatCount="indefinite" />
+              </circle>
+              <!-- Arms -->
+              <rect x="35" y="90" width="18" height="45" rx="8" fill="#1a2035" stroke="rgba(0,245,255,0.2)"
+                stroke-width="1" />
+              <rect x="147" y="90" width="18" height="45" rx="8" fill="#1a2035" stroke="rgba(155,93,229,0.2)"
+                stroke-width="1" />
+              <!-- Arm joints -->
+              <circle cx="44" cy="92" r="5" fill="#0a0f1e" stroke="rgba(0,245,255,0.3)" stroke-width="1" />
+              <circle cx="156" cy="92" r="5" fill="#0a0f1e" stroke="rgba(155,93,229,0.3)" stroke-width="1" />
+              <!-- Hands -->
+              <circle cx="44" cy="140" r="7" fill="#0a0f1e" stroke="rgba(0,245,255,0.3)" stroke-width="1" />
+              <circle cx="156" cy="140" r="7" fill="#0a0f1e" stroke="rgba(155,93,229,0.3)" stroke-width="1" />
+              <!-- Legs -->
+              <rect x="70" y="145" width="22" height="35" rx="6" fill="#1a2035" stroke="rgba(0,245,255,0.15)"
+                stroke-width="1" />
+              <rect x="108" y="145" width="22" height="35" rx="6" fill="#1a2035" stroke="rgba(155,93,229,0.15)"
+                stroke-width="1" />
+              <!-- Feet -->
+              <rect x="64" y="178" width="34" height="10" rx="5" fill="url(#rg1)" opacity="0.7" />
+              <rect x="102" y="178" width="34" height="10" rx="5" fill="url(#rg2)" opacity="0.7" />
+            </svg>
+          </div>
+          <!-- Floating data particles -->
+          <div class="orbit-dot" style="top:15%;left:10%;color:var(--cyan);width:6px;height:6px;background:var(--cyan)">
+          </div>
+          <div class="orbit-dot"
+            style="top:70%;right:5%;color:var(--violet);width:8px;height:8px;background:var(--violet);animation-delay:-0.7s">
+          </div>
+          <div class="orbit-dot"
+            style="bottom:20%;left:20%;color:var(--amber);width:5px;height:5px;background:var(--amber);animation-delay:-1.4s">
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Stats -->
+    <div class="stats-bar">
+      <div class="stat-item"><span class="stat-num gradient-text">3</span><span class="stat-lbl">SIMULATORS</span></div>
+      <div class="stat-item"><span class="stat-num" style="color:var(--cyan)">20+</span><span
+          class="stat-lbl">ALGORITHMS</span></div>
+      <div class="stat-item"><span class="stat-num" style="color:var(--violet)">6-DOF</span><span class="stat-lbl">ROBOT
+          ARM</span></div>
+      <div class="stat-item"><span class="stat-num" style="color:var(--amber)">2.5D</span><span
+          class="stat-lbl">ISOMETRIC ENGINE</span></div>
+      <div class="stat-item"><span class="stat-num" style="color:var(--green)">100%</span><span class="stat-lbl">BROWSER
+          BASED</span></div>
+    </div>
+
+    <!-- Interactive 3D Section (Spline integration) -->
+    <section class="spline-section">
+      <div class="spline-card">
+        <div class="spline-spotlight"></div>
+
+        <div class="spline-text">
+          <h2>Interactive 3D</h2>
+          <p>
+            Bring your UI to life with beautiful 3D scenes. Create immersive experiences
+            that capture attention and enhance your design.
+          </p>
+        </div>
+
+        <div class="spline-visual">
+          <spline-viewer url="https://prod.spline.design/kZDDjO5HuC9GJUM2/scene.splinecode"></spline-viewer>
+        </div>
+      </div>
+    </section>
+
+    <!-- Simulators Overview -->
+
+    <section class="overview" id="overview">
+      <div class="section-label">THE PLATFORM</div>
+      <h2 class="section-title">Three Engines, <span class="gradient-text">One Platform</span></h2>
+      <p class="section-sub">Each simulator is a standalone environment built for education, research, and
+        experimentation.</p>
+      <div class="sim-overview-grid">
+        <a href="./slam.html" class="ov-card c1" style="text-decoration:none; color:inherit; display:block;">
+          <div class="ov-icon ic1">🤖</div>
+          <div class="ov-name">SLAM SIMULATOR</div>
+          <div class="ov-desc">Real-time LiDAR mapping with Bayesian occupancy grids, A* pathfinding, particle filters,
+            loop closure, and autonomous frontier exploration.</div>
+          <div class="ov-tags"><span class="ov-tag">LiDAR Sensor</span><span class="ov-tag">Bayesian Grid</span><span
+              class="ov-tag">A* / Dijkstra</span><span class="ov-tag">Particle Filter</span><span class="ov-tag">3D
+              Point Cloud</span></div>
+        </a>
+        <a href="./nexus.html" class="ov-card c2" style="text-decoration:none; color:inherit; display:block;">
+          <div class="ov-icon ic2">⚙️</div>
+          <div class="ov-name">NEXUS ENGINE</div>
+          <div class="ov-desc">6-DOF robot arm with FK/IK solvers, LSPB trajectory planning, dynamic torque analysis,
+            and Reynolds Boids swarm intelligence simulation.</div>
+          <div class="ov-tags"><span class="ov-tag">Forward Kinematics</span><span class="ov-tag">IK Solver</span><span
+              class="ov-tag">LSPB Trajectory</span><span class="ov-tag">Boids Swarm</span><span class="ov-tag">Torque
+              Charts</span></div>
+        </a>
+        <a href="./src/hive_landing.html" class="ov-card c3"
+          style="text-decoration:none; color:inherit; display:block;">
+          <div class="ov-icon ic3">🏭</div>
+          <div class="ov-name">HIVE LOGISTICS</div>
+          <div class="ov-desc">Isometric 2.5D warehouse simulation with multi-robot task assignment, battery management,
+            A* coordination, and operational analytics.</div>
+          <div class="ov-tags"><span class="ov-tag">Task Assignment</span><span class="ov-tag">A* Routing</span><span
+              class="ov-tag">Battery Mgmt</span><span class="ov-tag">Live Analytics</span><span class="ov-tag">Isometric
+              2.5D</span></div>
+        </a>
+      </div>
+    </section>
+
+    <!-- Tech Strip -->
+    <div class="tech-strip" id="tech">
+      <div class="tech-chip"><span class="tc-icon">🧠</span>
+        <div><span class="tc-label">AI ALGORITHMS</span><br /><span class="tc-sub">A*, Dijkstra, MCL, Boids</span></div>
+      </div>
+      <div class="tech-chip"><span class="tc-icon">🌐</span>
+        <div><span class="tc-label">3D RENDERING</span><br /><span class="tc-sub">Three.js / Canvas 2D</span></div>
+      </div>
+      <div class="tech-chip"><span class="tc-icon">📊</span>
+        <div><span class="tc-label">LIVE ANALYTICS</span><br /><span class="tc-sub">Chart.js Real-time</span></div>
+      </div>
+      <div class="tech-chip"><span class="tc-icon">⚡</span>
+        <div><span class="tc-label">FAST ENGINE</span><br /><span class="tc-sub">60 FPS Simulation</span></div>
       </div>
     </div>
-  </section>
 
-  <!-- Stats -->
-  <div class="stats-bar">
-    <div class="stat-item"><span class="stat-num gradient-text">3</span><span class="stat-lbl">SIMULATORS</span></div>
-    <div class="stat-item"><span class="stat-num" style="color:var(--cyan)">20+</span><span class="stat-lbl">ALGORITHMS</span></div>
-    <div class="stat-item"><span class="stat-num" style="color:var(--violet)">6-DOF</span><span class="stat-lbl">ROBOT ARM</span></div>
-    <div class="stat-item"><span class="stat-num" style="color:var(--amber)">2.5D</span><span class="stat-lbl">ISOMETRIC ENGINE</span></div>
-    <div class="stat-item"><span class="stat-num" style="color:var(--green)">100%</span><span class="stat-lbl">BROWSER BASED</span></div>
+    <!-- CTA -->
+    <section class="cta-section">
+      <h2 class="cta-title">Ready to <span class="gradient-text">Simulate</span>?</h2>
+      <p class="cta-sub">Sign in and start exploring the robotics simulation platform.</p>
+      <button class="btn-xl" onclick="showScreen('screen-login')">SIGN IN & LAUNCH →</button>
+    </section>
+
+    <footer class="landing-footer">
+      <span>RoboAI Suite · Built by <strong>Yash Surve</strong> · MESWCOE Automation &amp; Robotics</span>
+      <div class="footer-social">
+        <a href="https://yashsurve.vercel.app/" target="_blank" rel="noopener noreferrer" class="footer-social-link pf"
+          title="Portfolio">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="2" y1="12" x2="22" y2="12"></line>
+            <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+          </svg>
+          PORTFOLIO
+        </a>
+        <a href="https://github.com/Yashs2024" target="_blank" rel="noopener noreferrer" class="footer-social-link gh"
+          title="GitHub Profile">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <path
+              d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22">
+            </path>
+          </svg>
+          GITHUB
+        </a>
+        <a href="https://www.linkedin.com/in/yash-surve-3b6a72253" target="_blank" rel="noopener noreferrer"
+          class="footer-social-link li" title="LinkedIn Profile">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"></path>
+            <rect x="2" y="9" width="4" height="12"></rect>
+            <circle cx="4" cy="4" r="2"></circle>
+          </svg>
+          LINKEDIN
+        </a>
+      </div>
+    </footer>
   </div>
 
-  <!-- Interactive 3D Section (Spline integration) -->
-  <section class="spline-section">
-    <div class="spline-card">
-      <div class="spline-spotlight"></div>
-      
-      <div class="spline-text">
-        <h2>Interactive 3D</h2>
-        <p>
-          Bring your UI to life with beautiful 3D scenes. Create immersive experiences 
-          that capture attention and enhance your design.
-        </p>
-      </div>
-
-      <div class="spline-visual">
-        <spline-viewer url="https://prod.spline.design/kZDDjO5HuC9GJUM2/scene.splinecode"></spline-viewer>
-      </div>
-    </div>
-  </section>
-
-  <!-- Simulators Overview -->
-
-  <section class="overview" id="overview">
-    <div class="section-label">THE PLATFORM</div>
-    <h2 class="section-title">Three Engines, <span class="gradient-text">One Platform</span></h2>
-    <p class="section-sub">Each simulator is a standalone environment built for education, research, and experimentation.</p>
-    <div class="sim-overview-grid">
-      <a href="./slam.html" class="ov-card c1" style="text-decoration:none; color:inherit; display:block;">
-        <div class="ov-icon ic1">🤖</div>
-        <div class="ov-name">SLAM SIMULATOR</div>
-        <div class="ov-desc">Real-time LiDAR mapping with Bayesian occupancy grids, A* pathfinding, particle filters, loop closure, and autonomous frontier exploration.</div>
-        <div class="ov-tags"><span class="ov-tag">LiDAR Sensor</span><span class="ov-tag">Bayesian Grid</span><span class="ov-tag">A* / Dijkstra</span><span class="ov-tag">Particle Filter</span><span class="ov-tag">3D Point Cloud</span></div>
-      </a>
-      <a href="./nexus.html" class="ov-card c2" style="text-decoration:none; color:inherit; display:block;">
-        <div class="ov-icon ic2">⚙️</div>
-        <div class="ov-name">NEXUS ENGINE</div>
-        <div class="ov-desc">6-DOF robot arm with FK/IK solvers, LSPB trajectory planning, dynamic torque analysis, and Reynolds Boids swarm intelligence simulation.</div>
-        <div class="ov-tags"><span class="ov-tag">Forward Kinematics</span><span class="ov-tag">IK Solver</span><span class="ov-tag">LSPB Trajectory</span><span class="ov-tag">Boids Swarm</span><span class="ov-tag">Torque Charts</span></div>
-      </a>
-      <a href="./src/hive_landing.html" class="ov-card c3" style="text-decoration:none; color:inherit; display:block;">
-        <div class="ov-icon ic3">🏭</div>
-        <div class="ov-name">HIVE LOGISTICS</div>
-        <div class="ov-desc">Isometric 2.5D warehouse simulation with multi-robot task assignment, battery management, A* coordination, and operational analytics.</div>
-        <div class="ov-tags"><span class="ov-tag">Task Assignment</span><span class="ov-tag">A* Routing</span><span class="ov-tag">Battery Mgmt</span><span class="ov-tag">Live Analytics</span><span class="ov-tag">Isometric 2.5D</span></div>
-      </a>
-    </div>
-  </section>
-
-  <!-- Tech Strip -->
-  <div class="tech-strip" id="tech">
-    <div class="tech-chip"><span class="tc-icon">🧠</span><div><span class="tc-label">AI ALGORITHMS</span><br/><span class="tc-sub">A*, Dijkstra, MCL, Boids</span></div></div>
-    <div class="tech-chip"><span class="tc-icon">🌐</span><div><span class="tc-label">3D RENDERING</span><br/><span class="tc-sub">Three.js / Canvas 2D</span></div></div>
-    <div class="tech-chip"><span class="tc-icon">📊</span><div><span class="tc-label">LIVE ANALYTICS</span><br/><span class="tc-sub">Chart.js Real-time</span></div></div>
-    <div class="tech-chip"><span class="tc-icon">⚡</span><div><span class="tc-label">FAST ENGINE</span><br/><span class="tc-sub">60 FPS Simulation</span></div></div>
-  </div>
-
-  <!-- CTA -->
-  <section class="cta-section">
-    <h2 class="cta-title">Ready to <span class="gradient-text">Simulate</span>?</h2>
-    <p class="cta-sub">Sign in and start exploring the robotics simulation platform.</p>
-    <button class="btn-xl" onclick="showScreen('screen-login')">SIGN IN & LAUNCH →</button>
-  </section>
-
-  <footer class="landing-footer">
-    <span>RoboAI Suite · Built by <strong>Yash Surve</strong> · MESWCOE Automation &amp; Robotics</span>
-    <div class="footer-social">
-      <a href="https://yashsurve.vercel.app/" target="_blank" rel="noopener noreferrer" class="footer-social-link pf" title="Portfolio">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>
-        PORTFOLIO
-      </a>
-      <a href="https://github.com/Yashs2024" target="_blank" rel="noopener noreferrer" class="footer-social-link gh" title="GitHub Profile">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path></svg>
-        GITHUB
-      </a>
-      <a href="https://www.linkedin.com/in/yash-surve-3b6a72253" target="_blank" rel="noopener noreferrer" class="footer-social-link li" title="LinkedIn Profile">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"></path><rect x="2" y="9" width="4" height="12"></rect><circle cx="4" cy="4" r="2"></circle></svg>
-        LINKEDIN
-      </a>
-    </div>
-  </footer>
-</div>
-
-<!-- ═══════════════════════════════════════
+  <!-- ═══════════════════════════════════════
      DONATE MODAL
 ═══════════════════════════════════════ -->
-<div id="donate-overlay" class="donate-overlay" onclick="closeDonateOnOverlay(event)">
-  <div class="donate-modal">
-    <button class="donate-close" onclick="closeDonate()" aria-label="Close">✕</button>
-    <div class="donate-badge">SUPPORT THE PROJECT</div>
-    <div class="donate-title">Buy Me a <span style="color:var(--amber)">Coffee ☕</span></div>
-    <div class="donate-sub">RoboAI Suite is built with passion. If it helped you learn, research, or just have fun — a small donation keeps the project alive!</div>
-    <div class="donate-qr-wrap">
-      <img src="/donate.jpeg" alt="Donation QR Code" loading="lazy" />
+  <div id="donate-overlay" class="donate-overlay" onclick="closeDonateOnOverlay(event)">
+    <div class="donate-modal">
+      <button class="donate-close" onclick="closeDonate()" aria-label="Close">✕</button>
+      <div class="donate-badge">SUPPORT THE PROJECT</div>
+      <div class="donate-title">Buy Me a <span style="color:var(--amber)">Coffee ☕</span></div>
+      <div class="donate-sub">RoboAI Suite is built with passion. If it helped you learn, research, or just have fun — a
+        small donation keeps the project alive!</div>
+      <div class="donate-qr-wrap">
+        <img src="/donate.jpeg" alt="Donation QR Code" loading="lazy" />
+      </div>
+      <div class="donate-note">Scan the QR code to donate · <span>Thank you ♥</span></div>
     </div>
-    <div class="donate-note">Scan the QR code to donate · <span>Thank you ♥</span></div>
   </div>
-</div>
 
-<!-- ═══════════════════════════════════════
+  <!-- ═══════════════════════════════════════
      SCREEN 2: LOGIN
 ═══════════════════════════════════════ -->
-<div id="screen-login" class="screen premium-bg hidden">
-  <div class="grid-overlay"></div>
-  <div class="glow-orb a"></div>
-  <div class="glow-orb b"></div>
-  <div style="display:flex;align-items:center;justify-content:center;min-height:100vh;padding:20px">
-    <div class="auth-card">
-      <div class="auth-logo"><span class="shiny-text-cyan">ROBOAI</span> <span class="shiny-text">// SUITE</span></div>
-      <div class="auth-title">Welcome Back</div>
-      <div class="auth-sub">Sign in to access your simulation environments</div>
-      <form id="login-form" novalidate>
-        <div class="input-group">
-          <label for="login-email">EMAIL</label>
-          <input type="email" id="login-email" class="auth-input" placeholder="admin@roboai.io" value="admin@roboai.io" autocomplete="username"/>
+  <div id="screen-login" class="screen premium-bg hidden">
+    <div class="grid-overlay"></div>
+    <div class="glow-orb a"></div>
+    <div class="glow-orb b"></div>
+    <div style="display:flex;align-items:center;justify-content:center;min-height:100vh;padding:20px">
+      <div class="auth-card">
+        <div class="auth-logo"><span class="shiny-text-cyan">ROBOAI</span> <span class="shiny-text">// SUITE</span>
         </div>
-        <div class="input-group">
-          <label for="login-pass">PASSWORD</label>
-          <input type="password" id="login-pass" class="auth-input" placeholder="••••••••" value="password123" autocomplete="current-password"/>
-        </div>
-        <div class="remember-row">
-          <input type="checkbox" id="remember-me" checked/>
-          <label for="remember-me">Remember me</label>
-        </div>
-        <button type="submit" class="auth-btn" id="login-btn">SIGN IN →</button>
-      </form>
-      <div class="auth-hint">Any credentials work | Mock: <code>admin@roboai.io</code></div>
-      <button class="back-link" onclick="showScreen('screen-landing')">← Back to Home</button>
+        <div class="auth-title">Welcome Back</div>
+        <div class="auth-sub">Sign in to access your simulation environments</div>
+        <form id="login-form" novalidate>
+          <div class="input-group">
+            <label for="login-email">EMAIL</label>
+            <input type="email" id="login-email" class="auth-input" placeholder="admin@roboai.io"
+              value="admin@roboai.io" autocomplete="username" />
+          </div>
+          <div class="input-group">
+            <label for="login-pass">PASSWORD</label>
+            <input type="password" id="login-pass" class="auth-input" placeholder="••••••••" value="password123"
+              autocomplete="current-password" />
+          </div>
+          <div class="remember-row">
+            <input type="checkbox" id="remember-me" checked />
+            <label for="remember-me">Remember me</label>
+          </div>
+          <button type="submit" class="auth-btn" id="login-btn">SIGN IN →</button>
+        </form>
+        <div class="auth-hint">Any credentials work | Mock: <code>admin@roboai.io</code></div>
+        <button class="back-link" onclick="showScreen('screen-landing')">← Back to Home</button>
+      </div>
     </div>
   </div>
-</div>
 
-<!-- ═══════════════════════════════════════
+  <!-- ═══════════════════════════════════════
      SCREEN 3: HUB
 ═══════════════════════════════════════ -->
-<div id="screen-hub" class="screen premium-bg hidden">
-  <div class="grid-overlay"></div>
-  <div class="glow-orb a"></div>
-  <div class="glow-orb b"></div>
-  <nav class="hub-nav">
-    <div class="hub-brand"><span class="shiny-text-cyan">ROBOAI</span> <span class="shiny-text">// SUITE</span></div>
-    <div class="hub-user-row">
-      <div class="hub-avatar" id="hub-avatar">YS</div>
-      <span class="hub-username" id="hub-username">admin@roboai.io</span>
-      <button class="logout-btn" id="logout-btn">LOGOUT</button>
+  <div id="screen-hub" class="screen premium-bg hidden">
+    <div class="grid-overlay"></div>
+    <div class="glow-orb a"></div>
+    <div class="glow-orb b"></div>
+    <nav class="hub-nav">
+      <div class="hub-brand"><span class="shiny-text-cyan">ROBOAI</span> <span class="shiny-text">// SUITE</span></div>
+      <div class="hub-user-row">
+        <div class="hub-avatar" id="hub-avatar">YS</div>
+        <span class="hub-username" id="hub-username">admin@roboai.io</span>
+        <button class="logout-btn" id="logout-btn">LOGOUT</button>
+      </div>
+    </nav>
+    <div class="hub-hero">
+      <div class="hub-greeting">Choose Your <span class="gradient-text">Simulator</span></div>
+      <div class="hub-tagline">Three powerful environments — SLAM mapping, NEXUS kinematics, and HIVE swarm logistics.
+      </div>
     </div>
-  </nav>
-  <div class="hub-hero">
-    <div class="hub-greeting">Choose Your <span class="gradient-text">Simulator</span></div>
-    <div class="hub-tagline">Three powerful environments — SLAM mapping, NEXUS kinematics, and HIVE swarm logistics.</div>
+    <div class="sim-grid">
+      <a href="./slam.html" class="sim-card slam">
+        <div class="sim-top-bar">
+          <div class="sim-icon-wrap ic1">🤖</div>
+          <div class="sim-status" style="color:var(--cyan)">
+            <div class="status-dot" style="background:var(--cyan);box-shadow:0 0 6px var(--cyan)"></div>READY
+          </div>
+        </div>
+        <div class="sim-name">SLAM SIMULATOR</div>
+        <div class="sim-desc">Interactive real-time robot mapping with LiDAR, Bayesian grids, and advanced pathfinding.
+        </div>
+        <div class="sim-features"><span class="feat-tag ft-c">A* Pathfinding</span><span class="feat-tag ft-c">Particle
+            Filter</span><span class="feat-tag ft-c">Loop Closure</span><span class="feat-tag ft-c">3D LiDAR</span>
+        </div>
+        <div class="sim-launch-btn lc">LAUNCH SLAM <span>→</span></div>
+      </a>
+      <a href="./nexus.html" class="sim-card nexus">
+        <div class="sim-top-bar">
+          <div class="sim-icon-wrap ic2">⚙️</div>
+          <div class="sim-status" style="color:var(--violet)">
+            <div class="status-dot" style="background:var(--violet);box-shadow:0 0 6px var(--violet)"></div>READY
+          </div>
+        </div>
+        <div class="sim-name">NEXUS ENGINE</div>
+        <div class="sim-desc">6-DOF robot arm with FK/IK, LSPB trajectory, and Boids swarm intelligence.</div>
+        <div class="sim-features"><span class="feat-tag ft-v">FK/IK Solver</span><span class="feat-tag ft-v">LSPB
+            Trajectory</span><span class="feat-tag ft-v">Boids Swarm</span><span class="feat-tag ft-v">Torque
+            Analytics</span></div>
+        <div class="sim-launch-btn lv">LAUNCH NEXUS <span>→</span></div>
+      </a>
+      <a href="./src/hive_landing.html" class="sim-card hive">
+        <div class="sim-top-bar">
+          <div class="sim-icon-wrap ic3">🏭</div>
+          <div class="sim-status" style="color:var(--amber)">
+            <div class="status-dot" style="background:var(--amber);box-shadow:0 0 6px var(--amber)"></div>READY
+          </div>
+        </div>
+        <div class="sim-name">HIVE LOGISTICS</div>
+        <div class="sim-desc">Industrial warehouse swarm simulation with isometric 2.5D and A* task coordination.</div>
+        <div class="sim-features"><span class="feat-tag ft-a">Task Assignment</span><span class="feat-tag ft-a">Battery
+            Mgmt</span><span class="feat-tag ft-g">Live Analytics</span><span class="feat-tag ft-g">Report Export</span>
+        </div>
+        <div class="sim-launch-btn la">LAUNCH HIVE <span>→</span></div>
+      </a>
+    </div>
+    <div class="hub-footer">
+      <span>RoboAI Suite · Built by <strong style="color:var(--text)">Yash Surve</strong></span>
+      <span style="color:var(--green);font-family:var(--font-hd);font-size:0.65rem;letter-spacing:2px">● ALL SYSTEMS
+        ONLINE</span>
+    </div>
   </div>
-  <div class="sim-grid">
-    <a href="./slam.html" class="sim-card slam">
-      <div class="sim-top-bar"><div class="sim-icon-wrap ic1">🤖</div><div class="sim-status" style="color:var(--cyan)"><div class="status-dot" style="background:var(--cyan);box-shadow:0 0 6px var(--cyan)"></div>READY</div></div>
-      <div class="sim-name">SLAM SIMULATOR</div>
-      <div class="sim-desc">Interactive real-time robot mapping with LiDAR, Bayesian grids, and advanced pathfinding.</div>
-      <div class="sim-features"><span class="feat-tag ft-c">A* Pathfinding</span><span class="feat-tag ft-c">Particle Filter</span><span class="feat-tag ft-c">Loop Closure</span><span class="feat-tag ft-c">3D LiDAR</span></div>
-      <div class="sim-launch-btn lc">LAUNCH SLAM <span>→</span></div>
-    </a>
-    <a href="./nexus.html" class="sim-card nexus">
-      <div class="sim-top-bar"><div class="sim-icon-wrap ic2">⚙️</div><div class="sim-status" style="color:var(--violet)"><div class="status-dot" style="background:var(--violet);box-shadow:0 0 6px var(--violet)"></div>READY</div></div>
-      <div class="sim-name">NEXUS ENGINE</div>
-      <div class="sim-desc">6-DOF robot arm with FK/IK, LSPB trajectory, and Boids swarm intelligence.</div>
-      <div class="sim-features"><span class="feat-tag ft-v">FK/IK Solver</span><span class="feat-tag ft-v">LSPB Trajectory</span><span class="feat-tag ft-v">Boids Swarm</span><span class="feat-tag ft-v">Torque Analytics</span></div>
-      <div class="sim-launch-btn lv">LAUNCH NEXUS <span>→</span></div>
-    </a>
-    <a href="./src/hive_landing.html" class="sim-card hive">
-      <div class="sim-top-bar"><div class="sim-icon-wrap ic3">🏭</div><div class="sim-status" style="color:var(--amber)"><div class="status-dot" style="background:var(--amber);box-shadow:0 0 6px var(--amber)"></div>READY</div></div>
-      <div class="sim-name">HIVE LOGISTICS</div>
-      <div class="sim-desc">Industrial warehouse swarm simulation with isometric 2.5D and A* task coordination.</div>
-      <div class="sim-features"><span class="feat-tag ft-a">Task Assignment</span><span class="feat-tag ft-a">Battery Mgmt</span><span class="feat-tag ft-g">Live Analytics</span><span class="feat-tag ft-g">Report Export</span></div>
-      <div class="sim-launch-btn la">LAUNCH HIVE <span>→</span></div>
-    </a>
-  </div>
-  <div class="hub-footer">
-    <span>RoboAI Suite · Built by <strong style="color:var(--text)">Yash Surve</strong></span>
-    <span style="color:var(--green);font-family:var(--font-hd);font-size:0.65rem;letter-spacing:2px">● ALL SYSTEMS ONLINE</span>
-  </div>
-</div>
 
-<script>
-function openDonate(){
-  document.getElementById('donate-overlay').classList.add('open');
-  document.body.style.overflow='hidden';
-}
-function closeDonate(){
-  document.getElementById('donate-overlay').classList.remove('open');
-  document.body.style.overflow='';
-}
-function closeDonateOnOverlay(e){
-  if(e.target===document.getElementById('donate-overlay')) closeDonate();
-}
-document.addEventListener('keydown',e=>{if(e.key==='Escape') closeDonate();});
-
-function showScreen(id){
-  document.querySelectorAll('.screen').forEach(s=>s.classList.add('hidden'));
-  const el=document.getElementById(id);
-  el.classList.remove('hidden');
-  el.scrollTop=0;
-  window.scrollTo(0,0);
-}
-function getUserInitials(e){const p=e.split('@')[0].split(/[.\-_]/).filter(Boolean);return p.length>=2?(p[0][0]+p[1][0]).toUpperCase():e.slice(0,2).toUpperCase()}
-
-function loginSuccess(email){
-  sessionStorage.setItem('roboai_user',email);
-  document.getElementById('hub-avatar').textContent=getUserInitials(email);
-  document.getElementById('hub-username').textContent=email;
-  showScreen('screen-hub');
-}
-document.getElementById('login-form').addEventListener('submit',e=>{
-  e.preventDefault();
-  const email=document.getElementById('login-email').value.trim();
-  const pass=document.getElementById('login-pass').value;
-  if(!email.includes('@')||pass.length<1)return;
-  const btn=document.getElementById('login-btn');
-  btn.textContent='SIGNING IN...';btn.style.opacity='0.7';
-  setTimeout(()=>{btn.textContent='SIGN IN →';btn.style.opacity='1';loginSuccess(email)},800);
-});
-document.getElementById('logout-btn').addEventListener('click',()=>{sessionStorage.removeItem('roboai_user');showScreen('screen-landing')});
-document.getElementById('nav-login-btn').addEventListener('click',e=>{e.preventDefault();showScreen('screen-login')});
-// Auto-login check
-(function(){const s=sessionStorage.getItem('roboai_user');if(s)loginSuccess(s);else showScreen('screen-landing')})();
-</script>
-
-<script type="module">
-  import * as THREE from 'three';
-
-  // Dotted Surface Three.js implementation (React hook translated to Vanilla JS)
-  const initDottedSurface = () => {
-    const container = document.getElementById('dotted-surface');
-    if (!container) return;
-
-    const SEPARATION = 150;
-    const AMOUNTX = 40;
-    const AMOUNTY = 60;
-
-    const scene = new THREE.Scene();
-    scene.fog = new THREE.Fog(0x050810, 2000, 10000); 
-
-    const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 1, 10000);
-    camera.position.set(0, 355, 1220);
-
-    const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
-    renderer.setPixelRatio(window.devicePixelRatio);
-    renderer.setSize(window.innerWidth, window.innerHeight);
-    renderer.setClearColor(scene.fog.color, 0);
-
-    container.appendChild(renderer.domElement);
-
-    const positions = [];
-    const colors = [];
-    const geometry = new THREE.BufferGeometry();
-
-    for (let ix = 0; ix < AMOUNTX; ix++) {
-      for (let iy = 0; iy < AMOUNTY; iy++) {
-        const x = ix * SEPARATION - (AMOUNTX * SEPARATION) / 2;
-        const y = 0; 
-        const z = iy * SEPARATION - (AMOUNTY * SEPARATION) / 2;
-
-        positions.push(x, y, z);
-        // Using light colors since the theme is dark
-        colors.push(0.8, 0.8, 0.8);
-      }
+  <script>
+    function openDonate() {
+      document.getElementById('donate-overlay').classList.add('open');
+      document.body.style.overflow = 'hidden';
     }
+    function closeDonate() {
+      document.getElementById('donate-overlay').classList.remove('open');
+      document.body.style.overflow = '';
+    }
+    function closeDonateOnOverlay(e) {
+      if (e.target === document.getElementById('donate-overlay')) closeDonate();
+    }
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') closeDonate(); });
 
-    geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
-    geometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
+    function showScreen(id) {
+      document.querySelectorAll('.screen').forEach(s => s.classList.add('hidden'));
+      const el = document.getElementById(id);
+      el.classList.remove('hidden');
+      el.scrollTop = 0;
+      window.scrollTo(0, 0);
+    }
+    function getUserInitials(e) { const p = e.split('@')[0].split(/[.\-_]/).filter(Boolean); return p.length >= 2 ? (p[0][0] + p[1][0]).toUpperCase() : e.slice(0, 2).toUpperCase() }
 
-    const material = new THREE.PointsMaterial({
-      size: 5,
-      vertexColors: true,
-      transparent: true,
-      opacity: 0.15,
-      sizeAttenuation: true,
+    function loginSuccess(email) {
+      sessionStorage.setItem('roboai_user', email);
+      document.getElementById('hub-avatar').textContent = getUserInitials(email);
+      document.getElementById('hub-username').textContent = email;
+      showScreen('screen-hub');
+    }
+    document.getElementById('login-form').addEventListener('submit', e => {
+      e.preventDefault();
+      const email = document.getElementById('login-email').value.trim();
+      const pass = document.getElementById('login-pass').value;
+      if (!email.includes('@') || pass.length < 1) return;
+      const btn = document.getElementById('login-btn');
+      btn.textContent = 'SIGNING IN...'; btn.style.opacity = '0.7';
+      setTimeout(() => { btn.textContent = 'SIGN IN →'; btn.style.opacity = '1'; loginSuccess(email) }, 800);
     });
+    document.getElementById('logout-btn').addEventListener('click', () => { sessionStorage.removeItem('roboai_user'); showScreen('screen-landing') });
+    document.getElementById('nav-login-btn').addEventListener('click', e => { e.preventDefault(); showScreen('screen-login') });
+    // Auto-login check
+    (function () { const s = sessionStorage.getItem('roboai_user'); if (s) loginSuccess(s); else showScreen('screen-landing') })();
+  </script>
 
-    const points = new THREE.Points(geometry, material);
-    scene.add(points);
+  <script type="module">
+    import * as THREE from 'three';
 
-    let count = 0;
+    // Dotted Surface Three.js implementation (React hook translated to Vanilla JS)
+    const initDottedSurface = () => {
+      const container = document.getElementById('dotted-surface');
+      if (!container) return;
 
-    const animate = () => {
-      requestAnimationFrame(animate);
+      const SEPARATION = 150;
+      const AMOUNTX = 40;
+      const AMOUNTY = 60;
 
-      const positionAttribute = geometry.attributes.position;
-      const positions = positionAttribute.array;
+      const scene = new THREE.Scene();
+      scene.fog = new THREE.Fog(0x050810, 2000, 10000);
 
-      let i = 0;
+      const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 1, 10000);
+      camera.position.set(0, 355, 1220);
+
+      const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+      renderer.setPixelRatio(window.devicePixelRatio);
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      renderer.setClearColor(scene.fog.color, 0);
+
+      container.appendChild(renderer.domElement);
+
+      const positions = [];
+      const colors = [];
+      const geometry = new THREE.BufferGeometry();
+
       for (let ix = 0; ix < AMOUNTX; ix++) {
         for (let iy = 0; iy < AMOUNTY; iy++) {
-          const index = i * 3;
-          // Wave animation algorithm from 21st.dev
-          positions[index + 1] = Math.sin((ix + count) * 0.3) * 50 + Math.sin((iy + count) * 0.5) * 50;
-          i++;
+          const x = ix * SEPARATION - (AMOUNTX * SEPARATION) / 2;
+          const y = 0;
+          const z = iy * SEPARATION - (AMOUNTY * SEPARATION) / 2;
+
+          positions.push(x, y, z);
+          // Using light colors since the theme is dark
+          colors.push(0.8, 0.8, 0.8);
         }
       }
 
-      positionAttribute.needsUpdate = true;
-      renderer.render(scene, camera);
-      count += 0.05; // Slightly slower for elegance
+      geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+      geometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
+
+      const material = new THREE.PointsMaterial({
+        size: 5,
+        vertexColors: true,
+        transparent: true,
+        opacity: 0.15,
+        sizeAttenuation: true,
+      });
+
+      const points = new THREE.Points(geometry, material);
+      scene.add(points);
+
+      let count = 0;
+
+      const animate = () => {
+        requestAnimationFrame(animate);
+
+        const positionAttribute = geometry.attributes.position;
+        const positions = positionAttribute.array;
+
+        let i = 0;
+        for (let ix = 0; ix < AMOUNTX; ix++) {
+          for (let iy = 0; iy < AMOUNTY; iy++) {
+            const index = i * 3;
+            // Wave animation algorithm from 21st.dev
+            positions[index + 1] = Math.sin((ix + count) * 0.3) * 50 + Math.sin((iy + count) * 0.5) * 50;
+            i++;
+          }
+        }
+
+        positionAttribute.needsUpdate = true;
+        renderer.render(scene, camera);
+        count += 0.05; // Slightly slower for elegance
+      };
+
+      const handleResize = () => {
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+      };
+
+      window.addEventListener('resize', handleResize);
+      animate();
     };
 
-    const handleResize = () => {
-      camera.aspect = window.innerWidth / window.innerHeight;
-      camera.updateProjectionMatrix();
-      renderer.setSize(window.innerWidth, window.innerHeight);
-    };
-
-    window.addEventListener('resize', handleResize);
-    animate();
-  };
-
-  // Run initialiser once DOM is fully available
-  document.addEventListener("DOMContentLoaded", initDottedSurface);
-</script>
+    // Run initialiser once DOM is fully available
+    document.addEventListener("DOMContentLoaded", initDottedSurface);
+  </script>
 </body>
+
 </html>

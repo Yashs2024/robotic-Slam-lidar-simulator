@@ -419,8 +419,16 @@ export class Renderer {
         ctx.restore();
     }
 
-    drawPath(path, ctx = this.slamCtx) {
+    drawPath(path, ctx = this.slamCtx, options = {}) {
         if (!path || path.length === 0) return;
+
+        const {
+            color = '#10b981',
+            lineWidth = 3,
+            dashed = true,
+            dashPattern = [10, 10],
+            targetRadius = 6,
+        } = options;
 
         ctx.save();
         ctx.beginPath();
@@ -428,16 +436,16 @@ export class Renderer {
         for (let i = 1; i < path.length; i++) {
             ctx.lineTo(path[i].x, path[i].y);
         }
-        ctx.strokeStyle = '#10b981';
-        ctx.lineWidth = 3;
-        ctx.setLineDash([10, 10]);
+        ctx.strokeStyle = color;
+        ctx.lineWidth = lineWidth;
+        ctx.setLineDash(dashed ? dashPattern : []);
         ctx.stroke();
 
         // Draw target marker at end
         const target = path[path.length - 1];
         ctx.beginPath();
-        ctx.arc(target.x, target.y, 6, 0, Math.PI * 2);
-        ctx.fillStyle = '#10b981';
+        ctx.arc(target.x, target.y, targetRadius, 0, Math.PI * 2);
+        ctx.fillStyle = color;
         ctx.fill();
         ctx.restore();
     }

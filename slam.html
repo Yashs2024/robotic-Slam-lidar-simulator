@@ -363,6 +363,104 @@
     }
     .stat-box .sl { font-size: 0.55rem; color: var(--text-2); letter-spacing: 1px; margin-top: 2px; }
 
+    /* Multi-Robot Dashboard */
+    .mrd-combined {
+      display: flex; align-items: center; justify-content: space-between;
+      background: rgba(59,130,246,0.06); border: 1px solid rgba(59,130,246,0.2);
+      border-radius: var(--r); padding: 8px 10px; margin-bottom: 8px;
+    }
+    .mrd-combined-lbl { font-size: 0.6rem; color: var(--text-2); letter-spacing: 1px; }
+    .mrd-combined-val { font-family: var(--font-d); font-size: 1.1rem; font-weight: 700; color: var(--blue); }
+    .mrd-progress-bar {
+      height: 4px; background: rgba(255,255,255,0.06); border-radius: 2px;
+      overflow: hidden; margin: 4px 0 8px;
+    }
+    .mrd-progress-fill {
+      height: 100%; border-radius: 2px;
+      background: linear-gradient(90deg, var(--blue), var(--violet));
+      transition: width 0.6s ease;
+      box-shadow: 0 0 8px var(--blue);
+    }
+    .mrd-robot-card {
+      background: rgba(255,255,255,0.02); border: 1px solid var(--border);
+      border-radius: var(--r); padding: 8px 10px; margin-bottom: 5px;
+      position: relative; overflow: hidden;
+    }
+    .mrd-robot-card::before {
+      content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px;
+    }
+    .mrd-robot-card.r0::before { background: var(--blue); }
+    .mrd-robot-card.r1::before { background: #a855f7; }
+    .mrd-robot-card.r2::before { background: #f97316; }
+    .mrd-robot-card.r3::before { background: #22d3d1; }
+    .mrd-robot-header {
+      display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;
+    }
+    .mrd-robot-name { font-family: var(--font-d); font-size: 0.6rem; letter-spacing: 1px; }
+    .mrd-robot-name.r0 { color: var(--blue); }
+    .mrd-robot-name.r1 { color: #a855f7; }
+    .mrd-robot-name.r2 { color: #f97316; }
+    .mrd-robot-name.r3 { color: #22d3d1; }
+    .mrd-robot-status {
+      font-size: 0.52rem; letter-spacing: 1px;
+      padding: 2px 6px; border-radius: 10px;
+    }
+    .mrd-robot-status.exploring { color: var(--green); background: rgba(16,185,129,0.1); border: 1px solid rgba(16,185,129,0.25); }
+    .mrd-robot-status.idle { color: var(--text-2); background: rgba(255,255,255,0.04); border: 1px solid var(--border); }
+    .mrd-robot-status.navigating { color: var(--amber); background: rgba(245,158,11,0.1); border: 1px solid rgba(245,158,11,0.25); }
+    .mrd-robot-pct-row { display: flex; align-items: center; gap: 6px; margin-bottom: 3px; }
+    .mrd-robot-pct-val { font-family: var(--font-d); font-size: 0.8rem; font-weight: 700; min-width: 36px; }
+    .mrd-robot-pct-val.r0 { color: var(--blue); }
+    .mrd-robot-pct-val.r1 { color: #a855f7; }
+    .mrd-robot-pct-val.r2 { color: #f97316; }
+    .mrd-robot-pct-val.r3 { color: #22d3d1; }
+    .mrd-robot-mini-bar {
+      flex: 1; height: 4px; background: rgba(255,255,255,0.06); border-radius: 2px; overflow: hidden;
+    }
+    .mrd-robot-mini-fill { height: 100%; border-radius: 2px; transition: width 0.5s ease; }
+    .mrd-robot-mini-fill.r0 { background: var(--blue); }
+    .mrd-robot-mini-fill.r1 { background: #a855f7; }
+    .mrd-robot-mini-fill.r2 { background: #f97316; }
+    .mrd-robot-mini-fill.r3 { background: #22d3d1; }
+    .mrd-robot-dist { font-size: 0.55rem; color: var(--text-2); text-align: right; }
+    #multiRobotDashboard { transition: all 0.3s ease; }
+
+    /* ===== Panel Tab Bar ===== */
+    .panel-tab-bar {
+      display: flex; position: relative;
+      border-bottom: 1px solid var(--border);
+      background: rgba(0,0,0,0.18);
+      flex-shrink: 0;
+    }
+    .panel-tab {
+      flex: 1; padding: 10px 0; background: none; border: none;
+      color: var(--text-2); font-family: var(--font-d); font-size: 0.62rem;
+      letter-spacing: 1.5px; cursor: pointer; position: relative; z-index: 1;
+      transition: color 0.25s;
+      display: flex; align-items: center; justify-content: center; gap: 5px;
+    }
+    .panel-tab:hover { color: var(--text-0); }
+    .panel-tab.active { color: var(--blue); }
+    .ptab-icon { font-size: 0.8rem; }
+    .panel-tab-ink {
+      position: absolute; bottom: 0; left: 0;
+      width: 50%; height: 2px;
+      background: linear-gradient(90deg, var(--blue), var(--violet));
+      border-radius: 2px 2px 0 0;
+      transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: 0 0 8px var(--blue);
+    }
+    .panel-tab-ink.advanced { transform: translateX(100%); }
+    .panel-tab-content {
+      flex: 1; overflow-y: auto; overflow-x: hidden;
+    }
+    .panel-tab-content.hidden { display: none; }
+    /* Make the sidebar itself a flex column so tab bar sticks to top */
+    .side-panel.sidebar {
+      display: flex !important;
+      flex-direction: column !important;
+    }
+
     /* Controls */
     .ctrl-row {
       display: flex; justify-content: space-between; align-items: center; margin-bottom: 3px;
@@ -734,132 +832,198 @@
 
     <!-- Left Control Panel -->
     <aside class="side-panel sidebar">
-      <!-- Header -->
-      <div class="ps">
-        <div class="ps-header"><span><span class="ps-icon">📡</span> SLAM ENGINE</span></div>
-        <button id="btnTutorial" class="btn-tutorial">📖 START TUTORIAL</button>
+
+      <!-- ===== TAB BAR ===== -->
+      <div class="panel-tab-bar">
+        <button class="panel-tab active" id="tabBasic" onclick="switchPanelTab('basic')">
+          <span class="ptab-icon">⚡</span> BASIC
+        </button>
+        <button class="panel-tab" id="tabAdvanced" onclick="switchPanelTab('advanced')">
+          <span class="ptab-icon">🔬</span> ADVANCED
+        </button>
+        <div class="panel-tab-ink" id="panelTabInk"></div>
       </div>
 
-      <!-- Performance Stats -->
-      <div class="ps">
-        <div class="ps-header"><span><span class="ps-icon">📊</span> PERFORMANCE</span></div>
-        <div class="stats-grid">
-          <div class="stat-box"><div class="sv" id="statExplored">0%</div><div class="sl">EXPLORED</div></div>
-          <div class="stat-box"><div class="sv" id="statDistance">0m</div><div class="sl">DISTANCE</div></div>
-          <div class="stat-box"><div class="sv" id="statCollisions">0</div><div class="sl">COLLISIONS</div></div>
-          <div class="stat-box"><div class="sv" id="statTime">0:00</div><div class="sl">TIME</div></div>
+      <!-- BASIC TAB -->
+      <div class="panel-tab-content" id="contentBasic">
+
+        <div class="ps">
+          <div class="ps-header"><span><span class="ps-icon">📡</span> SLAM ENGINE</span></div>
+          <button id="btnTutorial" class="btn-tutorial">📖 START TUTORIAL</button>
         </div>
-      </div>
 
-      <!-- Sensor Controls -->
-      <div class="ps">
-        <div class="ps-header"><span><span class="ps-icon">⚙️</span> SENSOR CONFIG</span></div>
-        <div class="ctrl-row"><span class="ctrl-lbl">LiDAR Noise</span><span class="ctrl-val" id="noiseValue">2%</span></div>
-        <input type="range" id="noiseSlider" min="0" max="20" value="2" step="1">
-        <div class="ctrl-row"><span class="ctrl-lbl">Robot Speed</span><span class="ctrl-val" id="speedValue">5x</span></div>
-        <input type="range" id="speedSlider" min="1" max="10" value="5" step="1">
-        <div class="ctrl-row"><span class="ctrl-lbl">Drive Model</span></div>
-        <select id="driveModelSelect">
-          <option value="differential">⚙️ Differential (Tank)</option>
-          <option value="ackermann">🚗 Ackermann (Car)</option>
-          <option value="holonomic">🔷 Holonomic (Omni)</option>
-        </select>
-        <div class="ctrl-row" style="margin-top:6px;"><span class="ctrl-lbl">Ray Density</span><span class="ctrl-val" id="rayDensityValue">90 Rays</span></div>
-        <input type="range" id="rayDensitySlider" min="30" max="360" value="90" step="10">
-        <div class="ctrl-row"><span class="ctrl-lbl">Odometry Drift</span><span class="ctrl-val" id="driftValue">Off</span></div>
-        <input type="range" id="driftSlider" min="0" max="10" value="0" step="1">
-      </div>
-
-      <!-- Pathfinding -->
-      <div class="ps">
-        <div class="ps-header"><span><span class="ps-icon">🧭</span> PATHFINDING</span></div>
-        <select id="algorithmSelect">
-          <option value="astar">⚡ A* (Heuristic)</option>
-          <option value="dijkstra">🔍 Dijkstra (Optimal)</option>
-          <option value="bug2">🐛 Bug2 (Wall-Follow)</option>
-        </select>
-        <span id="pathComputeTime" style="font-size:0.6rem;color:var(--text-2);margin-top:4px;display:block;"></span>
-      </div>
-
-      <!-- Interaction Mode -->
-      <div class="ps">
-        <div class="ps-header"><span><span class="ps-icon">🎮</span> INTERACTION</span></div>
-        <div class="btn-group">
-          <button id="btnDriveMode" class="btn-grp active">DRIVE</button>
-          <button id="btnBuildMode" class="btn-grp">BUILD</button>
+        <div class="ps">
+          <div class="ps-header"><span><span class="ps-icon">📊</span> PERFORMANCE</span></div>
+          <div class="stats-grid">
+            <div class="stat-box"><div class="sv" id="statExplored">0%</div><div class="sl">EXPLORED</div></div>
+            <div class="stat-box"><div class="sv" id="statDistance">0m</div><div class="sl">DISTANCE</div></div>
+            <div class="stat-box"><div class="sv" id="statCollisions">0</div><div class="sl">COLLISIONS</div></div>
+            <div class="stat-box"><div class="sv" id="statTime">0:00</div><div class="sl">TIME</div></div>
+          </div>
         </div>
-        <button id="btnAutoExplore" class="btn-feat green">🧭 Auto Explore</button>
-        <button id="btnDynamicObs" class="btn-feat amber">🔮 Dynamic Obstacles</button>
-        <button id="btnDynamicHumans" class="btn-feat amber">👷 Moving Workers</button>
-        <button id="btnParticleFilter" class="btn-feat violet">🎯 Particle Filter</button>
-        <button id="btnLoopClosure" class="btn-feat violet">🔗 Loop Closure</button>
-        <div id="particleCountGroup" style="display:none; margin-top:6px;">
-          <div class="ctrl-row"><span class="ctrl-lbl">Particles</span><span class="ctrl-val" id="particleCountValue">200</span></div>
-          <input type="range" id="particleCountSlider" min="50" max="500" value="200" step="25">
+
+        <div class="ps" id="multiRobotDashboard" style="display:none;">
+          <div class="ps-header"><span><span class="ps-icon">🤖</span> FLEET STATUS</span></div>
+          <div class="mrd-combined">
+            <div><div class="mrd-combined-lbl">COMBINED AREA EXPLORED</div></div>
+            <div class="mrd-combined-val" id="mrdCombinedPct">0%</div>
+          </div>
+          <div class="mrd-progress-bar"><div class="mrd-progress-fill" id="mrdCombinedBar" style="width:0%"></div></div>
+          <div id="mrdRobotCards"></div>
         </div>
-      </div>
 
-      <!-- Sound -->
-      <div class="ps">
-        <div class="ps-header"><span><span class="ps-icon">🔊</span> AUDIO</span></div>
-        <div class="btn-group">
-          <button id="btnSoundOff" class="btn-grp active">🔇 OFF</button>
-          <button id="btnSoundOn" class="btn-grp">🔊 ON</button>
+        <div class="ps">
+          <div class="ps-header"><span><span class="ps-icon">🎮</span> INTERACTION</span></div>
+          <div class="btn-group">
+            <button id="btnDriveMode" class="btn-grp active">DRIVE</button>
+            <button id="btnBuildMode" class="btn-grp">BUILD</button>
+          </div>
+          <button id="btnAutoExplore" class="btn-feat green">🧭 Auto Explore</button>
         </div>
-        <div id="volumeGroup" style="display:none; margin-top:6px;">
-          <div class="ctrl-row"><span class="ctrl-lbl">Volume</span><span class="ctrl-val" id="volumeValue">30%</span></div>
-          <input type="range" id="volumeSlider" min="0" max="100" value="30" step="5">
+
+        <div class="ps">
+          <div class="ps-header"><span><span class="ps-icon">🗺️</span> ENVIRONMENT</span></div>
+          <select id="presetSelect">
+            <option value="random">🎲 Random</option>
+            <option value="maze">🏗️ Maze</option>
+            <option value="warehouse">📦 Warehouse</option>
+            <option value="office">🏢 Office</option>
+            <option value="lshape">↰ L-Shape</option>
+            <option value="open">🏜️ Open Field</option>
+          </select>
+          <div style="display:flex; gap:4px; margin-top:6px;">
+            <button id="btnExportMap" class="btn-tool">📤 Export</button>
+            <button id="btnImportMap" class="btn-tool">📥 Import</button>
+            <input type="file" id="importFileInput" accept=".json" style="display:none;" />
+          </div>
         </div>
-      </div>
 
-      <!-- Instructions -->
-      <div class="ps" id="instructionsDrive">
-        <div class="ps-header"><span><span class="ps-icon">⌨️</span> CONTROLS</span></div>
-        <div class="kbd-row"><kbd>W</kbd> Move Forward</div>
-        <div class="kbd-row"><kbd>S</kbd> Move Backward</div>
-        <div class="kbd-row"><kbd>A</kbd> Rotate Left</div>
-        <div class="kbd-row"><kbd>D</kbd> Rotate Right</div>
-        <div class="kbd-row" style="margin-top:4px; color:var(--blue);">Click SLAM Map → Auto-Navigate</div>
-      </div>
-      <div class="ps hidden" id="instructionsBuild">
-        <div class="ps-header"><span><span class="ps-icon">🏗️</span> BUILD MODE</span></div>
-        <div class="kbd-row">Click + Drag to draw walls</div>
-      </div>
-
-      <!-- Charts -->
-      <div class="ps">
-        <div class="ps-header"><span><span class="ps-icon">📈</span> LIVE SENSOR DATA</span></div>
-        <div class="chart-wrap"><canvas id="lidarChart"></canvas></div>
-      </div>
-      <div class="ps">
-        <div class="ps-header"><span><span class="ps-icon">📉</span> ROBOT DYNAMICS</span></div>
-        <div class="chart-wrap"><canvas id="dynamicsChart"></canvas></div>
-      </div>
-
-      <!-- Environment -->
-      <div class="ps">
-        <div class="ps-header"><span><span class="ps-icon">🗺️</span> ENVIRONMENT</span></div>
-        <select id="presetSelect">
-          <option value="random">🎲 Random</option>
-          <option value="maze">🏗️ Maze</option>
-          <option value="warehouse">📦 Warehouse</option>
-          <option value="office">🏢 Office</option>
-          <option value="lshape">↰ L-Shape</option>
-          <option value="open">🏜️ Open Field</option>
-        </select>
-        <div style="display:flex; gap:4px; margin-top:6px;">
-          <button id="btnExportMap" class="btn-tool">📤 Export</button>
-          <button id="btnImportMap" class="btn-tool">📥 Import</button>
-          <input type="file" id="importFileInput" accept=".json" style="display:none;" />
+        <div class="ps" id="instructionsDrive">
+          <div class="ps-header"><span><span class="ps-icon">⌨️</span> CONTROLS</span></div>
+          <div class="kbd-row"><kbd>W</kbd> Move Forward</div>
+          <div class="kbd-row"><kbd>S</kbd> Move Backward</div>
+          <div class="kbd-row"><kbd>A</kbd> Rotate Left</div>
+          <div class="kbd-row"><kbd>D</kbd> Rotate Right</div>
+          <div class="kbd-row" style="margin-top:4px; color:var(--blue);">Click SLAM Map → Auto-Navigate</div>
         </div>
-      </div>
+        <div class="ps hidden" id="instructionsBuild">
+          <div class="ps-header"><span><span class="ps-icon">🏗️</span> BUILD MODE</span></div>
+          <div class="kbd-row">Click + Drag to draw walls</div>
+        </div>
 
-      <!-- Reset -->
-      <div class="ps" style="border-bottom:none;">
-        <button id="btnReset" class="btn-danger" style="margin-bottom:5px;">↺ Reset Map</button>
-        <button id="btnClearCustom" class="btn-danger">✕ Clear Custom Walls</button>
-      </div>
+        <div class="ps">
+          <div class="ps-header"><span><span class="ps-icon">🔊</span> AUDIO</span></div>
+          <div class="btn-group">
+            <button id="btnSoundOff" class="btn-grp active">🔇 OFF</button>
+            <button id="btnSoundOn" class="btn-grp">🔊 ON</button>
+          </div>
+          <div id="volumeGroup" style="display:none; margin-top:6px;">
+            <div class="ctrl-row"><span class="ctrl-lbl">Volume</span><span class="ctrl-val" id="volumeValue">30%</span></div>
+            <input type="range" id="volumeSlider" min="0" max="100" value="30" step="5">
+          </div>
+        </div>
+
+        <div class="ps" style="border-bottom:none;">
+          <button id="btnReset" class="btn-danger" style="margin-bottom:5px;">↺ Reset Map</button>
+          <button id="btnClearCustom" class="btn-danger">✕ Clear Custom Walls</button>
+        </div>
+
+      </div><!-- /contentBasic -->
+
+      <!-- ADVANCED TAB -->
+      <div class="panel-tab-content hidden" id="contentAdvanced">
+
+        <div class="ps">
+          <div class="ps-header"><span><span class="ps-icon">⚙️</span> SENSOR CONFIG</span></div>
+          <div class="ctrl-row"><span class="ctrl-lbl">LiDAR Noise</span><span class="ctrl-val" id="noiseValue">2%</span></div>
+          <input type="range" id="noiseSlider" min="0" max="20" value="2" step="1">
+          <div class="ctrl-row"><span class="ctrl-lbl">Robot Speed</span><span class="ctrl-val" id="speedValue">5x</span></div>
+          <input type="range" id="speedSlider" min="1" max="10" value="5" step="1">
+          <div class="ctrl-row"><span class="ctrl-lbl">Drive Model</span></div>
+          <select id="driveModelSelect">
+            <option value="differential">⚙️ Differential (Tank)</option>
+            <option value="ackermann">🚗 Ackermann (Car)</option>
+            <option value="holonomic">🔷 Holonomic (Omni)</option>
+          </select>
+          <div class="ctrl-row" style="margin-top:6px;"><span class="ctrl-lbl">Ray Density</span><span class="ctrl-val" id="rayDensityValue">90 Rays</span></div>
+          <input type="range" id="rayDensitySlider" min="30" max="360" value="90" step="10">
+          <div class="ctrl-row"><span class="ctrl-lbl">Odometry Drift</span><span class="ctrl-val" id="driftValue">Off</span></div>
+          <input type="range" id="driftSlider" min="0" max="10" value="0" step="1">
+        </div>
+
+        <div class="ps">
+          <div class="ps-header"><span><span class="ps-icon">🧭</span> PATHFINDING</span></div>
+          <select id="algorithmSelect">
+            <option value="astar">⚡ A* (Heuristic)</option>
+            <option value="dijkstra">🔍 Dijkstra (Optimal)</option>
+            <option value="bug2">🐛 Bug2 (Wall-Follow)</option>
+          </select>
+          <button id="btnAlgoCompare" class="btn-tool" style="margin-top:6px; width:100%;">Compare Algorithms</button>
+          <span id="pathComputeTime" style="font-size:0.6rem;color:var(--text-2);margin-top:4px;display:block;"></span>
+          <div id="algoComparePanel" style="display:none; margin-top:6px; font-size:0.62rem; color:var(--text-1);">
+            <div style="display:grid; grid-template-columns: 1fr auto auto; gap:6px; padding:6px; border:1px solid var(--border); border-radius: var(--r); background: rgba(59,130,246,0.04);">
+              <div style="color:var(--text-2);">Algorithm</div>
+              <div style="color:var(--text-2); text-align:right;">Time</div>
+              <div style="color:var(--text-2); text-align:right;">Length</div>
+              <div id="cmpRowAStar">A*</div>
+              <div id="cmpTimeAStar" style="text-align:right;">-</div>
+              <div id="cmpLenAStar" style="text-align:right;">-</div>
+              <div id="cmpRowDijkstra">Dijkstra</div>
+              <div id="cmpTimeDijkstra" style="text-align:right;">-</div>
+              <div id="cmpLenDijkstra" style="text-align:right;">-</div>
+              <div id="cmpRowBug2">Bug2</div>
+              <div id="cmpTimeBug2" style="text-align:right;">-</div>
+              <div id="cmpLenBug2" style="text-align:right;">-</div>
+            </div>
+            <div style="margin-top:6px; color:var(--text-2);">
+              Click on the SLAM map to compute all 3 paths. The selected algorithm will be executed; all paths are shown on the SLAM view.
+            </div>
+          </div>
+        </div>
+
+        <div class="ps">
+          <div class="ps-header"><span><span class="ps-icon">🔬</span> ADVANCED FEATURES</span></div>
+          <button id="btnDynamicObs" class="btn-feat amber">🔮 Dynamic Obstacles</button>
+          <button id="btnDynamicHumans" class="btn-feat amber">👷 Moving Workers</button>
+          <button id="btnParticleFilter" class="btn-feat violet">🎯 Particle Filter</button>
+          <button id="btnLoopClosure" class="btn-feat violet">🔗 Loop Closure</button>
+          <div id="particleCountGroup" style="display:none; margin-top:6px;">
+            <div class="ctrl-row"><span class="ctrl-lbl">Particles</span><span class="ctrl-val" id="particleCountValue">200</span></div>
+            <input type="range" id="particleCountSlider" min="50" max="500" value="200" step="25">
+          </div>
+        </div>
+
+        <div class="ps">
+          <div class="ps-header"><span><span class="ps-icon">🤖</span> MULTI-ROBOT SLAM</span></div>
+          <div class="ctrl-row"><span class="ctrl-lbl">Fleet Size</span></div>
+          <select id="multiRobotSelect" style="width:100%; margin-top:4px;">
+            <option value="1">1 robot (solo)</option>
+            <option value="2">2 robots — shared grid</option>
+            <option value="3">3 robots — shared grid</option>
+            <option value="4">4 robots — shared grid</option>
+          </select>
+          <label style="display:flex; align-items:center; gap:6px; margin-top:6px; font-size:0.62rem; color:var(--text-2); cursor:pointer;">
+            <input type="checkbox" id="chkPartnerLidar" checked /> Partner LiDAR cones
+          </label>
+          <label style="display:flex; align-items:center; gap:6px; margin-top:4px; font-size:0.62rem; color:var(--text-2); cursor:pointer;">
+            <input type="checkbox" id="chkPartnerAutoExplore" checked /> Auto-explore (each robot independent)
+          </label>
+        </div>
+
+        <div class="ps">
+          <div class="ps-header"><span><span class="ps-icon">📈</span> LIVE SENSOR DATA</span></div>
+          <div class="chart-wrap"><canvas id="lidarChart"></canvas></div>
+        </div>
+        <div class="ps">
+          <div class="ps-header"><span><span class="ps-icon">📉</span> ROBOT DYNAMICS</span></div>
+          <div class="chart-wrap"><canvas id="dynamicsChart"></canvas></div>
+        </div>
+
+      </div><!-- /contentAdvanced -->
+
     </aside>
+
+
 
     <!-- Main Canvas Area -->
     <main class="canvas-area">
@@ -883,6 +1047,31 @@
       <img src="./donate.jpeg" alt="Donate QR Code" />
     </div>
   </div>
+
+  <script>
+    /** Switch between Basic and Advanced sidebar tabs */
+    function switchPanelTab(tab) {
+      const basic    = document.getElementById('contentBasic');
+      const advanced = document.getElementById('contentAdvanced');
+      const tabB     = document.getElementById('tabBasic');
+      const tabA     = document.getElementById('tabAdvanced');
+      const ink      = document.getElementById('panelTabInk');
+      if (!basic || !advanced) return;
+      if (tab === 'basic') {
+        basic.classList.remove('hidden');
+        advanced.classList.add('hidden');
+        tabB.classList.add('active');
+        tabA.classList.remove('active');
+        ink.classList.remove('advanced');
+      } else {
+        basic.classList.add('hidden');
+        advanced.classList.remove('hidden');
+        tabA.classList.add('active');
+        tabB.classList.remove('active');
+        ink.classList.add('advanced');
+      }
+    }
+  </script>
 
   <!-- Feature card scroll animation -->
   <script>

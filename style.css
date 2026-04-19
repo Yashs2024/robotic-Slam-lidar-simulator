@@ -1385,6 +1385,48 @@ footer {
   color: white !important;
 }
 
+.tutorial-module-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin-bottom: 0.65rem;
+}
+
+.tutorial-module-tab {
+  flex: 1 1 auto;
+  min-width: 4.5rem;
+  padding: 0.28rem 0.45rem;
+  font-size: 0.62rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  border-radius: 6px;
+  border: 1px solid var(--border-color);
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.tutorial-module-tab:hover {
+  color: #fff;
+  border-color: rgba(129, 140, 248, 0.45);
+}
+
+.tutorial-module-tab.active {
+  color: #c7d2fe;
+  border-color: rgba(129, 140, 248, 0.55);
+  background: rgba(99, 102, 241, 0.18);
+}
+
+.tutorial-checkpoint-hint {
+  min-height: 1.1rem;
+  font-size: 0.78rem;
+  line-height: 1.35;
+  color: #fb923c;
+  margin: 0 0 0.75rem 0;
+}
+
 /* ── Tutorial Highlight Ring ── */
 .tutorial-highlight-ring {
   position: fixed;
