@@ -659,6 +659,15 @@
 </head>
 
 <body>
+<script>
+// ── ROBOAI AUTH GUARD ──
+(function(){
+  try {
+    var s = JSON.parse(localStorage.getItem('roboai_session'));
+    if (!s || !s.email || !s.id) { window.location.replace('index.html?r=slam'); }
+  } catch(e) { window.location.replace('index.html?r=slam'); }
+})();
+</script>
 
   <!-- ===================================
        LOADING SCREEN

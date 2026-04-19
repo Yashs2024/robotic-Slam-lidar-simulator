@@ -76,6 +76,13 @@
 .hub-signout{font-family:var(--font-mono);font-size:9px;letter-spacing:2px;color:var(--muted);background:none;border:1px solid rgba(255,255,255,0.08);padding:8px 20px;cursor:pointer;transition:all 0.2s;}
 .hub-signout:hover{border-color:rgba(255,255,255,0.2);color:var(--text);}
 @media(max-width:768px){.hub-cards{grid-template-columns:1fr;}}
+/* ── AUTH TABS ── */
+.auth-tabs{display:flex;position:relative;border-bottom:1px solid rgba(0,245,255,0.12);margin-bottom:20px;margin-top:8px;}
+.auth-tab{flex:1;background:none;border:none;color:var(--muted,#4A5568);font-family:var(--font-display);font-size:9px;font-weight:700;letter-spacing:3px;padding:10px 0;cursor:pointer;transition:color 0.2s;position:relative;z-index:1;}
+.auth-tab.active{color:var(--cyan,#00F5FF);}
+.auth-tab-ink{position:absolute;bottom:0;left:0;width:50%;height:2px;background:linear-gradient(90deg,var(--cyan,#00F5FF),rgba(0,245,255,0.4));transition:transform 0.28s cubic-bezier(0.4,0,0.2,1);}
+.auth-switch-link{color:var(--cyan,#00F5FF);cursor:pointer;font-weight:700;text-decoration:underline;text-underline-offset:3px;}
+.auth-switch-link:hover{opacity:0.8;}
 :root{
   --bg:#020509;--bg2:#06090F;--bg3:#0B0F1A;--bg4:#0E1420;
   --blue:#3b82f6;--violet:#9B5DE5;--amber:#F59E0B;--cyan:#00F5FF;--green:#10B981;
@@ -385,13 +392,13 @@ footer{padding:20px 80px;border-top:1px solid var(--border);display:flex;align-i
     <a href="#engines">ENGINES</a>
     <a href="#algos">ALGORITHMS</a>
     <a href="#stack">STACK</a>
-    <a href="slam.html" class="blue">SLAM</a>
-    <a href="nexus.html" class="violet">NEXUS</a>
-    <a href="hive.html" class="amber">HIVE</a>
+    <a href="#" onclick="authGate('slam.html');return false;" class="blue">SLAM</a>
+    <a href="#" onclick="authGate('nexus.html');return false;" class="violet">NEXUS</a>
+    <a href="#" onclick="authGate('hive.html');return false;" class="amber">HIVE</a>
   </div>
   <div class="nav-r">
-    <a href="#" class="btn btn-ghost btn-sm">SIGN IN</a>
-    <a href="#" class="btn btn-cyan btn-sm">▶ LAUNCH HUB</a>
+    <a href="#" class="btn btn-ghost btn-sm" id="nav-signin">SIGN IN</a>
+    <a href="#" class="btn btn-cyan btn-sm" id="nav-enter">▶ ENTER HUB</a>
   </div>
 </nav>
 
@@ -492,14 +499,14 @@ footer{padding:20px 80px;border-top:1px solid var(--border);display:flex;align-i
           <span class="ec-tag">MCL</span>
         </div>
         <div class="ec-launch">
-          <a href="slam.html" class="ec-launch-btn">▶ LAUNCH SLAM</a>
-          <span class="ec-status">OPERATIONAL</span>
+          <a href="#" onclick="authGate('slam.html');return false;" class="ec-launch-btn">▶ LAUNCH SLAM</a>
+          <span class="ec-status">LOGIN REQUIRED</span>
         </div>
       </div>
     </div>
 
     <!-- NEXUS -->
-    <div class="engine-card nexus reveal rd1" onclick="window.location.href='nexus.html'">
+    <div class="engine-card nexus reveal rd1">
       <div class="ec-bar"></div>
       <div class="ec-canvas-wrap">
         <canvas id="nexusCanvas" width="400" height="180"></canvas>
@@ -518,14 +525,14 @@ footer{padding:20px 80px;border-top:1px solid var(--border);display:flex;align-i
           <span class="ec-tag">THREE.JS</span>
         </div>
         <div class="ec-launch">
-          <a href="nexus.html" class="ec-launch-btn">▶ LAUNCH NEXUS</a>
-          <span class="ec-status">OPERATIONAL</span>
+          <a href="#" onclick="authGate('nexus.html');return false;" class="ec-launch-btn">▶ LAUNCH NEXUS</a>
+          <span class="ec-status">LOGIN REQUIRED</span>
         </div>
       </div>
     </div>
 
     <!-- HIVE -->
-    <div class="engine-card hive reveal rd2" onclick="window.location.href='hive.html'">
+    <div class="engine-card hive reveal rd2">
       <div class="ec-bar"></div>
       <div class="ec-canvas-wrap">
         <canvas id="hiveCanvas" width="400" height="180"></canvas>
@@ -544,8 +551,8 @@ footer{padding:20px 80px;border-top:1px solid var(--border);display:flex;align-i
           <span class="ec-tag">HEATMAP</span>
         </div>
         <div class="ec-launch">
-          <a href="hive.html" class="ec-launch-btn">▶ LAUNCH HIVE</a>
-          <span class="ec-status">OPERATIONAL</span>
+          <a href="#" onclick="authGate('hive.html');return false;" class="ec-launch-btn">▶ LAUNCH HIVE</a>
+          <span class="ec-status">LOGIN REQUIRED</span>
         </div>
       </div>
     </div>
@@ -640,25 +647,61 @@ footer{padding:20px 80px;border-top:1px solid var(--border);display:flex;align-i
   </div>
 </section>
 
-<!-- LOGIN MODAL -->
+<!-- AUTH MODAL (Sign In / Sign Up) -->
 <div id="login-overlay">
   <div class="login-box">
     <div class="login-corner tl"></div><div class="login-corner tr"></div>
     <div class="login-corner bl"></div><div class="login-corner br"></div>
     <button class="login-close" id="login-close-btn">✕</button>
+
     <div class="login-logo">ROBOAI</div>
-    <div class="login-sub">AUTHENTICATION REQUIRED</div>
-    <div class="login-field">
-      <label>EMAIL ADDRESS</label>
-      <input type="email" id="login-email" placeholder="any@email.com" autocomplete="off">
+
+    <!-- Tabs -->
+    <div class="auth-tabs">
+      <button class="auth-tab active" id="tab-signin" onclick="switchTab('signin')">SIGN IN</button>
+      <button class="auth-tab" id="tab-signup" onclick="switchTab('signup')">SIGN UP</button>
+      <div class="auth-tab-ink" id="auth-tab-ink"></div>
     </div>
-    <div class="login-field">
-      <label>PASSWORD</label>
-      <input type="password" id="login-pass" placeholder="any password" autocomplete="off">
+
+    <!-- Sign In Form -->
+    <div id="form-signin">
+      <div class="login-sub">WELCOME BACK, OPERATOR</div>
+      <div class="login-field">
+        <label>EMAIL ADDRESS</label>
+        <input type="email" id="si-email" placeholder="you@example.com" autocomplete="email">
+      </div>
+      <div class="login-field">
+        <label>PASSWORD</label>
+        <input type="password" id="si-pass" placeholder="Your password" autocomplete="current-password">
+      </div>
+      <div class="login-err" id="si-err"></div>
+      <button class="login-btn" id="si-submit">▶ SIGN IN</button>
+      <div class="login-note">No account? <span class="auth-switch-link" onclick="switchTab('signup')">Create one →</span></div>
     </div>
-    <div class="login-err" id="login-err"></div>
-    <button class="login-btn" id="login-submit">▶ AUTHENTICATE</button>
-    <div class="login-note">Any credentials · Mock auth · Zero backend</div>
+
+    <!-- Sign Up Form -->
+    <div id="form-signup" style="display:none">
+      <div class="login-sub">CREATE YOUR ACCOUNT</div>
+      <div class="login-field">
+        <label>FULL NAME</label>
+        <input type="text" id="su-name" placeholder="Yash Surve" autocomplete="name">
+      </div>
+      <div class="login-field">
+        <label>EMAIL ADDRESS</label>
+        <input type="email" id="su-email" placeholder="you@example.com" autocomplete="email">
+      </div>
+      <div class="login-field">
+        <label>PASSWORD</label>
+        <input type="password" id="su-pass" placeholder="Min 6 characters" autocomplete="new-password">
+      </div>
+      <div class="login-field">
+        <label>CONFIRM PASSWORD</label>
+        <input type="password" id="su-pass2" placeholder="Repeat password" autocomplete="new-password">
+      </div>
+      <div class="login-err" id="su-err"></div>
+      <button class="login-btn" id="su-submit">▶ CREATE ACCOUNT</button>
+      <div class="login-note">Already registered? <span class="auth-switch-link" onclick="switchTab('signin')">Sign in →</span></div>
+    </div>
   </div>
 </div>
 
@@ -761,43 +804,187 @@ footer{padding:20px 80px;border-top:1px solid var(--border);display:flex;align-i
 </footer>
 
 <script>
-// ── AUTH FLOW ──
-const SESSION_KEY='roboai_user';
-function openLogin(){document.getElementById('login-overlay').classList.add('open');document.getElementById('login-email').focus();}
-function closeLogin(){document.getElementById('login-overlay').classList.remove('open');}
-function openHub(email){
-  const name=(email||'OPERATOR').split('@')[0].toUpperCase();
-  document.getElementById('hub-greeting').textContent=`WELCOME, ${name}`;
-  document.getElementById('hub-overlay').classList.add('open');
+// ══════════════════════════
+// ROBOAI AUTH SYSTEM v2.0
+// Storage: localStorage
+// File: public/users.json (structure reference)
+// ══════════════════════════
+const USERS_KEY = 'roboai_users_db';
+const SESSION_KEY = 'roboai_session';
+
+function getUsers() {
+  try { return JSON.parse(localStorage.getItem(USERS_KEY) || '[]'); }
+  catch(e) { return []; }
 }
-function closeHub(){document.getElementById('hub-overlay').classList.remove('open');}
+function saveUsers(u) { localStorage.setItem(USERS_KEY, JSON.stringify(u)); }
+function getSession() {
+  try { return JSON.parse(localStorage.getItem(SESSION_KEY)); }
+  catch(e) { return null; }
+}
+function saveSession(user) {
+  localStorage.setItem(SESSION_KEY, JSON.stringify({ id:user.id, name:user.name, email:user.email, ts:Date.now() }));
+}
+function clearSession() { localStorage.removeItem(SESSION_KEY); }
 
-// Check auto-login
-const _u=sessionStorage.getItem(SESSION_KEY);
-if(_u){try{const d=JSON.parse(_u);if(d.email)openHub(d.email);}catch(e){}}
+function hashPw(pw) {
+  // Simple deterministic obfuscation (educational project — no backend)
+  return btoa(unescape(encodeURIComponent(pw + ':roboai_salt_2024')));
+}
 
-document.getElementById('login-close-btn').addEventListener('click',closeLogin);
-document.getElementById('login-overlay').addEventListener('click',e=>{if(e.target===document.getElementById('login-overlay'))closeLogin();});
-document.getElementById('login-submit').addEventListener('click',()=>{
-  const em=document.getElementById('login-email').value.trim();
-  const pw=document.getElementById('login-pass').value;
-  const err=document.getElementById('login-err');
-  if(!em){err.textContent='EMAIL REQUIRED';return;}
-  if(!pw){err.textContent='PASSWORD REQUIRED';return;}
-  err.textContent='';
-  sessionStorage.setItem(SESSION_KEY,JSON.stringify({email:em}));
+function openLogin(targetUrl) {
+  window._authTarget = targetUrl || null;
+  document.getElementById('login-overlay').classList.add('open');
+  setTimeout(() => document.getElementById('si-email').focus(), 200);
+}
+function closeLogin() {
+  document.getElementById('login-overlay').classList.remove('open');
+  window._authTarget = null;
+}
+function openHub(user) {
+  const name = (user.name || user.email.split('@')[0]).toUpperCase();
+  document.getElementById('hub-greeting').textContent = `WELCOME, ${name}`;
+  document.getElementById('hub-overlay').classList.add('open');
+  updateNavForLoggedIn(user);
+}
+function closeHub() { document.getElementById('hub-overlay').classList.remove('open'); }
+
+function updateNavForLoggedIn(user) {
+  const btn = document.getElementById('nav-enter');
+  const si = document.getElementById('nav-signin');
+  if(btn) { btn.textContent = '⬡ HUB'; btn.onclick = (e) => { e.preventDefault(); openHub(user); }; }
+  if(si) { si.textContent = '⎋ SIGN OUT'; si.onclick = (e) => { e.preventDefault(); doSignOut(); }; }
+}
+function doSignOut() {
+  clearSession();
+  const btn = document.getElementById('nav-enter');
+  const si = document.getElementById('nav-signin');
+  if(btn) { btn.textContent = '▶ ENTER HUB'; btn.onclick = null; }
+  if(si) { si.textContent = 'SIGN IN'; si.onclick = null; }
+  closeHub();
+}
+
+// Auth gate — call before navigating to any simulator
+window.authGate = function(url) {
+  const session = getSession();
+  if(session) {
+    window.location.href = url;
+  } else {
+    window._authTarget = url;
+    openLogin(url);
+  }
+};
+
+// Tab switcher
+window.switchTab = function(tab) {
+  const ink = document.getElementById('auth-tab-ink');
+  document.getElementById('tab-signin').classList.toggle('active', tab === 'signin');
+  document.getElementById('tab-signup').classList.toggle('active', tab === 'signup');
+  document.getElementById('form-signin').style.display = tab === 'signin' ? '' : 'none';
+  document.getElementById('form-signup').style.display = tab === 'signup' ? '' : 'none';
+  ink.style.transform = tab === 'signup' ? 'translateX(100%)' : 'translateX(0)';
+  document.getElementById('si-err').textContent = '';
+  document.getElementById('su-err').textContent = '';
+};
+
+// SIGN IN
+document.getElementById('si-submit').addEventListener('click', () => {
+  const email = document.getElementById('si-email').value.trim().toLowerCase();
+  const pass  = document.getElementById('si-pass').value;
+  const err   = document.getElementById('si-err');
+  if (!email) { err.textContent = '⚠ EMAIL REQUIRED'; return; }
+  if (!pass)  { err.textContent = '⚠ PASSWORD REQUIRED'; return; }
+  const users = getUsers();
+  const user  = users.find(u => u.email === email && u.password === hashPw(pass));
+  if (!user) { err.textContent = '⚠ INVALID EMAIL OR PASSWORD'; return; }
+  err.textContent = '';
+  saveSession(user);
   closeLogin();
-  openHub(em);
+  if (window._authTarget) {
+    window.location.href = window._authTarget;
+  } else {
+    openHub(user);
+  }
 });
-document.getElementById('login-pass').addEventListener('keydown',e=>{if(e.key==='Enter')document.getElementById('login-submit').click();});
-document.getElementById('login-email').addEventListener('keydown',e=>{if(e.key==='Enter')document.getElementById('login-pass').focus();});
-document.getElementById('hub-signout').addEventListener('click',()=>{sessionStorage.removeItem(SESSION_KEY);closeHub();});
 
-// Wire all CTA buttons
-document.querySelectorAll('.btn-cyan,.meta-link,.hub-trigger').forEach(el=>{
-  const txt=el.textContent||'';
-  if(txt.includes('ENTER HUB')||txt.includes('LAUNCH HUB')){
-    el.addEventListener('click',e=>{e.preventDefault();const u=sessionStorage.getItem(SESSION_KEY);if(u){try{const d=JSON.parse(u);openHub(d.email);}catch(ex){openLogin();}}else openLogin();});
+// SIGN UP
+document.getElementById('su-submit').addEventListener('click', () => {
+  const name  = document.getElementById('su-name').value.trim();
+  const email = document.getElementById('su-email').value.trim().toLowerCase();
+  const pass  = document.getElementById('su-pass').value;
+  const pass2 = document.getElementById('su-pass2').value;
+  const err   = document.getElementById('su-err');
+  if (!name)             { err.textContent = '⚠ NAME REQUIRED'; return; }
+  if (!email)            { err.textContent = '⚠ EMAIL REQUIRED'; return; }
+  if (!/^[^@]+@[^@]+\.[^@]+$/.test(email)) { err.textContent = '⚠ INVALID EMAIL FORMAT'; return; }
+  if (pass.length < 6)   { err.textContent = '⚠ PASSWORD MIN 6 CHARACTERS'; return; }
+  if (pass !== pass2)    { err.textContent = '⚠ PASSWORDS DO NOT MATCH'; return; }
+  const users = getUsers();
+  if (users.find(u => u.email === email)) { err.textContent = '⚠ EMAIL ALREADY REGISTERED'; return; }
+  const user = { id: Date.now(), name, email, password: hashPw(pass), createdAt: new Date().toISOString() };
+  users.push(user);
+  saveUsers(users);
+  err.style.color = 'var(--green)';
+  err.textContent = '✔ ACCOUNT CREATED — SIGNING IN...';
+  saveSession(user);
+  setTimeout(() => {
+    err.style.color = '';
+    closeLogin();
+    if (window._authTarget) {
+      window.location.href = window._authTarget;
+    } else {
+      openHub(user);
+    }
+  }, 900);
+});
+
+// Keyboard support
+document.getElementById('si-pass').addEventListener('keydown', e => { if (e.key === 'Enter') document.getElementById('si-submit').click(); });
+document.getElementById('si-email').addEventListener('keydown', e => { if (e.key === 'Enter') document.getElementById('si-pass').focus(); });
+document.getElementById('su-pass2').addEventListener('keydown', e => { if (e.key === 'Enter') document.getElementById('su-submit').click(); });
+
+// Close modal on backdrop click
+document.getElementById('login-overlay').addEventListener('click', e => {
+  if (e.target === document.getElementById('login-overlay')) closeLogin();
+});
+document.getElementById('login-close-btn').addEventListener('click', closeLogin);
+
+// Hub sign out
+document.getElementById('hub-signout').addEventListener('click', doSignOut);
+
+// Auto-login check on load
+const _sess = getSession();
+if (_sess) {
+  const _users = getUsers();
+  const _valid = _users.find(u => u.id === _sess.id && u.email === _sess.email);
+  if (_valid) {
+    openHub(_valid);
+    updateNavForLoggedIn(_valid);
+  } else {
+    clearSession(); // session is stale
+  }
+}
+
+// Wire ENTER HUB / SIGN IN nav buttons (initial state — not logged in)
+document.getElementById('nav-enter').addEventListener('click', e => {
+  e.preventDefault();
+  const s = getSession();
+  if (s) openHub(s); else openLogin();
+});
+document.getElementById('nav-signin').addEventListener('click', e => {
+  e.preventDefault();
+  const s = getSession();
+  if (s) doSignOut(); else openLogin();
+});
+
+// Wire hero buttons
+document.querySelectorAll('.btn-cyan').forEach(el => {
+  if ((el.textContent || '').includes('ENTER HUB') || (el.textContent || '').includes('LAUNCH HUB')) {
+    el.addEventListener('click', e => { e.preventDefault(); const s=getSession(); if(s) openHub(s); else openLogin(); });
+  }
+});
+document.querySelectorAll('.meta-link').forEach(el => {
+  if ((el.textContent || '').includes('LAUNCH HUB')) {
+    el.addEventListener('click', e => { e.preventDefault(); const s=getSession(); if(s) openHub(s); else openLogin(); });
   }
 });
 
