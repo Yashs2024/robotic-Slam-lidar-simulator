@@ -1,7 +1,7 @@
-const { chromium } = require('playwright');
+import { chromium } from 'playwright';
 
 (async () => {
-  const browser = await chromium.launch({ headless: false });
+  const browser = await chromium.launch({ headless: true });
   const page = await browser.newPage();
   await page.goto('http://localhost:5173/');
   

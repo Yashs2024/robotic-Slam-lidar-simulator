@@ -1,0 +1,2950 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AERO | RoboAI Suite</title>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=Share+Tech+Mono&family=Rajdhani:wght@400;600;700&family=JetBrains+Mono:wght@300;400;500;700&display=swap" rel="stylesheet">
+  
+  <!-- Inline SVG Drone Favicon -->
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjMDBkNGZmIiBzdHJva2Utd2lkdGg9IjIiPjxwYXRoIGQ9Ik0zIDlsNi02bTYgNm0tNi02djEyTTMgMTVsNiA2bTYtNiIvPjxjaXJjbGUgY3g9IjEyIiBjeT0iMTIiIHI9IjMiLz48L3N2Zz4=">
+
+  <style>
+    /* ── SYSTEM VARIABLES (Cyberpunk Dark Mode) ── */
+    :root {
+      --bg: #0a0a0f;
+      --bg-panel: rgba(10, 10, 15, 0.85);
+      --border: rgba(0, 212, 255, 0.15);
+      --border-hover: rgba(0, 212, 255, 0.4);
+      --cyan: #00d4ff;
+      --cyan-glow: 0 0 15px rgba(0, 212, 255, 0.5);
+      --orange: #ff6b35;
+      --orange-glow: 0 0 15px rgba(255, 107, 53, 0.5);
+      --purple: #7c3aed;
+      --purple-glow: 0 0 15px rgba(124, 58, 237, 0.5);
+      --red: #ef4444;
+      --green: #10b981;
+      --grey: #64748b;
+      --text: #e2e8f0;
+      --text-muted: #475569;
+      --font-display: 'Orbitron', sans-serif;
+      --font-mono: 'Share Tech Mono', monospace;
+      --font-body: 'Rajdhani', sans-serif;
+      --font-code: 'JetBrains Mono', monospace;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font-body);
+      height: 100vh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ── SCROLLBARS ── */
+    ::-webkit-scrollbar {
+      width: 4px;
+    }
+    ::-webkit-scrollbar-track {
+      background: rgba(0, 0, 0, 0.2);
+    }
+    ::-webkit-scrollbar-thumb {
+      background: var(--cyan);
+      border-radius: 2px;
+    }
+
+    /* ── TOP NAV BAR ── */
+    #nav {
+      height: 52px;
+      background: rgba(2, 5, 9, 0.95);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      padding: 0 32px;
+      z-index: 1000;
+      flex-shrink: 0;
+    }
+
+    .nav-logo {
+      font-family: var(--font-display);
+      font-size: 15px;
+      font-weight: 900;
+      color: var(--cyan);
+      letter-spacing: 5px;
+      text-decoration: none;
+      text-shadow: var(--cyan-glow);
+    }
+
+    .nav-sep {
+      width: 1px;
+      height: 20px;
+      background: var(--border);
+      margin: 0 24px;
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 8px;
+      flex: 1;
+    }
+
+    .nav-links a {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      letter-spacing: 2px;
+      color: var(--grey);
+      text-decoration: none;
+      padding: 6px 16px;
+      border: 1px solid transparent;
+      transition: all 0.25s;
+    }
+
+    .nav-links a:hover {
+      color: var(--cyan);
+      border-color: var(--border);
+    }
+
+    .nav-links a.active {
+      color: var(--cyan);
+      border-bottom: 2px solid var(--cyan);
+      text-shadow: 0 0 8px rgba(0, 212, 255, 0.6);
+      box-shadow: 0 4px 10px -4px rgba(0, 212, 255, 0.4);
+    }
+
+    /* ── MAIN LAYOUT ── */
+    #main {
+      flex: 1;
+      display: flex;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .panel {
+      background: var(--bg-panel);
+      backdrop-filter: blur(25px);
+      border-color: var(--border);
+      border-style: solid;
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      flex-shrink: 0;
+      z-index: 10;
+    }
+
+    /* ── LEFT PANEL ── */
+    #left-panel {
+      width: 265px;
+      border-right-width: 1px;
+      border-left-width: 0;
+      border-top-width: 0;
+      border-bottom-width: 0;
+    }
+
+    /* ── RIGHT PANEL ── */
+    #right-panel {
+      width: 290px;
+      border-left-width: 1px;
+      border-right-width: 0;
+      border-top-width: 0;
+      border-bottom-width: 0;
+    }
+
+    /* Panel Content Containers */
+    .panel-scroll {
+      flex: 1;
+      overflow-y: auto;
+      padding: 20px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    /* Cybernetic Section Headers */
+    .panel-header-title {
+      font-family: var(--font-mono);
+      font-size: 13px;
+      letter-spacing: 2px;
+      color: var(--cyan);
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+
+    .panel-header-line {
+      width: 45px;
+      height: 2px;
+      background: var(--cyan);
+      box-shadow: var(--cyan-glow);
+      margin-bottom: 12px;
+    }
+
+    /* ── CENTER AREA (Simulation Frame) ── */
+    #center-container {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      background: radial-gradient(ellipse at center, #0f0f18 0%, #050508 100%);
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* CRT Monitor Styling Wrapper */
+    #canvas-frame {
+      position: relative;
+      border: 1px solid rgba(0, 212, 255, 0.15);
+      background: #020205;
+      box-shadow: 0 0 30px rgba(0, 0, 0, 0.8);
+      border-radius: 4px;
+      overflow: hidden;
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* CRT scanlines effect */
+    #canvas-frame::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), 
+                  linear-gradient(90deg, rgba(255, 0, 0, 0.05), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.05));
+      background-size: 100% 4px, 6px 100%;
+      pointer-events: none;
+      opacity: 0.15;
+      z-index: 5;
+    }
+
+    #aeroCanvas {
+      display: block;
+      width: 800px;
+      height: 600px;
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain;
+      cursor: crosshair;
+      z-index: 1;
+    }
+
+    /* Corner details on cybernetic frame */
+    .frame-corner {
+      position: absolute;
+      width: 10px;
+      height: 10px;
+      border-color: var(--cyan);
+      border-style: solid;
+      pointer-events: none;
+      z-index: 6;
+    }
+    .frame-corner.tl { top: -1px; left: -1px; border-width: 2px 0 0 2px; }
+    .frame-corner.tr { top: -1px; right: -1px; border-width: 2px 2px 0 0; }
+    .frame-corner.bl { bottom: -1px; left: -1px; border-width: 0 0 2px 2px; }
+    .frame-corner.br { bottom: -1px; right: -1px; border-width: 0 2px 2px 0; }
+
+    /* ── FORM ELEMENTS ── */
+    .control-row {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      margin-bottom: 12px;
+    }
+
+    .control-label {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 12px;
+      color: var(--text);
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .control-val {
+      font-family: var(--font-mono);
+      color: var(--cyan);
+      font-size: 11px;
+    }
+
+    input[type="range"] {
+      width: 100%;
+      -webkit-appearance: none;
+      height: 4px;
+      background: rgba(255, 255, 255, 0.08);
+      border-radius: 2px;
+      outline: none;
+      cursor: pointer;
+    }
+
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: var(--cyan);
+      box-shadow: var(--cyan-glow);
+      cursor: pointer;
+    }
+
+    .checkbox-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 8px;
+    }
+
+    .checkbox-container {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      cursor: pointer;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .checkbox-container input {
+      display: none;
+    }
+
+    .checkbox-custom {
+      width: 14px;
+      height: 14px;
+      border: 1px solid var(--border-hover);
+      background: rgba(0, 0, 0, 0.4);
+      display: inline-block;
+      position: relative;
+      border-radius: 2px;
+    }
+
+    .checkbox-container input:checked + .checkbox-custom::after {
+      content: "";
+      position: absolute;
+      left: 4px;
+      top: 1px;
+      width: 4px;
+      height: 8px;
+      border: solid var(--cyan);
+      border-width: 0 2px 2px 0;
+      transform: rotate(45deg);
+    }
+
+    /* Styled Dropdowns */
+    select {
+      width: 100%;
+      background: rgba(8, 8, 12, 0.9);
+      border: 1px solid var(--border);
+      color: var(--text);
+      font-family: var(--font-mono);
+      font-size: 12px;
+      padding: 8px 12px;
+      outline: none;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: all 0.25s;
+    }
+
+    select:hover, select:focus {
+      border-color: var(--cyan);
+      box-shadow: 0 0 8px rgba(0, 212, 255, 0.15);
+    }
+
+    /* ── SYSTEM BUTTONS ── */
+    .btn {
+      font-family: var(--font-display);
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      padding: 10px 16px;
+      border: 1px solid var(--border);
+      background: rgba(0, 0, 0, 0.3);
+      color: var(--text);
+      cursor: pointer;
+      border-radius: 4px;
+      transition: all 0.25s;
+      outline: none;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+
+    .btn:hover {
+      border-color: var(--cyan);
+      color: var(--cyan);
+      box-shadow: var(--cyan-glow);
+    }
+
+    .btn-cyan {
+      background: rgba(0, 212, 255, 0.1);
+      border-color: rgba(0, 212, 255, 0.4);
+      color: var(--cyan);
+      text-shadow: var(--cyan-glow);
+    }
+
+    .btn-cyan:hover {
+      background: rgba(0, 212, 255, 0.2);
+      box-shadow: var(--cyan-glow);
+    }
+
+    .btn-amber {
+      background: rgba(255, 107, 53, 0.08);
+      border-color: rgba(255, 107, 53, 0.35);
+      color: var(--orange);
+    }
+
+    .btn-amber:hover {
+      background: rgba(255, 107, 53, 0.18);
+      box-shadow: var(--orange-glow);
+    }
+
+    .btn-danger {
+      background: rgba(239, 68, 68, 0.08);
+      border-color: rgba(239, 68, 68, 0.35);
+      color: var(--red);
+    }
+
+    .btn-danger:hover {
+      background: rgba(239, 68, 68, 0.18);
+      box-shadow: 0 0 10px rgba(239, 68, 68, 0.4);
+    }
+
+    .btn-outline {
+      border-color: var(--border);
+      background: transparent;
+    }
+
+    /* ── CONTROLS TOOLBAR ── */
+    .controls-toolbar {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 12px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    /* ── BOTTOM HUD BAR ── */
+    .hud-bar {
+      width: 100%;
+      background: rgba(5, 5, 8, 0.9);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 8px 20px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--grey);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      letter-spacing: 1px;
+    }
+
+    .hud-item span {
+      color: var(--cyan);
+      font-weight: 700;
+    }
+
+    /* ── TELEMETRY & log lists ── */
+    .telemetry-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 13px;
+      padding: 6px 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.02);
+      font-family: var(--font-body);
+    }
+
+    .telemetry-label {
+      color: var(--grey);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .telemetry-val {
+      font-family: var(--font-mono);
+      color: var(--cyan);
+      font-weight: 600;
+    }
+
+    /* Mission Event Log */
+    #mission-log-box {
+      height: 150px;
+      overflow-y: auto;
+      background: rgba(0, 0, 0, 0.5);
+      border: 1px solid rgba(0, 212, 255, 0.1);
+      padding: 8px;
+      font-family: var(--font-code);
+      font-size: 10.5px;
+      color: #cbd5e1;
+      border-radius: 4px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .log-line {
+      line-height: 1.4;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.02);
+      padding-bottom: 2px;
+    }
+    .log-line.info { color: var(--cyan); }
+    .log-line.warn { color: var(--orange); }
+    .log-line.err { color: var(--red); }
+    .log-line.success { color: var(--green); }
+
+    /* Selected Inspector */
+    #inspector-details {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      font-family: var(--font-code);
+      font-size: 11px;
+    }
+
+    .inspector-row {
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .inspector-lbl {
+      color: var(--grey);
+    }
+
+    .inspector-val {
+      color: var(--text);
+    }
+
+    /* ── BASE STATION CHARGING QUEUE DISPLAY ── */
+    #base-queue-box {
+      margin-top: 10px;
+      border: 1px solid rgba(124, 58, 237, 0.2);
+      background: rgba(124, 58, 237, 0.03);
+      padding: 8px;
+      border-radius: 4px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--purple);
+    }
+    /* ── LEADER CONTROL KEY CAPS & PULSE WAITING ── */
+    .key-cap {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: var(--grey);
+      padding: 2px 5px;
+      border-radius: 3px;
+      text-align: center;
+      transition: all 0.1s;
+    }
+    .key-cap.pressed {
+      background: rgba(0, 212, 255, 0.15);
+      border-color: var(--cyan);
+      color: var(--cyan);
+      box-shadow: 0 0 6px rgba(0, 212, 255, 0.4);
+    }
+    .btn-waiting {
+      animation: pulse-border 1s infinite alternate;
+      border-color: var(--cyan) !important;
+      color: var(--cyan) !important;
+      box-shadow: var(--cyan-glow) !important;
+    }
+    @keyframes pulse-border {
+      from { border-color: rgba(0, 212, 255, 0.4); }
+      to { border-color: rgba(0, 212, 255, 1); box-shadow: 0 0 10px rgba(0, 212, 255, 0.5); }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- TOP NAV BAR -->
+  <nav id="nav">
+    <a href="./index.html" class="nav-logo">ROBOAI SUITE</a>
+    <div class="nav-sep"></div>
+    <div class="nav-links">
+      <a href="slam.html">SLAM</a>
+      <a href="nexus.html">NEXUS</a>
+      <a href="hive.html">HIVE</a>
+      <a href="aero.html" class="active">AERO ●</a>
+    </div>
+  </nav>
+
+  <!-- MAIN VIEWPORT -->
+  <div id="main">
+
+    <!-- LEFT PANEL: CONFIGURATION -->
+    <div class="panel" id="left-panel">
+      <div class="panel-scroll">
+        
+        <!-- SWARM CONFIG -->
+        <div>
+          <div class="panel-header-title">Swarm Config</div>
+          <div class="panel-header-line"></div>
+          
+          <div class="control-row">
+            <div class="control-label">Drone Count <span class="control-val" id="valCount">16</span></div>
+            <input type="range" id="sliderCount" min="4" max="30" step="1" value="16">
+          </div>
+          <div class="control-row">
+            <div class="control-label">Max Speed <span class="control-val" id="valSpeed">4.0</span></div>
+            <input type="range" id="sliderSpeed" min="1.0" max="6.0" step="0.1" value="4.0">
+          </div>
+          <div class="control-row">
+            <div class="control-label">Neighbor Radius <span class="control-val" id="valRadius">120px</span></div>
+            <input type="range" id="sliderRadius" min="50" max="200" step="5" value="120">
+          </div>
+        </div>
+
+        <!-- BOID RULES -->
+        <div>
+          <div class="panel-header-title">Boid Rules</div>
+          <div class="panel-header-line"></div>
+
+          <div class="control-row">
+            <div class="checkbox-row">
+              <label class="checkbox-container">
+                <input type="checkbox" id="chkSep" checked>
+                <span class="checkbox-custom"></span> Separation
+              </label>
+              <span class="control-val" id="valWeightSep">1.5</span>
+            </div>
+            <input type="range" id="sliderWeightSep" min="0.0" max="3.0" step="0.1" value="1.5">
+          </div>
+
+          <div class="control-row">
+            <div class="checkbox-row">
+              <label class="checkbox-container">
+                <input type="checkbox" id="chkAlign" checked>
+                <span class="checkbox-custom"></span> Alignment
+              </label>
+              <span class="control-val" id="valWeightAlign">1.0</span>
+            </div>
+            <input type="range" id="sliderWeightAlign" min="0.0" max="3.0" step="0.1" value="1.0">
+          </div>
+
+          <div class="control-row">
+            <div class="checkbox-row">
+              <label class="checkbox-container">
+                <input type="checkbox" id="chkCoh" checked>
+                <span class="checkbox-custom"></span> Cohesion
+              </label>
+              <span class="control-val" id="valWeightCoh">1.0</span>
+            </div>
+            <input type="range" id="sliderWeightCoh" min="0.0" max="3.0" step="0.1" value="1.0">
+          </div>
+        </div>
+
+        <!-- FORMATIONS -->
+        <div>
+          <div class="panel-header-title">Formation Mode</div>
+          <div class="panel-header-line"></div>
+          <div class="control-row">
+            <select id="formationSelect">
+              <option value="SCATTER">🌪 SCATTER (BOIDS)</option>
+              <option value="V-FORMATION">📐 V-FORMATION</option>
+              <option value="GRID">⬜ GRID LAYOUT</option>
+              <option value="RING">🌀 CIRCULAR RING</option>
+            </select>
+          </div>
+          <button class="btn btn-cyan" id="btnApplyFormation" style="width:100%;">APPLY FORMATION</button>
+        </div>
+
+        <!-- LEADER CONTROL -->
+        <div>
+          <div class="panel-header-title">Leader Control</div>
+          <div class="panel-header-line"></div>
+          
+          <div class="control-row" style="flex-direction: row; gap: 8px; margin-bottom: 8px;">
+            <button class="btn btn-cyan" id="btnDesignateLeader" style="flex: 1; font-size: 10px; padding: 8px 4px;">👤 DESIGNATE</button>
+            <button class="btn btn-danger" id="btnReleaseLeader" style="flex: 1; font-size: 10px; padding: 8px 4px;">⎋ RELEASE</button>
+          </div>
+
+          <div class="control-row">
+            <div class="control-label">Follow Formation</div>
+            <select id="followFormationSelect">
+              <option value="V-TRAIL">📐 V-TRAIL (BACK)</option>
+              <option value="WEDGE">📐 WEDGE (FRONT)</option>
+              <option value="COLUMN">双 COLUMN (2 ABREAST)</option>
+              <option value="DIAMOND">❖ DIAMOND (CARDINAL)</option>
+            </select>
+          </div>
+
+          <div class="control-row">
+            <div class="control-label">Follow Spacing <span class="control-val" id="valFollowSpacing">50px</span></div>
+            <input type="range" id="sliderFollowSpacing" min="30" max="100" step="5" value="50">
+          </div>
+
+          <div class="checkbox-row">
+            <label class="checkbox-container">
+              <input type="checkbox" id="chkCameraFollow">
+              <span class="checkbox-custom"></span> Camera Follow
+            </label>
+          </div>
+
+          <div class="control-row" style="margin-top: 8px;">
+            <div class="control-label">Active Keys</div>
+            <div id="key-indicators" style="display: flex; gap: 4px; flex-wrap: wrap; margin-top: 4px;">
+              <span class="key-cap" id="key-W">W</span>
+              <span class="key-cap" id="key-A">A</span>
+              <span class="key-cap" id="key-S">S</span>
+              <span class="key-cap" id="key-D">D</span>
+              <span class="key-cap" id="key-Shift" style="padding: 2px 4px;">SHFT</span>
+              <span class="key-cap" id="key-Space" style="padding: 2px 8px;">SPC</span>
+              <span class="key-cap" id="key-Esc" style="padding: 2px 4px;">ESC</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- ENVIRONMENT -->
+        <div>
+          <div class="panel-header-title">Environment</div>
+          <div class="panel-header-line"></div>
+          
+          <div class="control-row">
+            <div class="control-label">Wind Direction <span class="control-val" id="valWindDir">45°</span></div>
+            <input type="range" id="sliderWindDir" min="0" max="360" step="5" value="45">
+          </div>
+          
+          <div class="control-row">
+            <div class="control-label">Wind Strength <span class="control-val" id="valWindStr">0.5</span></div>
+            <input type="range" id="sliderWindStr" min="0.0" max="2.0" step="0.1" value="0.5">
+          </div>
+
+          <div class="checkbox-row">
+            <label class="checkbox-container">
+              <input type="checkbox" id="chkTurbulence">
+              <span class="checkbox-custom"></span> Turbulence Noise
+            </label>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- CENTER CANVAS FRAME -->
+    <div id="center-container">
+      
+      <!-- Interactive 2D Map Frame -->
+      <div id="canvas-frame">
+        <div class="frame-corner tl"></div>
+        <div class="frame-corner tr"></div>
+        <div class="frame-corner bl"></div>
+        <div class="frame-corner br"></div>
+        <canvas id="aeroCanvas" width="800" height="600"></canvas>
+      </div>
+
+      <!-- Controls Toolbar below Canvas -->
+      <div class="controls-toolbar">
+        <button class="btn btn-cyan" id="btnStart">▶ START</button>
+        <button class="btn" id="btnPause">⏸ PAUSE</button>
+        <button class="btn btn-danger" id="btnReset">↺ RESET</button>
+        <button class="btn btn-amber" id="btnDispatch">DISPATCH MISSION</button>
+        <button class="btn btn-cyan" id="btnLeaderMode">👤 LEADER MODE</button>
+        <button class="btn btn-outline" id="btnClearAll">CLEAR ALL</button>
+      </div>
+
+      <!-- Bottom HUD telemetry stripe -->
+      <div class="hud-bar">
+        <div class="hud-item">SIMULATION TIME: <span id="hudTime">00:00:00</span></div>
+        <div class="hud-item">ACTIVE DRONES: <span id="hudActive">0</span></div>
+        <div class="hud-item">MISSIONS COMPLETE: <span id="hudMissions">0</span></div>
+        <div class="hud-item">FAULTS DETECTED: <span id="hudFaults">0</span></div>
+      </div>
+    </div>
+
+    <!-- RIGHT PANEL: TELEMETRY & LOGS -->
+    <div class="panel" id="right-panel">
+      <div class="panel-scroll">
+        
+        <!-- SWARM TELEMETRY -->
+        <div>
+          <div class="panel-header-title">Swarm Telemetry</div>
+          <div class="panel-header-line"></div>
+          
+          <div class="telemetry-row"><span class="telemetry-label">Avg Battery</span><span class="telemetry-val" id="telAvgBatt">0%</span></div>
+          <div class="telemetry-row"><span class="telemetry-label">Min Battery</span><span class="telemetry-val" id="telMinBatt">0%</span></div>
+          <div class="telemetry-row"><span class="telemetry-label">On Mission</span><span class="telemetry-val" id="telMissionCount">0</span></div>
+          <div class="telemetry-row"><span class="telemetry-label">Returning (RTB)</span><span class="telemetry-val" id="telRtbCount">0</span></div>
+          <div class="telemetry-row"><span class="telemetry-label">Fault / Collision</span><span class="telemetry-val" id="telFaultCount">0</span></div>
+          <div class="telemetry-row"><span class="telemetry-label">Cohesion Index</span><span class="telemetry-val" id="telCohesion">0px</span></div>
+          <div class="telemetry-row"><span class="telemetry-label">Swarm Centroid</span><span class="telemetry-val" id="telCentroid">0, 0</span></div>
+        </div>
+
+        <!-- LOGS -->
+        <div>
+          <div class="panel-header-title">Mission Event Log</div>
+          <div class="panel-header-line"></div>
+          <div id="mission-log-box">
+            <!-- Dynamic Logs -->
+          </div>
+        </div>
+
+        <!-- SELECTED DRONE INSPECTOR -->
+        <div>
+          <div class="panel-header-title">Drone Inspector</div>
+          <div class="panel-header-line"></div>
+          
+          <div id="inspector-details">
+            <div class="inspector-row"><span class="inspector-lbl">Selected ID:</span><span class="inspector-val" id="inspId">NONE</span></div>
+            <div class="inspector-row"><span class="inspector-lbl">Status:</span><span class="inspector-val" id="inspStatus">—</span></div>
+            <div class="inspector-row"><span class="inspector-lbl">Battery:</span><span class="inspector-val" id="inspBattery">—</span></div>
+            <div class="inspector-row" style="margin-bottom: 4px;">
+              <div id="inspector-battery-bar" style="width:100%; height:8px; border:1px solid rgba(0, 212, 255, 0.2); background:rgba(0,0,0,0.5); border-radius:4px; overflow:hidden; margin-top:2px;">
+                <div id="inspector-battery-fill" style="width:0%; height:100%; background:var(--cyan); transition:width 0.2s;"></div>
+              </div>
+            </div>
+            <div class="inspector-row"><span class="inspector-lbl">Velocity (Vx, Vy):</span><span class="inspector-val" id="inspVel">—</span></div>
+            <div class="inspector-row"><span class="inspector-lbl">Heading Angle:</span><span class="inspector-val" id="inspHeading">—</span></div>
+            <div class="inspector-row"><span class="inspector-lbl">Dist to Neighbor:</span><span class="inspector-val" id="inspDist">—</span></div>
+            <div class="inspector-row"><span class="inspector-lbl">Current Task:</span><span class="inspector-val" id="inspTask">—</span></div>
+          </div>
+          
+          <div id="base-queue-box">
+            <span>CHARGE QUEUE:</span>
+            <div id="base-queue-list" style="margin-top: 4px; color:#a78bfa; font-size:10.5px;">[]</div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ── SIMULATION ENGINE JAVASCRIPT ── -->
+  <script>
+    // ── ROBOAI AUTH GUARD (Ensures suite integration) ──
+    (function(){
+      try {
+        var s = JSON.parse(localStorage.getItem('roboai_session'));
+        if (!s || !s.email || !s.id) { 
+          window.location.replace('index.html?r=aero'); 
+        }
+      } catch(e) { 
+        window.location.replace('index.html?r=aero'); 
+      }
+    })();
+
+    // ── GLOBAL SIM VARIABLES ──
+    const canvas = document.getElementById('aeroCanvas');
+    const ctx = canvas.getContext('2d');
+    
+    let isRunning = true;
+    let simTime = 0; // frame counts
+    let missionsCompleted = 0;
+    let faultsCount = 0;
+    let selectedDroneId = null;
+    let hoveredDroneId = null;
+    let mousePos = { x: 0, y: 0 };
+    
+    // ── LEADER STATE VARIABLES ──
+    const keysPressed = new Set();
+    let cameraOffset = { x: 0, y: 0 };
+
+    // Telemetry log history helper
+    const logBox = document.getElementById('mission-log-box');
+    function addLog(message, type = 'info') {
+      const now = new Date();
+      const ts = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}:${String(now.getSeconds()).padStart(2,'0')}`;
+      const line = document.createElement('div');
+      line.className = `log-line ${type}`;
+      line.innerHTML = `[${ts}] ${message}`;
+      logBox.appendChild(line);
+      logBox.scrollTop = logBox.scrollHeight;
+      
+      // Limit line logs
+      if (logBox.children.length > 50) {
+        logBox.removeChild(logBox.firstChild);
+      }
+    }
+
+    // ── CASCADED PID CONSTANTS ──
+    const Kp_pos = 0.22;
+    const Ki_pos = 0.001;
+    const Kd_pos = 0.35;
+
+    const Kp_vel = 0.75;
+    const Ki_vel = 0.008;
+    const Kd_vel = 0.18;
+
+    // ── A* GRID & PATHFINDING ──
+    function planPathAStar(startX, startY, targetX, targetY, grid) {
+      // Grid dimensions (16x12, cell size 50px)
+      let sc = Math.max(0, Math.min(15, Math.floor(startX / 50)));
+      let sr = Math.max(0, Math.min(11, Math.floor(startY / 50)));
+      
+      let tc = Math.max(0, Math.min(15, Math.floor(targetX / 50)));
+      let tr = Math.max(0, Math.min(11, Math.floor(targetY / 50)));
+
+      // If target cell is blocked, find closest unblocked cell to target
+      if (grid[tc + tr * 16] === 1) {
+        let bestDist = Infinity;
+        let ntc = tc, ntr = tr;
+        for (let r = 0; r < 12; r++) {
+          for (let c = 0; c < 16; c++) {
+            if (grid[c + r * 16] === 0) {
+              let dist = Math.abs(c - tc) + Math.abs(r - tr);
+              if (dist < bestDist) {
+                bestDist = dist;
+                ntc = c; ntr = r;
+              }
+            }
+          }
+        }
+        tc = ntc; tr = ntr;
+      }
+
+      let openList = [];
+      let closedList = new Set();
+      
+      let startNode = {
+        c: sc, r: sr,
+        g: 0,
+        h: Math.abs(sc - tc) + Math.abs(sr - tr),
+        parent: null
+      };
+      startNode.f = startNode.g + startNode.h;
+      openList.push(startNode);
+
+      while (openList.length > 0) {
+        openList.sort((a, b) => a.f - b.f);
+        let current = openList.shift();
+        
+        closedList.add(`${current.c},${current.r}`);
+
+        // Reached target cell?
+        if (current.c === tc && current.r === tr) {
+          let path = [];
+          let curr = current;
+          while (curr !== null) {
+            path.push({ x: curr.c * 50 + 25, y: curr.r * 50 + 25 });
+            curr = curr.parent;
+          }
+          path.reverse();
+          if (path.length > 0) {
+            path[path.length - 1] = { x: targetX, y: targetY };
+          }
+          return path;
+        }
+
+        // 8 Neighbors
+        const dirs = [
+          { dc: 0, dr: -1, cost: 1 }, { dc: 0, dr: 1, cost: 1 },
+          { dc: -1, dr: 0, cost: 1 }, { dc: 1, dr: 0, cost: 1 },
+          { dc: -1, dr: -1, cost: 1.4 }, { dc: 1, dr: -1, cost: 1.4 },
+          { dc: -1, dr: 1, cost: 1.4 }, { dc: 1, dr: 1, cost: 1.4 }
+        ];
+
+        for (let dir of dirs) {
+          let nc = current.c + dir.dc;
+          let nr = current.r + dir.dr;
+
+          if (nc >= 0 && nc < 16 && nr >= 0 && nr < 12) {
+            if (grid[nc + nr * 16] === 1) continue; // blocked
+            if (closedList.has(`${nc},${nr}`)) continue;
+
+            let gNew = current.g + dir.cost;
+            let hNew = Math.abs(nc - tc) + Math.abs(nr - tr);
+            let fNew = gNew + hNew;
+
+            let existing = openList.find(node => node.c === nc && node.r === nr);
+            if (!existing) {
+              openList.push({
+                c: nc, r: nr,
+                g: gNew, h: hNew, f: fNew,
+                parent: current
+              });
+            } else if (gNew < existing.g) {
+              existing.g = gNew;
+              existing.f = fNew;
+              existing.parent = current;
+            }
+          }
+        }
+      }
+
+      return [{ x: targetX, y: targetY }]; // fallback
+    }
+
+    // ── CLASS: WIND PARTICLE ──
+    class WindParticle {
+      constructor() {
+        this.reset();
+        this.x = Math.random() * canvas.width;
+        this.y = Math.random() * canvas.height;
+      }
+      reset() {
+        this.x = Math.random() * canvas.width;
+        this.y = Math.random() * canvas.height;
+        this.length = 15 + Math.random() * 25;
+        this.speedMult = 0.6 + Math.random() * 1.4;
+      }
+      update(env, dt) {
+        let rad = env.windAngle * Math.PI / 180;
+        this.x += Math.cos(rad) * env.windStrength * 4 * this.speedMult * dt;
+        this.y += Math.sin(rad) * env.windStrength * 4 * this.speedMult * dt;
+        
+        // Warp around bounds windward
+        if (this.x < -40 || this.x > canvas.width + 40 || this.y < -40 || this.y > canvas.height + 40) {
+          this.reset();
+          if (Math.cos(rad) > 0) this.x = -20;
+          else if (Math.cos(rad) < 0) this.x = canvas.width + 20;
+          if (Math.sin(rad) > 0) this.y = -20;
+          else if (Math.sin(rad) < 0) this.y = canvas.height + 20;
+        }
+      }
+      draw(ctx, env) {
+        ctx.save();
+        ctx.strokeStyle = 'rgba(0, 212, 255, 0.09)';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(this.x, this.y);
+        let rad = env.windAngle * Math.PI / 180;
+        ctx.lineTo(this.x - Math.cos(rad) * this.length, this.y - Math.sin(rad) * this.length);
+        ctx.stroke();
+        ctx.restore();
+      }
+    }
+
+    // ── CLASS: DRONE ──
+    class Drone {
+      constructor(id, x, y) {
+        this.id = id;
+        this.x = x;
+        this.y = y;
+        this.vx = (Math.random() - 0.5) * 2;
+        this.vy = (Math.random() - 0.5) * 2;
+        this.heading = Math.atan2(this.vy, this.vx);
+        this.battery = 85 + Math.random() * 15; // start battery %
+        this.status = 'PATROL'; // IDLE, PATROL, MISSION, RTB, FAULT, CHARGING
+        this.trail = [];
+        this.rotorAngle = Math.random() * Math.PI;
+        this.targetX = null;
+        this.targetY = null;
+        
+        this.slotX = null;
+        this.slotY = null;
+        this.currentWaypoint = null;
+        
+        // A* Path properties
+        this.path = [];
+        this.pathIndex = 0;
+
+        // PID Error Accumulators
+        this.errPosX_sum = 0; this.errPosY_sum = 0;
+        this.errPosX_prev = 0; this.errPosY_prev = 0;
+        this.errVelX_sum = 0; this.errVelY_sum = 0;
+        this.errVelX_prev = 0; this.errVelY_prev = 0;
+
+        // Status ripple animation values
+        this.rippleRadius = 0;
+        this.rippleOpacity = 0;
+
+        // Collision log throttle
+        this.lastCollisionLog = 0;
+      }
+
+      setStatus(newStatus) {
+        if (this.status !== newStatus) {
+          this.status = newStatus;
+          // Trigger ripple animation
+          this.rippleRadius = 5;
+          this.rippleOpacity = 1.0;
+        }
+      }
+
+      recalculatePath(swarmManager, env) {
+        if (this.status === 'MISSION' && this.currentWaypoint) {
+          this.path = planPathAStar(this.x, this.y, this.currentWaypoint.x, this.currentWaypoint.y, env.getGrid());
+          this.pathIndex = 0;
+          if (this.path.length > 0) {
+            this.targetX = this.path[0].x;
+            this.targetY = this.path[0].y;
+          }
+        } else if (this.status === 'RTB') {
+          this.path = planPathAStar(this.x, this.y, swarmManager.baseStation.x, swarmManager.baseStation.y, env.getGrid());
+          this.pathIndex = 0;
+          if (this.path.length > 0) {
+            this.targetX = this.path[0].x;
+            this.targetY = this.path[0].y;
+          }
+        }
+      }
+
+      update(swarmManager, missionController, env, maxSpeed, dt) {
+        if (this.status === 'CHARGING') {
+          this.vx = 0;
+          this.vy = 0;
+          this.trail = [];
+          return;
+        }
+
+        // Battery depletion
+        let drainRate = 0.03;
+        if (this.status === 'LEADER' && keysPressed.has('Shift')) {
+          drainRate *= 2;
+        }
+        this.battery = Math.max(0, this.battery - drainRate * dt);
+
+        if (this.battery < 20.0 && this.status !== 'RTB') {
+          if (this.status === 'LEADER') {
+            swarmManager.releaseLeader();
+          }
+          this.setStatus('RTB');
+          this.recalculatePath(swarmManager, env);
+          addLog(`DRONE-${String(this.id).padStart(2,'0')} battery low (${this.battery.toFixed(0)}%). RTB path planned.`, 'warn');
+          return;
+        }
+
+        // ───────────────── LEADER BRANCH ─────────────────
+        if (this.status === 'LEADER') {
+          // Rotate heading: A / D
+          let turnRate = 0.05236 * dt; // ~3 degrees in rad
+          if (keysPressed.has('A')) {
+            this.heading -= turnRate;
+          }
+          if (keysPressed.has('D')) {
+            this.heading += turnRate;
+          }
+
+          // Boost check
+          let boost = keysPressed.has('Shift');
+          let currentMaxSpeed = maxSpeed * 1.5;
+          if (boost) currentMaxSpeed *= 2.0;
+
+          let acc = 0.15 * dt;
+          if (boost) acc *= 2.0;
+
+          // Thrust controls
+          if (keysPressed.has('W')) {
+            this.vx += Math.cos(this.heading) * acc;
+            this.vy += Math.sin(this.heading) * acc;
+          } else if (keysPressed.has('S')) {
+            this.vx -= Math.cos(this.heading) * acc;
+            this.vy -= Math.sin(this.heading) * acc;
+          }
+
+          // Space brake (smooth braking over 10 frames)
+          if (keysPressed.has('Space')) {
+            this.vx *= Math.pow(0.5, dt);
+            this.vy *= Math.pow(0.5, dt);
+          }
+
+          // Clamp speed
+          let speed = Math.sqrt(this.vx * this.vx + this.vy * this.vy);
+          if (speed > currentMaxSpeed) {
+            this.vx = (this.vx / speed) * currentMaxSpeed;
+            this.vy = (this.vy / speed) * currentMaxSpeed;
+          }
+
+          // Wind & Turbulence
+          let windRad = env.windAngle * Math.PI / 180;
+          this.vx += Math.cos(windRad) * env.windStrength * 0.02 * dt;
+          this.vy += Math.sin(windRad) * env.windStrength * 0.02 * dt;
+
+          if (env.turbulence) {
+            this.vx += (Math.random() - 0.5) * 0.05 * dt;
+            this.vy += (Math.random() - 0.5) * 0.05 * dt;
+          }
+
+          // Update position
+          this.x += this.vx * dt;
+          this.y += this.vy * dt;
+
+          // Normalize heading angle [-PI, PI]
+          this.heading = (this.heading + Math.PI) % (Math.PI * 2);
+          if (this.heading < 0) this.heading += Math.PI * 2;
+          this.heading -= Math.PI;
+
+          // Boundary bounce with damping
+          const padding = 20;
+          if (this.x < padding) { this.x = padding; this.vx *= -0.5; }
+          if (this.x > canvas.width - padding) { this.x = canvas.width - padding; this.vx *= -0.5; }
+          if (this.y < padding) { this.y = padding; this.vy *= -0.5; }
+          if (this.y > canvas.height - padding) { this.y = canvas.height - padding; this.vy *= -0.5; }
+
+          // Log safety threat zone violation
+          env.threats.forEach(t => {
+            let dx = this.x - t.x;
+            let dy = this.y - t.y;
+            let dist = Math.sqrt(dx*dx + dy*dy);
+            if (dist < t.radius && Date.now() - this.lastCollisionLog > 3000) {
+              this.lastCollisionLog = Date.now();
+              faultsCount++;
+              addLog(`FAULT: LEADER DRONE entered threat zone!`, 'err');
+            }
+          });
+
+          // Long trail update
+          this.trail.push({ x: this.x, y: this.y });
+          while (this.trail.length > 100) {
+            this.trail.shift();
+          }
+
+          this.rotorAngle += (0.1 + speed * 0.08) * dt;
+
+          if (this.rippleOpacity > 0) {
+            this.rippleRadius += 1.5 * dt;
+            this.rippleOpacity -= 0.04 * dt;
+          }
+          return;
+        }
+
+        // Target Velocity commands
+        let targetVx = 0;
+        let targetVy = 0;
+
+        // Flag to check if we are tracking a coordinate (Position Loop active)
+        let isTrackingPosition = false;
+        let tx = 0, ty = 0;
+
+        if ((this.status === 'MISSION' || this.status === 'RTB') && this.path.length > 0 && this.pathIndex < this.path.length) {
+          // Track active A* path node
+          tx = this.path[this.pathIndex].x;
+          ty = this.path[this.pathIndex].y;
+          isTrackingPosition = true;
+
+          // Closeness threshold to advance path node
+          let dist = Math.sqrt((tx - this.x)**2 + (ty - this.y)**2);
+          if (dist < 22) {
+            this.pathIndex++;
+            if (this.pathIndex < this.path.length) {
+              this.targetX = this.path[this.pathIndex].x;
+              this.targetY = this.path[this.pathIndex].y;
+            } else {
+              // Reached final waypoint
+              if (this.status === 'MISSION') {
+                if (this.currentWaypoint) {
+                  missionController.completeWaypoint(this.currentWaypoint);
+                }
+                this.currentWaypoint = null;
+                this.path = [];
+                this.setStatus('PATROL');
+              } else if (this.status === 'RTB') {
+                swarmManager.baseStation.dock(this);
+                this.path = [];
+                return;
+              }
+              isTrackingPosition = false;
+            }
+          }
+        } 
+        else if (this.status === 'FOLLOW' && swarmManager.leaderDroneId !== null) {
+          let leader = swarmManager.drones.find(d => d.id === swarmManager.leaderDroneId);
+          if (leader && this.slotX !== null && this.slotY !== null) {
+            let errX = this.slotX - this.x;
+            let errY = this.slotY - this.y;
+            let dist = Math.sqrt(errX * errX + errY * errY);
+            
+            // Arrival behavior: if within slowing radius (e.g. 60px), scale down target speed
+            let slowingRadius = 60;
+            let speedCap = maxSpeed;
+            let desiredSpeed = speedCap;
+            if (dist < slowingRadius) {
+              desiredSpeed = speedCap * (dist / slowingRadius);
+            }
+            
+            if (dist > 0.1) {
+              targetVx = (errX / dist) * desiredSpeed;
+              targetVy = (errY / dist) * desiredSpeed;
+            } else {
+              targetVx = 0;
+              targetVy = 0;
+            }
+            
+            // Add feedforward leader velocity
+            targetVx += leader.vx;
+            targetVy += leader.vy;
+          }
+        }
+        else if (swarmManager.formationMode !== 'SCATTER' && this.slotX !== null) {
+          // Formation slot tracking
+          tx = this.slotX;
+          ty = this.slotY;
+          isTrackingPosition = true;
+        }
+
+        // 1. POSITION PID OUTER LOOP
+        if (isTrackingPosition && this.status !== 'FOLLOW') {
+          let errX = tx - this.x;
+          let errY = ty - this.y;
+
+          this.errPosX_sum += errX * dt;
+          this.errPosX_sum = Math.max(-100, Math.min(100, this.errPosX_sum)); // anti-windup
+          let derivX = (errX - this.errPosX_prev) / dt;
+          this.errPosX_prev = errX;
+
+          this.errPosY_sum += errY * dt;
+          this.errPosY_sum = Math.max(-100, Math.min(100, this.errPosY_sum));
+          let derivY = (errY - this.errPosY_prev) / dt;
+          this.errPosY_prev = errY;
+
+          targetVx = Kp_pos * errX + Ki_pos * this.errPosX_sum + Kd_pos * derivX;
+          targetVy = Kp_pos * errY + Ki_pos * this.errPosY_sum + Kd_pos * derivY;
+        } 
+        else if (this.status !== 'FOLLOW') {
+          // Patrol Boids steering feeds directly into Velocity Loop as target vector
+          let flockAcc = this.calculateBoidForces(swarmManager);
+          targetVx = flockAcc.x * 2.0;
+          targetVy = flockAcc.y * 2.0;
+        }
+
+        // Avoid Threat Obstacles via Potential Fields
+        env.threats.forEach(t => {
+          let dx = this.x - t.x;
+          let dy = this.y - t.y;
+          let dist = Math.sqrt(dx*dx + dy*dy);
+          if (dist < t.radius + 40) {
+            let force = (t.radius + 40 - dist) / 25;
+            targetVx += (dx / (dist || 0.1)) * force * 3.5;
+            targetVy += (dy / (dist || 0.1)) * force * 3.5;
+            
+            // Trigger fault log on intrusion
+            if (dist < t.radius && Date.now() - this.lastCollisionLog > 3000) {
+              this.lastCollisionLog = Date.now();
+              faultsCount++;
+              addLog(`FAULT: DRONE-${String(this.id).padStart(2,'0')} COLLISION AVOIDED in threat zone!`, 'err');
+              this.setStatus('FAULT');
+              // Auto-recalculate path dynamically to navigate out
+              this.recalculatePath(swarmManager, env);
+              setTimeout(() => {
+                if (this.status === 'FAULT') this.setStatus('PATROL');
+              }, 2000);
+            }
+          }
+        });
+
+        // 2. VELOCITY PID INNER LOOP
+        let errVelX = targetVx - this.vx;
+        let errVelY = targetVy - this.vy;
+
+        this.errVelX_sum += errVelX * dt;
+        this.errVelX_sum = Math.max(-50, Math.min(50, this.errVelX_sum));
+        let derivVelX = (errVelX - this.errVelX_prev) / dt;
+        this.errVelX_prev = errVelX;
+
+        this.errVelY_sum += errVelY * dt;
+        this.errVelY_sum = Math.max(-50, Math.min(50, this.errVelY_sum));
+        let derivVelY = (errVelY - this.errVelY_prev) / dt;
+        this.errVelY_prev = errVelY;
+
+        let ax = Kp_vel * errVelX + Ki_vel * this.errVelX_sum + Kd_vel * derivVelX;
+        let ay = Kp_vel * errVelY + Ki_vel * this.errVelY_sum + Kd_vel * derivVelY;
+
+        // Apply constant Wind Force
+        let windRad = env.windAngle * Math.PI / 180;
+        ax += Math.cos(windRad) * env.windStrength * 0.2;
+        ay += Math.sin(windRad) * env.windStrength * 0.2;
+
+        // Apply Turbulence
+        if (env.turbulence) {
+          ax += (Math.random() - 0.5) * 0.6;
+          ay += (Math.random() - 0.5) * 0.6;
+        }
+
+        // Apply forces to velocity (Inertial physics)
+        this.vx += ax * dt;
+        this.vy += ay * dt;
+
+        // Follower dynamically adjusts speed limit to catch up
+        let speedLimit = maxSpeed;
+        if (this.status === 'FOLLOW' && swarmManager.leaderDroneId !== null) {
+          let leader = swarmManager.drones.find(d => d.id === swarmManager.leaderDroneId);
+          if (leader) {
+            let leaderSpeed = Math.sqrt(leader.vx * leader.vx + leader.vy * leader.vy);
+            speedLimit = Math.max(maxSpeed, leaderSpeed * 1.25);
+          }
+        }
+
+        // Clamp speed
+        let speed = Math.sqrt(this.vx*this.vx + this.vy*this.vy);
+        if (speed > speedLimit) {
+          this.vx = (this.vx / speed) * speedLimit;
+          this.vy = (this.vy / speed) * speedLimit;
+        }
+
+        // Update translation
+        this.x += this.vx * dt;
+        this.y += this.vy * dt;
+
+        if (speed > 0.1) {
+          this.heading = Math.atan2(this.vy, this.vx);
+        }
+
+        // Bound constraints
+        const padding = 20;
+        if (this.x < padding) { this.x = padding; this.vx *= -0.5; }
+        if (this.x > canvas.width - padding) { this.x = canvas.width - padding; this.vx *= -0.5; }
+        if (this.y < padding) { this.y = padding; this.vy *= -0.5; }
+        if (this.y > canvas.height - padding) { this.y = canvas.height - padding; this.vy *= -0.5; }
+
+        this.trail.push({ x: this.x, y: this.y });
+        let maxTrailLen = (this.status === 'LEADER') ? 100 : 20;
+        while (this.trail.length > maxTrailLen) {
+          this.trail.shift();
+        }
+
+        this.rotorAngle += (0.1 + speed * 0.08) * dt;
+
+        if (this.rippleOpacity > 0) {
+          this.rippleRadius += 1.5 * dt;
+          this.rippleOpacity -= 0.04 * dt;
+        }
+      }
+
+      calculateBoidForces(swarmManager) {
+        let sepForceX = 0, sepForceY = 0;
+        let alignForceX = 0, alignForceY = 0;
+        let cohForceX = 0, cohForceY = 0;
+        let neighbors = 0;
+
+        swarmManager.drones.forEach(other => {
+          if (other.id === this.id || other.status === 'RTB' || other.status === 'CHARGING') return;
+
+          let dx = other.x - this.x;
+          let dy = other.y - this.y;
+          let dist = Math.sqrt(dx*dx + dy*dy);
+
+          if (dist < swarmManager.neighborRadius) {
+            neighbors++;
+
+            if (dist < 40 && dist > 0) {
+              sepForceX -= dx / dist;
+              sepForceY -= dy / dist;
+            }
+
+            alignForceX += other.vx;
+            alignForceY += other.vy;
+
+            cohForceX += other.x;
+            cohForceY += other.y;
+          }
+        });
+
+        let ax = 0, ay = 0;
+        if (neighbors > 0) {
+          alignForceX = (alignForceX / neighbors) - this.vx;
+          alignForceY = (alignForceY / neighbors) - this.vy;
+
+          cohForceX = (cohForceX / neighbors) - this.x;
+          cohForceY = (cohForceY / neighbors) - this.y;
+
+          let lenAlign = Math.sqrt(alignForceX*alignForceX + alignForceY*alignForceY);
+          if (lenAlign > 0) { alignForceX /= lenAlign; alignForceY /= lenAlign; }
+
+          let lenCoh = Math.sqrt(cohForceX*cohForceX + cohForceY*cohForceY);
+          if (lenCoh > 0) { cohForceX /= lenCoh; cohForceY /= lenCoh; }
+
+          if (swarmManager.rulesEnabled.sep) {
+            ax += sepForceX * swarmManager.weights.sep;
+            ay += sepForceY * swarmManager.weights.sep;
+          }
+          if (swarmManager.rulesEnabled.align) {
+            ax += alignForceX * swarmManager.weights.align;
+            ay += alignForceY * swarmManager.weights.align;
+          }
+          if (swarmManager.rulesEnabled.coh) {
+            ax += cohForceX * swarmManager.weights.coh;
+            ay += cohForceY * swarmManager.weights.coh;
+          }
+        }
+
+        return { x: ax, y: ay };
+      }
+
+      draw(ctx, isSelected, swarmManager, env) {
+        // Draw A* path lines if selected or on mission/RTB
+        if (this.path && this.path.length > 0 && this.pathIndex < this.path.length) {
+          ctx.save();
+          ctx.beginPath();
+          ctx.moveTo(this.x, this.y);
+          for (let j = this.pathIndex; j < this.path.length; j++) {
+            ctx.lineTo(this.path[j].x, this.path[j].y);
+          }
+          ctx.strokeStyle = this.status === 'MISSION' ? 'rgba(0, 212, 255, 0.45)' : 'rgba(124, 58, 237, 0.45)';
+          ctx.lineWidth = 1;
+          ctx.setLineDash([4, 6]);
+          ctx.stroke();
+          ctx.restore();
+        }
+
+        // 1. Draw trails
+        if (this.trail.length > 1) {
+          if (this.status === 'LEADER') {
+            for (let i = 1; i < this.trail.length; i++) {
+              ctx.beginPath();
+              ctx.moveTo(this.trail[i-1].x, this.trail[i-1].y);
+              ctx.lineTo(this.trail[i].x, this.trail[i].y);
+              let ratio = i / this.trail.length;
+              ctx.strokeStyle = `rgba(0, 212, 255, ${ratio * 0.55})`;
+              ctx.lineWidth = 3;
+              ctx.stroke();
+            }
+          } else {
+            ctx.beginPath();
+            ctx.moveTo(this.trail[0].x, this.trail[0].y);
+            for (let i = 1; i < this.trail.length; i++) {
+              ctx.lineTo(this.trail[i].x, this.trail[i].y);
+            }
+            ctx.lineWidth = 1.5;
+            ctx.strokeStyle = this.status === 'MISSION' ? 'rgba(255, 107, 53, 0.4)' : 'rgba(0, 212, 255, 0.25)';
+            ctx.stroke();
+          }
+        }
+
+        let color = 'var(--grey)';
+        if (this.status === 'PATROL') color = 'var(--cyan)';
+        else if (this.status === 'MISSION') color = 'var(--orange)';
+        else if (this.status === 'RTB') color = 'var(--purple)';
+        else if (this.status === 'FAULT') color = 'var(--red)';
+        else if (this.status === 'CHARGING') color = 'var(--purple)';
+        else if (this.status === 'LEADER') color = '#ffffff';
+        else if (this.status === 'FOLLOW') color = 'var(--cyan)';
+
+        // 2. Drone Silhouette (Rotors & Cross Struts)
+        ctx.save();
+        ctx.translate(this.x, this.y);
+
+        // Draw crown above leader drone (non-rotated)
+        if (this.status === 'LEADER') {
+          ctx.save();
+          ctx.fillStyle = 'var(--cyan)';
+          ctx.shadowBlur = 8;
+          ctx.shadowColor = 'var(--cyan)';
+          ctx.beginPath();
+          // Small triangle crown pointing up: apex at (0, -22), bottom left at (-6, -15), bottom right at (6, -15)
+          ctx.moveTo(0, -22);
+          ctx.lineTo(-6, -15);
+          ctx.lineTo(6, -15);
+          ctx.closePath();
+          ctx.fill();
+          ctx.restore();
+        }
+
+        ctx.rotate(this.heading);
+
+        // Scale up leader silhouette
+        if (this.status === 'LEADER') {
+          ctx.scale(1.5, 1.5);
+        }
+
+        // Cross struts
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(-10, -10); ctx.lineTo(10, 10);
+        ctx.moveTo(-10, 10); ctx.lineTo(10, -10);
+        ctx.stroke();
+
+        // 4 Rotor circles
+        ctx.fillStyle = color;
+        const rotorPos = [[-10, -10], [10, -10], [-10, 10], [10, 10]];
+        rotorPos.forEach(([rx, ry]) => {
+          ctx.beginPath();
+          ctx.arc(rx, ry, 4, 0, Math.PI * 2);
+          ctx.fill();
+
+          // Blades spin visual
+          ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)';
+          ctx.lineWidth = 1;
+          ctx.beginPath();
+          ctx.arc(rx, ry, 6, this.rotorAngle, this.rotorAngle + 0.5);
+          ctx.stroke();
+          ctx.beginPath();
+          ctx.arc(rx, ry, 6, this.rotorAngle + Math.PI, this.rotorAngle + Math.PI + 0.5);
+          ctx.stroke();
+        });
+
+        // Center fuselage
+        ctx.fillStyle = color;
+        ctx.beginPath();
+        ctx.arc(0, 0, 5, 0, Math.PI * 2);
+        ctx.fill();
+
+        // If leader, draw thick glowing cyan outline around fuselage
+        if (this.status === 'LEADER') {
+          ctx.save();
+          ctx.strokeStyle = 'var(--cyan)';
+          ctx.lineWidth = 1.5;
+          ctx.shadowBlur = 6;
+          ctx.shadowColor = 'var(--cyan)';
+          ctx.stroke();
+          ctx.restore();
+        }
+
+        // Directional pointer (fuselage nose)
+        ctx.fillStyle = '#fff';
+        ctx.beginPath();
+        ctx.moveTo(5, 0);
+        ctx.lineTo(8, -2);
+        ctx.lineTo(8, 2);
+        ctx.fill();
+
+        ctx.restore();
+
+        // Faint neighborhood range overlay if selected
+        if (isSelected && swarmManager) {
+          ctx.save();
+          ctx.beginPath();
+          ctx.arc(this.x, this.y, swarmManager.neighborRadius, 0, Math.PI * 2);
+          ctx.strokeStyle = 'rgba(0, 212, 255, 0.1)';
+          ctx.lineWidth = 1;
+          ctx.setLineDash([4, 6]);
+          ctx.stroke();
+          
+          ctx.fillStyle = 'rgba(0, 212, 255, 0.02)';
+          ctx.fill();
+          ctx.restore();
+        }
+
+        // Draw Sensor Sonar Rays if selected
+        if (isSelected && env) {
+          const rayAngles = [0, -Math.PI / 2, Math.PI / 2, Math.PI]; // F, L, R, B
+          const maxRayDist = 100;
+          
+          rayAngles.forEach(offsetAngle => {
+            let alpha = this.heading + offsetAngle;
+            let dx = Math.cos(alpha);
+            let dy = Math.sin(alpha);
+            
+            let closestHitDist = maxRayDist;
+            let hitType = null;
+            let hitX = this.x + dx * maxRayDist;
+            let hitY = this.y + dy * maxRayDist;
+
+            env.threats.forEach(t => {
+              let fx = this.x - t.x;
+              let fy = this.y - t.y;
+              let b = 2 * (fx * dx + fy * dy);
+              let c = (fx * fx + fy * fy) - t.radius * t.radius;
+              let discriminant = b * b - 4 * c;
+              
+              if (discriminant >= 0) {
+                let s1 = (-b - Math.sqrt(discriminant)) / 2;
+                let s2 = (-b + Math.sqrt(discriminant)) / 2;
+                
+                let s = -1;
+                if (s1 >= 0 && s1 < maxRayDist) s = s1;
+                else if (s2 >= 0 && s2 < maxRayDist) s = s2;
+                
+                if (s !== -1 && s < closestHitDist) {
+                  closestHitDist = s;
+                  hitX = this.x + dx * s;
+                  hitY = this.y + dy * s;
+                  hitType = 'threat';
+                }
+              }
+            });
+
+            ctx.save();
+            ctx.beginPath();
+            ctx.moveTo(this.x, this.y);
+            ctx.lineTo(hitX, hitY);
+            
+            if (hitType === 'threat') {
+              if (closestHitDist < 35) {
+                ctx.strokeStyle = 'var(--red)';
+                ctx.shadowColor = 'var(--red)';
+                ctx.shadowBlur = 6;
+              } else if (closestHitDist < 70) {
+                ctx.strokeStyle = 'var(--orange)';
+                ctx.shadowColor = 'var(--orange)';
+                ctx.shadowBlur = 4;
+              } else {
+                ctx.strokeStyle = 'var(--cyan)';
+              }
+              ctx.lineWidth = 1.5;
+              ctx.stroke();
+
+              // Intersection warning dot
+              ctx.beginPath();
+              ctx.arc(hitX, hitY, 3, 0, Math.PI * 2);
+              ctx.fillStyle = ctx.strokeStyle;
+              ctx.fill();
+            } else {
+              ctx.strokeStyle = 'rgba(16, 185, 129, 0.25)';
+              ctx.lineWidth = 1;
+              ctx.stroke();
+            }
+            ctx.restore();
+          });
+        }
+
+        // Draw status ripple animation
+        if (this.rippleOpacity > 0) {
+          ctx.strokeStyle = `rgba(255, 255, 255, ${this.rippleOpacity})`;
+          ctx.lineWidth = 1.5;
+          ctx.beginPath();
+          ctx.arc(this.x, this.y, this.rippleRadius, 0, Math.PI * 2);
+          ctx.stroke();
+        }
+      }
+    }
+
+    // ── CLASS: BASE STATION ──
+    class BaseStation {
+      constructor(x, y) {
+        this.x = x;
+        this.y = y;
+        this.radius = 30;
+        this.chargeQueue = []; // array of Drones docked
+      }
+
+      dock(drone) {
+        drone.setStatus('CHARGING');
+        let slot = this.chargeQueue.length % 4;
+        let padOffsets = [
+          { dx: -25, dy: -15 },
+          { dx: 25, dy: -15 },
+          { dx: -25, dy: 15 },
+          { dx: 25, dy: 15 }
+        ];
+        // Relocate drone to its assigned charge pad slot
+        drone.x = this.x + padOffsets[slot].dx;
+        drone.y = this.y + padOffsets[slot].dy;
+        drone.vx = 0;
+        drone.vy = 0;
+        this.chargeQueue.push(drone);
+        addLog(`DRONE-${String(drone.id).padStart(2,'0')} docked at charging pad ${slot}.`, 'purple');
+      }
+
+      update(dt) {
+        if (this.chargeQueue.length > 0) {
+          let d = this.chargeQueue[0];
+          d.battery = Math.min(100, d.battery + 20 * (dt / 60)); 
+          
+          if (d.battery >= 100) {
+            d.battery = 100;
+            d.setStatus('PATROL');
+            
+            d.x = this.x + (Math.random() - 0.5) * 20;
+            d.y = this.y - 45;
+            d.vx = (Math.random() - 0.5) * 2;
+            d.vy = -1.5;
+
+            addLog(`DRONE-${String(d.id).padStart(2,'0')} recharge complete. Launching.`, 'success');
+            this.chargeQueue.shift();
+          }
+        }
+      }
+
+      draw(ctx) {
+        // Draw glowing hexagon Base Pad
+        ctx.save();
+        ctx.beginPath();
+        for (let i = 0; i < 6; i++) {
+          let angle = (i * Math.PI) / 3 + simTime * 0.003;
+          let hx = this.x + this.radius * Math.cos(angle);
+          let hy = this.y + this.radius * Math.sin(angle);
+          if (i === 0) ctx.moveTo(hx, hy);
+          else ctx.lineTo(hx, hy);
+        }
+        ctx.closePath();
+        ctx.strokeStyle = 'var(--purple)';
+        ctx.lineWidth = 2.5;
+        ctx.shadowBlur = 12;
+        ctx.shadowColor = 'var(--purple)';
+        ctx.stroke();
+
+        ctx.fillStyle = 'rgba(124, 58, 237, 0.1)';
+        ctx.fill();
+        ctx.shadowBlur = 0;
+
+        // Draw rotating dashed base perimeter ring
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.radius + 15, 0, Math.PI * 2);
+        ctx.strokeStyle = 'rgba(124, 58, 237, 0.25)';
+        ctx.lineWidth = 1;
+        ctx.setLineDash([6, 8]);
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        // Base text label
+        ctx.fillStyle = '#fff';
+        ctx.font = "8px 'Orbitron', sans-serif";
+        ctx.textAlign = 'center';
+        ctx.fillText("BASE-PAD", this.x, this.y + 4);
+
+        // Draw glowing laser connection beams to docked charging pads
+        this.chargeQueue.forEach(d => {
+          ctx.beginPath();
+          ctx.moveTo(this.x, this.y);
+          ctx.lineTo(d.x, d.y);
+          ctx.strokeStyle = 'rgba(124, 58, 237, ' + (0.5 + Math.sin(simTime * 0.2) * 0.3) + ')';
+          ctx.lineWidth = 1.5;
+          ctx.shadowBlur = 8;
+          ctx.shadowColor = 'var(--purple)';
+          ctx.stroke();
+          ctx.shadowBlur = 0;
+        });
+        
+        ctx.restore();
+      }
+    }
+
+    // ── CLASS: ENVIRONMENT ──
+    class Environment {
+      constructor() {
+        this.windAngle = 45; // degrees
+        this.windStrength = 0.5; // force scalar
+        this.turbulence = false;
+        this.threats = []; // array of pulsing red circles
+        
+        // Initialize ambient drifting particles
+        this.windParticles = [];
+        for (let i = 0; i < 25; i++) {
+          this.windParticles.push(new WindParticle());
+        }
+      }
+
+      addThreat(x, y) {
+        if (this.threats.length >= 5) {
+          this.threats.shift(); 
+        }
+        this.threats.push({ x, y, radius: 60 });
+        addLog(`THREAT AVOIDANCE ZONE detected at (${x.toFixed(0)}, ${y.toFixed(0)})`, 'warn');
+      }
+
+      getGrid() {
+        let grid = new Array(16 * 12).fill(0);
+        for (let r = 0; r < 12; r++) {
+          for (let c = 0; c < 16; c++) {
+            let cx = c * 50 + 25;
+            let cy = r * 50 + 25;
+            
+            if (cx < 35 || cx > 765 || cy < 35 || cy > 565) {
+              grid[c + r * 16] = 1; // blocked boundaries
+              continue;
+            }
+            
+            for (let t of this.threats) {
+              let dist = Math.sqrt((cx - t.x)**2 + (cy - t.y)**2);
+              if (dist < t.radius + 15) {
+                grid[c + r * 16] = 1; // blocked threat zone cell
+                break;
+              }
+            }
+          }
+        }
+        return grid;
+      }
+
+      draw(ctx) {
+        // Draw ambient wind particles
+        if (this.windStrength > 0) {
+          this.windParticles.forEach(p => {
+            p.update(this, 1);
+            p.draw(ctx, this);
+          });
+        }
+
+        // Draw threats
+        this.threats.forEach(t => {
+          let scale = 1.0 + Math.sin(simTime * 0.08) * 0.06; // pulse effect
+          let r = t.radius * scale;
+
+          ctx.save();
+          ctx.beginPath();
+          ctx.arc(t.x, t.y, r, 0, Math.PI * 2);
+          ctx.strokeStyle = 'rgba(239, 68, 68, 0.35)';
+          ctx.lineWidth = 2;
+          ctx.stroke();
+
+          ctx.fillStyle = 'rgba(239, 68, 68, 0.06)';
+          ctx.fill();
+
+          ctx.beginPath();
+          ctx.arc(t.x, t.y, t.radius, 0, Math.PI * 2);
+          ctx.strokeStyle = 'rgba(239, 68, 68, 0.1)';
+          ctx.lineWidth = 1;
+          ctx.stroke();
+
+          ctx.fillStyle = 'var(--red)';
+          ctx.font = "8px 'Orbitron', sans-serif";
+          ctx.textAlign = 'center';
+          ctx.fillText("THREAT ZONE", t.x, t.y + 3);
+
+          ctx.restore();
+        });
+
+        this.drawWindOverlay(ctx);
+      }
+
+      drawWindOverlay(ctx) {
+        const ox = 740;
+        const oy = 60;
+        const r = 20;
+
+        ctx.save();
+        ctx.beginPath();
+        ctx.arc(ox, oy, r, 0, Math.PI * 2);
+        ctx.strokeStyle = 'rgba(0, 212, 255, 0.2)';
+        ctx.stroke();
+
+        let rad = this.windAngle * Math.PI / 180;
+        ctx.translate(ox, oy);
+        ctx.rotate(rad);
+
+        ctx.strokeStyle = 'var(--cyan)';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(-12, 0); ctx.lineTo(12, 0);
+        ctx.lineTo(6, -5);
+        ctx.moveTo(12, 0); ctx.lineTo(6, 5);
+        ctx.stroke();
+
+        ctx.restore();
+
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
+        ctx.font = "8.5px 'Share Tech Mono', monospace";
+        ctx.textAlign = 'right';
+        ctx.fillText(`WIND: ${this.windStrength.toFixed(1)}m/s`, 775, 95);
+      }
+    }
+
+    // ── CLASS: MISSION CONTROLLER ──
+    class MissionController {
+      constructor() {
+        this.waypoints = []; 
+      }
+
+      addWaypoint(x, y) {
+        if (this.waypoints.length >= 8) {
+          addLog("Maximum simultaneous waypoints (8) reached.", "warn");
+          return;
+        }
+        this.waypoints.push({
+          x, y,
+          assigned: false,
+          complete: false,
+          flashTimer: 18 
+        });
+        addLog(`Waypoint placed at (${x.toFixed(0)}, ${y.toFixed(0)})`, 'info');
+      }
+
+      dispatch(swarmManager, env) {
+        let wp = this.waypoints.find(w => !w.assigned && !w.complete);
+        if (!wp) {
+          addLog("Dispatch Failed: All waypoints already assigned.", "warn");
+          return;
+        }
+
+        let bestDrone = null;
+        let minDist = Infinity;
+
+        swarmManager.drones.forEach(d => {
+          if (d.status === 'PATROL' || d.status === 'IDLE') {
+            let dist = Math.sqrt((d.x - wp.x)**2 + (d.y - wp.y)**2);
+            if (dist < minDist) {
+              minDist = dist;
+              bestDrone = d;
+            }
+          }
+        });
+
+        if (bestDrone) {
+          wp.assigned = true;
+          bestDrone.currentWaypoint = wp;
+          // Set global A* path for routing around threat circles
+          bestDrone.path = planPathAStar(bestDrone.x, bestDrone.y, wp.x, wp.y, env.getGrid());
+          bestDrone.pathIndex = 0;
+          bestDrone.setStatus('MISSION');
+          if (bestDrone.path.length > 0) {
+            bestDrone.targetX = bestDrone.path[0].x;
+            bestDrone.targetY = bestDrone.path[0].y;
+          }
+          addLog(`DRONE-${String(bestDrone.id).padStart(2,'0')} dispatched → WP-(${wp.x.toFixed(0)}, ${wp.y.toFixed(0)}) via A* path.`, 'orange');
+        } else {
+          addLog("Dispatch Failed: No idle or patrol drones available.", "warn");
+        }
+      }
+
+      completeWaypoint(wp) {
+        wp.complete = true;
+        missionsCompleted++;
+        addLog(`MISSION SUCCESS: Waypoint reached at (${wp.x.toFixed(0)}, ${wp.y.toFixed(0)})`, 'success');
+      }
+
+      update(dt) {
+        this.waypoints.forEach((wp, index) => {
+          if (wp.complete) {
+            wp.flashTimer -= dt;
+          }
+        });
+        this.waypoints = this.waypoints.filter(wp => !wp.complete || wp.flashTimer > 0);
+      }
+
+      draw(ctx) {
+        this.waypoints.forEach(wp => {
+          ctx.save();
+          if (wp.complete) {
+            ctx.strokeStyle = 'var(--green)';
+            ctx.fillStyle = 'rgba(16, 185, 129, 0.2)';
+            ctx.beginPath();
+            ctx.arc(wp.x, wp.y, 14, 0, Math.PI * 2);
+            ctx.stroke();
+            ctx.fill();
+          } else {
+            ctx.strokeStyle = 'var(--cyan)';
+            ctx.lineWidth = 1.5;
+            
+            ctx.beginPath();
+            ctx.arc(wp.x, wp.y, 8, 0, Math.PI * 2);
+            ctx.stroke();
+
+            ctx.beginPath();
+            ctx.moveTo(wp.x - 12, wp.y); ctx.lineTo(wp.x + 12, wp.y);
+            ctx.moveTo(wp.x, wp.y - 12); ctx.lineTo(wp.x, wp.y + 12);
+            ctx.stroke();
+          }
+          ctx.restore();
+        });
+      }
+    }
+
+    // ── CLASS: SWARM MANAGER ──
+    class SwarmManager {
+      constructor(baseStation) {
+        this.baseStation = baseStation;
+        this.drones = [];
+        this.dronesCount = 16;
+        this.maxSpeed = 4.0;
+        this.neighborRadius = 120;
+        
+        this.weights = { sep: 1.5, align: 1.0, coh: 1.0 };
+        this.rulesEnabled = { sep: true, align: true, coh: true };
+
+        this.formationMode = 'SCATTER'; // SCATTER, V-FORMATION, GRID, RING
+
+        // ── LEADER CONTROL STATE VARIABLES ──
+        this.leaderDroneId = null;
+        this.leaderDesignateActive = false;
+        this.followSpacing = 50;
+        this.followFormation = 'V-TRAIL';
+        this.cameraFollowLeader = false;
+
+        this.initializeSwarm();
+      }
+
+      initializeSwarm() {
+        this.drones = [];
+        for (let i = 0; i < this.dronesCount; i++) {
+          let spawnX = this.baseStation.x + (Math.random() - 0.5) * 160;
+          let spawnY = this.baseStation.y - 50 - Math.random() * 80;
+          this.drones.push(new Drone(i + 1, spawnX, spawnY));
+        }
+      }
+
+      setCount(newCount) {
+        this.dronesCount = newCount;
+        this.initializeSwarm();
+        addLog(`Swarm regenerated with ${newCount} drone agents.`, 'info');
+      }
+
+      setLeader(droneId) {
+        if (this.leaderDroneId !== null) {
+          let oldLeader = this.drones.find(d => d.id === this.leaderDroneId);
+          if (oldLeader) oldLeader.setStatus('PATROL');
+        }
+        
+        this.leaderDroneId = droneId;
+        
+        this.drones.forEach(d => {
+          if (d.id === droneId) {
+            d.setStatus('LEADER');
+            d.path = [];
+            d.currentWaypoint = null;
+            d.targetX = null;
+            d.targetY = null;
+            selectedDroneId = droneId;
+          } else if (d.status !== 'CHARGING' && d.status !== 'RTB') {
+            d.setStatus('FOLLOW');
+            d.path = [];
+            d.currentWaypoint = null;
+            d.targetX = null;
+            d.targetY = null;
+          }
+        });
+        
+        addLog(`DRONE-${String(droneId).padStart(2,'0')} designated as SWARM LEADER. Manual controls engaged.`, 'success');
+      }
+
+      releaseLeader() {
+        if (this.leaderDroneId === null) return;
+        
+        addLog(`Swarm leader released. Drones re-engaging autonomous patrol boids.`, 'info');
+        this.leaderDroneId = null;
+        
+        this.drones.forEach(d => {
+          if (d.status === 'LEADER' || d.status === 'FOLLOW') {
+            d.setStatus('PATROL');
+            d.slotX = null;
+            d.slotY = null;
+          }
+        });
+        
+        document.getElementById('btnDesignateLeader').classList.remove('btn-waiting');
+        document.getElementById('btnLeaderMode').classList.remove('btn-waiting');
+      }
+
+      update(missionController, env, dt) {
+        this.baseStation.update(dt);
+
+        if (this.leaderDroneId !== null) {
+          let leader = this.drones.find(d => d.id === this.leaderDroneId);
+          if (leader) {
+            let followers = this.drones.filter(d => d.status === 'FOLLOW');
+            let M = followers.length;
+            
+            for (let i = 0; i < M; i++) {
+              let f = followers[i];
+              let targetSlot = this.getFollowerSlot(i, M, leader);
+              
+              // Smoothly interpolate slots (LERP t = 0.03 * dt)
+              if (f.slotX === null || f.slotY === null) {
+                f.slotX = targetSlot.x;
+                f.slotY = targetSlot.y;
+              } else {
+                f.slotX += (targetSlot.x - f.slotX) * 0.03 * dt;
+                f.slotY += (targetSlot.y - f.slotY) * 0.03 * dt;
+              }
+            }
+          }
+        } else if (this.formationMode !== 'SCATTER') {
+          let activeDrones = this.drones.filter(d => d.status !== 'CHARGING' && d.status !== 'RTB');
+          let M = activeDrones.length;
+          
+          for (let i = 0; i < M; i++) {
+            let d = activeDrones[i];
+            let slot = this.getFormationSlot(i, M);
+            d.slotX = slot.x;
+            d.slotY = slot.y;
+          }
+        }
+
+        this.drones.forEach(d => {
+          d.update(this, missionController, env, this.maxSpeed, dt);
+        });
+
+        this.checkSwarmCollisions();
+      }
+
+      getFollowerSlot(i, M, leader) {
+        const theta = leader.heading;
+        const s = this.followSpacing;
+
+        if (this.followFormation === 'V-TRAIL') {
+          let k = Math.floor(i / 2) + 1;
+          let sign = (i % 2 === 0) ? -1 : 1;
+          // V shape trailing behind: distance backward is -k * s * cos(30 deg), lateral is sign * k * s * sin(30 deg)
+          let u = -k * 0.866;
+          let v = sign * k * 0.5;
+          return {
+            x: leader.x + (u * s * Math.cos(theta) + v * s * (-Math.sin(theta))),
+            y: leader.y + (u * s * Math.sin(theta) + v * s * Math.cos(theta))
+          };
+        } 
+        else if (this.followFormation === 'WEDGE') {
+          let k = Math.floor(i / 2) + 1;
+          let sign = (i % 2 === 0) ? -1 : 1;
+          // Wedge shape with leader at the back apex: distance forward is k * s * cos(30 deg), lateral is sign * k * s * sin(30 deg)
+          let u = k * 0.866;
+          let v = sign * k * 0.5;
+          return {
+            x: leader.x + (u * s * Math.cos(theta) + v * s * (-Math.sin(theta))),
+            y: leader.y + (u * s * Math.sin(theta) + v * s * Math.cos(theta))
+          };
+        } 
+        else if (this.followFormation === 'COLUMN') {
+          let r = Math.floor(i / 2) + 1;
+          let sign = (i % 2 === 0) ? -0.5 : 0.5;
+          // 2 abreast columns directly behind: distance backward is -r * s, lateral is sign * s
+          let u = -r;
+          let v = sign;
+          return {
+            x: leader.x + (u * s * Math.cos(theta) + v * s * (-Math.sin(theta))),
+            y: leader.y + (u * s * Math.sin(theta) + v * s * Math.cos(theta))
+          };
+        } 
+        else if (this.followFormation === 'DIAMOND') {
+          // Concentric diamonds around leader.
+          // Generate up to level 10 programmatically
+          let diamondCoords = [];
+          for (let d = 1; d <= 10; d++) {
+            diamondCoords.push({ u: -d, v: 0 }); // behind
+            diamondCoords.push({ u: d, v: 0 });  // ahead
+            diamondCoords.push({ u: 0, v: -d }); // left
+            diamondCoords.push({ u: 0, v: d });  // right
+            for (let u = 1; u < d; u++) {
+              let v = d - u;
+              diamondCoords.push({ u: -u, v: -v });
+              diamondCoords.push({ u: -u, v: v });
+              diamondCoords.push({ u: u, v: -v });
+              diamondCoords.push({ u: u, v: v });
+            }
+          }
+          let coord = diamondCoords[i] || { u: 0, v: 0 };
+          return {
+            x: leader.x + (coord.u * s * Math.cos(theta) + coord.v * s * (-Math.sin(theta))),
+            y: leader.y + (coord.u * s * Math.sin(theta) + coord.v * s * Math.cos(theta))
+          };
+        }
+
+        return { x: leader.x, y: leader.y };
+      }
+
+      getFormationSlot(i, M) {
+        const cx = 400;
+        const cy = 250;
+
+        if (this.formationMode === 'V-FORMATION') {
+          const apexY = 150;
+          if (i === 0) return { x: cx, y: apexY };
+          let k = Math.floor((i - 1) / 2) + 1;
+          if (i % 2 !== 0) {
+            return { x: cx - k * 45, y: apexY + k * 40 }; // Left wing
+          } else {
+            return { x: cx + k * 45, y: apexY + k * 40 }; // Right wing
+          }
+        } 
+        else if (this.formationMode === 'GRID') {
+          const columns = 5;
+          const dx = 70;
+          const dy = 55;
+          let rows = Math.ceil(M / columns);
+          let gridW = (Math.min(M, columns) - 1) * dx;
+          let gridH = (rows - 1) * dy;
+          let startX = cx - gridW / 2;
+          let startY = cy - gridH / 2;
+          
+          let r = Math.floor(i / columns);
+          let c = i % columns;
+          return { x: startX + c * dx, y: startY + r * dy };
+        } 
+        else if (this.formationMode === 'RING') {
+          const radius = 150;
+          let theta = i * (2 * Math.PI / M) + (simTime * 0.004);
+          return {
+            x: cx + radius * Math.cos(theta),
+            y: cy + radius * Math.sin(theta)
+          };
+        }
+
+        return { x: cx, y: cy };
+      }
+
+      checkSwarmCollisions() {
+        for (let i = 0; i < this.drones.length; i++) {
+          for (let j = i + 1; j < this.drones.length; j++) {
+            let d1 = this.drones[i];
+            let d2 = this.drones[j];
+            if (d1.status === 'CHARGING' || d2.status === 'CHARGING') continue;
+
+            let dist = Math.sqrt((d1.x - d2.x)**2 + (d1.y - d2.y)**2);
+            if (dist < 10) {
+              let now = Date.now();
+              if (now - d1.lastCollisionLog > 3000 && now - d2.lastCollisionLog > 3000) {
+                d1.lastCollisionLog = now;
+                d2.lastCollisionLog = now;
+                faultsCount++;
+                addLog(`FAULT: Minor Collision avoided between DRONE-${String(d1.id).padStart(2,'0')} & DRONE-${String(d2.id).padStart(2,'0')}`, 'err');
+                d1.setStatus('FAULT');
+                d2.setStatus('FAULT');
+                setTimeout(() => {
+                  if (d1.status === 'FAULT') d1.setStatus('PATROL');
+                  if (d2.status === 'FAULT') d2.setStatus('PATROL');
+                }, 1500);
+              }
+            }
+          }
+        }
+      }
+
+      draw(ctx, env) {
+        this.baseStation.draw(ctx);
+
+        this.drones.forEach(d => {
+          d.draw(ctx, d.id === selectedDroneId, this, env);
+        });
+      }
+    }
+
+    // ── CLASS: UI CONTROLLER ──
+    class UIController {
+      constructor(swarmManager, missionController, env) {
+        this.swarm = swarmManager;
+        this.mission = missionController;
+        this.env = env;
+        
+        this.bindEvents();
+      }
+
+      bindEvents() {
+        document.getElementById('sliderCount').addEventListener('input', e => {
+          let count = parseInt(e.target.value);
+          document.getElementById('valCount').textContent = count;
+          this.swarm.setCount(count);
+        });
+
+        document.getElementById('sliderSpeed').addEventListener('input', e => {
+          let val = parseFloat(e.target.value);
+          document.getElementById('valSpeed').textContent = val.toFixed(1);
+          this.swarm.maxSpeed = val;
+        });
+
+        document.getElementById('sliderRadius').addEventListener('input', e => {
+          let val = parseInt(e.target.value);
+          document.getElementById('valRadius').textContent = val + 'px';
+          this.swarm.neighborRadius = val;
+        });
+
+        document.getElementById('sliderWeightSep').addEventListener('input', e => {
+          let val = parseFloat(e.target.value);
+          document.getElementById('valWeightSep').textContent = val.toFixed(1);
+          this.swarm.weights.sep = val;
+        });
+        document.getElementById('chkSep').addEventListener('change', e => {
+          this.swarm.rulesEnabled.sep = e.target.checked;
+        });
+
+        document.getElementById('sliderWeightAlign').addEventListener('input', e => {
+          let val = parseFloat(e.target.value);
+          document.getElementById('valWeightAlign').textContent = val.toFixed(1);
+          this.swarm.weights.align = val;
+        });
+        document.getElementById('chkAlign').addEventListener('change', e => {
+          this.swarm.rulesEnabled.align = e.target.checked;
+        });
+
+        document.getElementById('sliderWeightCoh').addEventListener('input', e => {
+          let val = parseFloat(e.target.value);
+          document.getElementById('valWeightCoh').textContent = val.toFixed(1);
+          this.swarm.weights.coh = val;
+        });
+        document.getElementById('chkCoh').addEventListener('change', e => {
+          this.swarm.rulesEnabled.coh = e.target.checked;
+        });
+
+        document.getElementById('btnApplyFormation').addEventListener('click', () => {
+          let mode = document.getElementById('formationSelect').value;
+          this.swarm.formationMode = mode;
+          addLog(`Swarm formation updated to: ${mode}`, 'info');
+        });
+
+        document.getElementById('sliderWindDir').addEventListener('input', e => {
+          let val = parseInt(e.target.value);
+          document.getElementById('valWindDir').textContent = val + '°';
+          this.env.windAngle = val;
+        });
+
+        document.getElementById('sliderWindStr').addEventListener('input', e => {
+          let val = parseFloat(e.target.value);
+          document.getElementById('valWindStr').textContent = val.toFixed(1);
+          this.env.windStrength = val;
+        });
+
+        document.getElementById('chkTurbulence').addEventListener('change', e => {
+          this.env.turbulence = e.target.checked;
+        });
+
+        // ── LEADER CONTROL EVENT LISTENERS ──
+        const toggleDesignateMode = () => {
+          this.swarm.leaderDesignateActive = !this.swarm.leaderDesignateActive;
+          const btn1 = document.getElementById('btnDesignateLeader');
+          const btn2 = document.getElementById('btnLeaderMode');
+          if (this.swarm.leaderDesignateActive) {
+            btn1.classList.add('btn-waiting');
+            btn2.classList.add('btn-waiting');
+            addLog("DESIGNATION MODE ACTIVE: Click any active drone on the canvas to assign as LEADER.", "info");
+          } else {
+            btn1.classList.remove('btn-waiting');
+            btn2.classList.remove('btn-waiting');
+            addLog("Designation mode cancelled.", "info");
+          }
+        };
+
+        document.getElementById('btnDesignateLeader').addEventListener('click', toggleDesignateMode);
+        document.getElementById('btnLeaderMode').addEventListener('click', toggleDesignateMode);
+
+        document.getElementById('btnReleaseLeader').addEventListener('click', () => {
+          this.swarm.releaseLeader();
+        });
+
+        document.getElementById('followFormationSelect').addEventListener('change', e => {
+          this.swarm.followFormation = e.target.value;
+          addLog(`Follower formation updated to: ${e.target.value}`, "info");
+        });
+
+        document.getElementById('sliderFollowSpacing').addEventListener('input', e => {
+          let val = parseInt(e.target.value);
+          document.getElementById('valFollowSpacing').textContent = val + 'px';
+          this.swarm.followSpacing = val;
+        });
+
+        document.getElementById('chkCameraFollow').addEventListener('change', e => {
+          this.swarm.cameraFollowLeader = e.target.checked;
+          addLog(`Camera follow leader: ${e.target.checked ? "ENABLED" : "DISABLED"}`, "info");
+        });
+
+        // ── DRAG AND DROP MECHANICS ──
+        let isDragging = false;
+        let draggedElement = null;
+
+        canvas.addEventListener('mousedown', e => {
+          let rect = canvas.getBoundingClientRect();
+          let screenX = (e.clientX - rect.left) * (canvas.width / rect.width);
+          let screenY = (e.clientY - rect.top) * (canvas.height / rect.height);
+          let x = screenX - cameraOffset.x;
+          let y = screenY - cameraOffset.y;
+          
+          // 1. Check for waypoint drags (easier to grab)
+          let wpIdx = this.mission.waypoints.findIndex(wp => Math.sqrt((wp.x - x)**2 + (wp.y - y)**2) < 15);
+          if (wpIdx !== -1) {
+            isDragging = true;
+            draggedElement = { type: 'waypoint', index: wpIdx };
+            return;
+          }
+
+          // 2. Check for threat drags
+          let tIdx = this.env.threats.findIndex(t => Math.sqrt((t.x - x)**2 + (t.y - y)**2) < t.radius);
+          if (tIdx !== -1) {
+            isDragging = true;
+            draggedElement = { type: 'threat', index: tIdx };
+            return;
+          }
+
+          // Left click selects drone or spawns waypoint
+          if (e.button === 0) {
+            let clickedDrone = null;
+            this.swarm.drones.forEach(d => {
+              if (d.status !== 'CHARGING') {
+                let dist = Math.sqrt((d.x - x)**2 + (d.y - y)**2);
+                if (dist < 18) {
+                  clickedDrone = d;
+                }
+              }
+            });
+
+            if (clickedDrone) {
+              if (this.swarm.leaderDesignateActive) {
+                this.swarm.setLeader(clickedDrone.id);
+                this.swarm.leaderDesignateActive = false;
+                document.getElementById('btnDesignateLeader').classList.remove('btn-waiting');
+                document.getElementById('btnLeaderMode').classList.remove('btn-waiting');
+              } else {
+                selectedDroneId = clickedDrone.id;
+                addLog(`Inspecting DRONE-${String(clickedDrone.id).padStart(2,'0')}`, 'info');
+              }
+            } else {
+              this.mission.addWaypoint(x, y);
+            }
+          } 
+          else if (e.button === 2) {
+            // Right click spawns threat
+            this.env.addThreat(x, y);
+          }
+        });
+
+        canvas.addEventListener('mousemove', e => {
+          let rect = canvas.getBoundingClientRect();
+          let screenX = (e.clientX - rect.left) * (canvas.width / rect.width);
+          let screenY = (e.clientY - rect.top) * (canvas.height / rect.height);
+          let x = screenX - cameraOffset.x;
+          let y = screenY - cameraOffset.y;
+          
+          mousePos.x = screenX;
+          mousePos.y = screenY;
+
+          if (isDragging && draggedElement) {
+            if (draggedElement.type === 'waypoint') {
+              let wp = this.mission.waypoints[draggedElement.index];
+              if (wp) {
+                wp.x = x;
+                wp.y = y;
+                // Live update drone pathing
+                this.swarm.drones.forEach(d => {
+                  if (d.currentWaypoint === wp) {
+                    d.recalculatePath(this.swarm, this.env);
+                  }
+                });
+              }
+            } else if (draggedElement.type === 'threat') {
+              let t = this.env.threats[draggedElement.index];
+              if (t) {
+                t.x = x;
+                t.y = y;
+                // Dynamically recalculate all active mission/RTB paths around moving threat
+                this.swarm.drones.forEach(d => {
+                  if (d.status === 'MISSION' || d.status === 'RTB') {
+                    d.recalculatePath(this.swarm, this.env);
+                  }
+                });
+              }
+            }
+            return;
+          }
+
+          let hoverMatch = null;
+          this.swarm.drones.forEach(d => {
+            if (d.status !== 'CHARGING') {
+              let dist = Math.sqrt((d.x - x)**2 + (d.y - y)**2);
+              if (dist < 15) {
+                hoverMatch = d.id;
+              }
+            }
+          });
+          hoveredDroneId = hoverMatch;
+        });
+
+        window.addEventListener('mouseup', () => {
+          isDragging = false;
+          draggedElement = null;
+        });
+
+        canvas.addEventListener('contextmenu', e => e.preventDefault());
+
+        // ── KEYBOARD KEY LISTENERS FOR MANUAL LEADER CONTROL ──
+        window.addEventListener('keydown', e => {
+          if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', ' ', 'Shift'].includes(e.key) && this.swarm.leaderDroneId !== null) {
+            e.preventDefault();
+          }
+
+          let normKey = null;
+          if (['w', 'W', 'ArrowUp'].includes(e.key)) normKey = 'W';
+          else if (['a', 'A', 'ArrowLeft'].includes(e.key)) normKey = 'A';
+          else if (['s', 'S', 'ArrowDown'].includes(e.key)) normKey = 'S';
+          else if (['d', 'D', 'ArrowRight'].includes(e.key)) normKey = 'D';
+          else if (e.key === 'Shift') normKey = 'Shift';
+          else if (e.key === ' ') normKey = 'Space';
+          else if (e.key === 'Escape') normKey = 'Esc';
+
+          if (normKey) {
+            keysPressed.add(normKey);
+            const cap = document.getElementById(`key-${normKey}`);
+            if (cap) cap.classList.add('pressed');
+
+            if (normKey === 'Esc' && this.swarm.leaderDroneId !== null) {
+              this.swarm.releaseLeader();
+            }
+          }
+        });
+
+        window.addEventListener('keyup', e => {
+          let normKey = null;
+          if (['w', 'W', 'ArrowUp'].includes(e.key)) normKey = 'W';
+          else if (['a', 'A', 'ArrowLeft'].includes(e.key)) normKey = 'A';
+          else if (['s', 'S', 'ArrowDown'].includes(e.key)) normKey = 'S';
+          else if (['d', 'D', 'ArrowRight'].includes(e.key)) normKey = 'D';
+          else if (e.key === 'Shift') normKey = 'Shift';
+          else if (e.key === ' ') normKey = 'Space';
+          else if (e.key === 'Escape') normKey = 'Esc';
+
+          if (normKey) {
+            keysPressed.delete(normKey);
+            const cap = document.getElementById(`key-${normKey}`);
+            if (cap) cap.classList.remove('pressed');
+          }
+        });
+
+        window.addEventListener('blur', () => {
+          keysPressed.clear();
+          document.querySelectorAll('.key-cap').forEach(cap => cap.classList.remove('pressed'));
+        });
+
+        document.getElementById('btnStart').addEventListener('click', () => {
+          isRunning = true;
+          document.getElementById('btnStart').className = "btn btn-cyan";
+          document.getElementById('btnPause').className = "btn";
+          addLog("Swarm simulation started.", "success");
+        });
+
+        document.getElementById('btnPause').addEventListener('click', () => {
+          isRunning = false;
+          document.getElementById('btnStart').className = "btn";
+          document.getElementById('btnPause').className = "btn btn-amber";
+          addLog("Swarm simulation paused.", "warn");
+        });
+
+        document.getElementById('btnReset').addEventListener('click', () => {
+          this.swarm.initializeSwarm();
+          this.mission.waypoints = [];
+          this.env.threats = [];
+          missionsCompleted = 0;
+          faultsCount = 0;
+          selectedDroneId = null;
+          addLog("Simulator reset complete.", "danger");
+        });
+
+        document.getElementById('btnDispatch').addEventListener('click', () => {
+          this.mission.dispatch(this.swarm, this.env);
+        });
+
+        document.getElementById('btnClearAll').addEventListener('click', () => {
+          this.mission.waypoints = [];
+          this.env.threats = [];
+          // Clear active drone paths
+          this.swarm.drones.forEach(d => {
+            d.path = [];
+          });
+          addLog("Waypoints and threats cleared.", "info");
+        });
+      }
+
+      updateTelemetry() {
+        let drones = this.swarm.drones;
+        let N = drones.length;
+        if (N === 0) return;
+
+        let totalBatt = drones.reduce((sum, d) => sum + d.battery, 0);
+        let minBatt = drones.reduce((min, d) => d.battery < min ? d.battery : min, 100);
+        let avgBatt = totalBatt / N;
+
+        document.getElementById('telAvgBatt').textContent = avgBatt.toFixed(0) + '%';
+        document.getElementById('telMinBatt').textContent = minBatt.toFixed(0) + '%';
+
+        let onMission = drones.filter(d => d.status === 'MISSION').length;
+        let onRtb = drones.filter(d => d.status === 'RTB').length;
+        let onFault = drones.filter(d => d.status === 'FAULT').length;
+        
+        document.getElementById('telMissionCount').textContent = onMission;
+        document.getElementById('telRtbCount').textContent = onRtb;
+        document.getElementById('telFaultCount').textContent = onFault;
+
+        document.getElementById('hudActive').textContent = drones.filter(d => d.status !== 'CHARGING').length;
+        document.getElementById('hudMissions').textContent = missionsCompleted;
+        document.getElementById('hudFaults').textContent = faultsCount;
+
+        let flyDrones = drones.filter(d => d.status !== 'CHARGING');
+        let M = flyDrones.length;
+        
+        if (M > 0) {
+          let sumX = flyDrones.reduce((sum, d) => sum + d.x, 0);
+          let sumY = flyDrones.reduce((sum, d) => sum + d.y, 0);
+          document.getElementById('telCentroid').textContent = `${(sumX/M).toFixed(0)}, ${(sumY/M).toFixed(0)}`;
+
+          let totalDist = 0;
+          let pairs = 0;
+          for (let i = 0; i < M; i++) {
+            for (let j = i + 1; j < M; j++) {
+              totalDist += Math.sqrt((flyDrones[i].x - flyDrones[j].x)**2 + (flyDrones[i].y - flyDrones[j].y)**2);
+              pairs++;
+            }
+          }
+          let cohesion = pairs > 0 ? (totalDist / pairs) : 0;
+          document.getElementById('telCohesion').textContent = cohesion.toFixed(0) + 'px';
+        } else {
+          document.getElementById('telCentroid').textContent = "N/A";
+          document.getElementById('telCohesion').textContent = "0px";
+        }
+
+        let queueIds = this.swarm.baseStation.chargeQueue.map(d => `DRONE-${String(d.id).padStart(2,'0')}`);
+        document.getElementById('base-queue-list').textContent = queueIds.length > 0 ? `[${queueIds.join(', ')}]` : "[]";
+
+        if (selectedDroneId !== null) {
+          let sDrone = drones.find(d => d.id === selectedDroneId);
+          if (sDrone) {
+            document.getElementById('inspId').textContent = `DRONE-${String(sDrone.id).padStart(2,'0')}`;
+            document.getElementById('inspStatus').textContent = sDrone.status;
+            document.getElementById('inspBattery').textContent = sDrone.battery.toFixed(0) + '%';
+            
+            let fill = document.getElementById('inspector-battery-fill');
+            fill.style.width = sDrone.battery.toFixed(0) + '%';
+            if (sDrone.battery > 50) fill.style.backgroundColor = 'var(--green)';
+            else if (sDrone.battery > 20) fill.style.backgroundColor = 'var(--orange)';
+            else fill.style.backgroundColor = 'var(--red)';
+
+            document.getElementById('inspVel').textContent = `${sDrone.vx.toFixed(1)}, ${sDrone.vy.toFixed(1)}`;
+            document.getElementById('inspHeading').textContent = (sDrone.heading * 180 / Math.PI).toFixed(0) + '°';
+            
+            let minNeighborDist = Infinity;
+            drones.forEach(other => {
+              if (other.id !== sDrone.id && other.status !== 'CHARGING') {
+                let dist = Math.sqrt((sDrone.x - other.x)**2 + (sDrone.y - other.y)**2);
+                if (dist < minNeighborDist) minNeighborDist = dist;
+              }
+            });
+            document.getElementById('inspDist').textContent = minNeighborDist === Infinity ? '—' : minNeighborDist.toFixed(0) + 'px';
+            
+            let task = "PATROL";
+            if (sDrone.status === 'MISSION' && sDrone.targetX !== null) {
+              task = `WP: (${sDrone.targetX.toFixed(0)}, ${sDrone.targetY.toFixed(0)})`;
+            } else if (sDrone.status === 'RTB') {
+              task = "RTB CHARGE PAD";
+            } else if (sDrone.status === 'CHARGING') {
+              task = "CHARGING BASE";
+            } else if (sDrone.status === 'FAULT') {
+              task = "SAFETY MANEUVER";
+            }
+            document.getElementById('inspTask').textContent = task;
+          }
+        }
+      }
+    }
+
+    // ── GAME LOOP & INITIALIZATION ──
+    const baseStation = new BaseStation(400, 540);
+    const swarmManager = new SwarmManager(baseStation);
+    const missionController = new MissionController();
+    const env = new Environment();
+    const uiController = new UIController(swarmManager, missionController, env);
+
+    addLog("AERO Autonomous 2D Drone Swarm Engine initialized.", "success");
+    addLog("System online. Base station ready on Channel purple.", "info");
+
+    let lastTime = performance.now();
+
+    function loop(now) {
+      let dt = (now - lastTime) / 16.666;
+      if (dt > 4) dt = 4;
+      lastTime = now;
+
+      if (isRunning) {
+        simTime++;
+        
+        swarmManager.update(missionController, env, dt);
+        missionController.update(dt);
+
+        if (simTime % 30 === 0) {
+          uiController.updateTelemetry();
+          
+          let elapsedSecs = Math.floor(simTime / 60);
+          let hrs = String(Math.floor(elapsedSecs / 3600)).padStart(2, '0');
+          let mins = String(Math.floor((elapsedSecs % 3600) / 60)).padStart(2, '0');
+          let secs = String(elapsedSecs % 60).padStart(2, '0');
+          document.getElementById('hudTime').textContent = `${hrs}:${mins}:${secs}`;
+        }
+      }
+
+      // Camera Follow logic: calculate cameraOffset
+      let cameraFollow = swarmManager.cameraFollowLeader && (swarmManager.leaderDroneId !== null);
+      if (cameraFollow) {
+        let leader = swarmManager.drones.find(d => d.id === swarmManager.leaderDroneId);
+        if (leader) {
+          cameraOffset.x = canvas.width / 2 - leader.x;
+          cameraOffset.y = canvas.height / 2 - leader.y;
+        } else {
+          cameraOffset.x = 0;
+          cameraOffset.y = 0;
+        }
+      } else {
+        cameraOffset.x = 0;
+        cameraOffset.y = 0;
+      }
+
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      
+      // Draw world elements (translated)
+      ctx.save();
+      if (cameraFollow) {
+        ctx.translate(cameraOffset.x, cameraOffset.y);
+      }
+
+      drawCyberGrid(ctx);
+      
+      // Draw translated dashed boundary box if camera follow is active
+      if (cameraFollow) {
+        ctx.save();
+        ctx.strokeStyle = 'rgba(0, 212, 255, 0.2)';
+        ctx.lineWidth = 1;
+        ctx.setLineDash([6, 6]);
+        ctx.strokeRect(0, 0, canvas.width, canvas.height);
+        ctx.restore();
+      }
+
+      env.draw(ctx);
+      missionController.draw(ctx);
+      swarmManager.draw(ctx, env);
+
+      ctx.restore(); // restore to screen space for HUD & overlay elements
+
+      // Draw screen space overlays
+      drawHoverTooltip(ctx);
+
+      if (swarmManager.leaderDroneId !== null) {
+        drawLeaderHUD(ctx, swarmManager);
+      }
+
+      requestAnimationFrame(loop);
+    }
+
+    function drawCyberGrid(ctx) {
+      ctx.save();
+      ctx.strokeStyle = 'rgba(0, 212, 255, 0.04)';
+      ctx.lineWidth = 0.5;
+
+      for (let x = 40; x < canvas.width; x += 40) {
+        ctx.beginPath();
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x, canvas.height);
+        ctx.stroke();
+      }
+      for (let y = 40; y < canvas.height; y += 40) {
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(canvas.width, y);
+        ctx.stroke();
+      }
+      ctx.restore();
+    }
+
+    function drawHoverTooltip(ctx) {
+      if (hoveredDroneId === null) return;
+      let d = swarmManager.drones.find(x => x.id === hoveredDroneId);
+      if (!d) return;
+
+      ctx.save();
+      let w = 120;
+      let h = 45;
+      
+      // Convert to screen space coordinates using cameraOffset
+      let tx = d.x + cameraOffset.x + 16;
+      let ty = d.y + cameraOffset.y - 45;
+
+      if (tx + w > canvas.width) tx = d.x + cameraOffset.x - w - 16;
+      if (ty < 5) ty = 5;
+
+      ctx.fillStyle = 'rgba(5, 5, 8, 0.9)';
+      ctx.strokeStyle = 'var(--cyan)';
+      ctx.lineWidth = 1;
+      
+      ctx.beginPath();
+      ctx.roundRect(tx, ty, w, h, 4);
+      ctx.fill();
+      ctx.stroke();
+
+      ctx.fillStyle = '#fff';
+      ctx.font = "9px 'JetBrains Mono', monospace";
+      ctx.fillText(`ID: DRONE-${String(d.id).padStart(2,'0')}`, tx + 8, ty + 14);
+      
+      let statusColor = 'var(--cyan)';
+      if (d.status === 'MISSION') statusColor = 'var(--orange)';
+      else if (d.status === 'RTB') statusColor = 'var(--purple)';
+      else if (d.status === 'FAULT') statusColor = 'var(--red)';
+      else if (d.status === 'LEADER') statusColor = '#fff';
+      else if (d.status === 'FOLLOW') statusColor = 'var(--cyan)';
+      
+      ctx.fillStyle = statusColor;
+      ctx.fillText(`TASK: ${d.status}`, tx + 8, ty + 26);
+      
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
+      ctx.fillText(`BATT: ${d.battery.toFixed(0)}%`, tx + 8, ty + 38);
+
+      ctx.restore();
+    }
+
+    function drawLeaderHUD(ctx, swarmManager) {
+      let leader = swarmManager.drones.find(d => d.id === swarmManager.leaderDroneId);
+      if (!leader) return;
+
+      ctx.save();
+      
+      // HUD panel dimensions
+      const width = 450;
+      const height = 46;
+      const px = (canvas.width - width) / 2;
+      const py = 15;
+
+      // Draw glass container
+      ctx.fillStyle = 'rgba(5, 5, 8, 0.9)';
+      ctx.strokeStyle = 'var(--cyan)';
+      ctx.lineWidth = 1.5;
+      ctx.shadowBlur = 8;
+      ctx.shadowColor = 'var(--cyan)';
+      
+      ctx.beginPath();
+      ctx.roundRect(px, py, width, height, 4);
+      ctx.fill();
+      ctx.stroke();
+      ctx.shadowBlur = 0; // reset glow
+
+      // Corner details
+      ctx.strokeStyle = '#fff';
+      ctx.lineWidth = 1;
+      // Top-left small bracket
+      ctx.beginPath();
+      ctx.moveTo(px + 6, py); ctx.lineTo(px, py); ctx.lineTo(px, py + 6);
+      ctx.stroke();
+      // Bottom-right small bracket
+      ctx.beginPath();
+      ctx.moveTo(px + width - 6, py + height); ctx.lineTo(px + width, py + height); ctx.lineTo(px + width, py + height - 6);
+      ctx.stroke();
+
+      // Telemetry Text
+      ctx.fillStyle = 'var(--cyan)';
+      ctx.font = "11px 'JetBrains Mono', monospace";
+      ctx.textAlign = 'left';
+      ctx.textBaseline = 'middle';
+
+      let speed = Math.sqrt(leader.vx * leader.vx + leader.vy * leader.vy);
+      let headingDeg = (leader.heading * 180 / Math.PI).toFixed(0);
+      if (headingDeg < 0) headingDeg = 360 + parseInt(headingDeg);
+      
+      // Formatting items
+      const idText = `LDR: DRONE-${String(leader.id).padStart(2, '0')}`;
+      const speedText = `SPD: ${speed.toFixed(1)} m/s`;
+      const batText = `BAT: ${leader.battery.toFixed(0)}%`;
+      const hdgText = `HDG: ${String(headingDeg).padStart(3, '0')}°`;
+
+      // Draw texts separated horizontally
+      ctx.fillText(idText, px + 15, py + height / 2);
+      ctx.fillText(speedText, px + 130, py + height / 2);
+      ctx.fillText(batText, px + 235, py + height / 2);
+      ctx.fillText(hdgText, px + 325, py + height / 2);
+
+      // Draw Circular Heading Dial (Compass)
+      const dialX = px + width - 30;
+      const dialY = py + height / 2;
+      const dialRadius = 14;
+
+      // Dial outer circle
+      ctx.strokeStyle = 'rgba(0, 212, 255, 0.4)';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.arc(dialX, dialY, dialRadius, 0, Math.PI * 2);
+      ctx.stroke();
+
+      // N/S/E/W indicators (simple dots or letters)
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
+      ctx.font = "7px 'Orbitron', sans-serif";
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText("N", dialX, dialY - dialRadius + 4);
+
+      // Draw needle pointing to heading
+      ctx.strokeStyle = 'var(--cyan)';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      // Draw arrow needle: tail to head
+      let needleLength = dialRadius - 3;
+      let hx = dialX + Math.cos(leader.heading) * needleLength;
+      let hy = dialY + Math.sin(leader.heading) * needleLength;
+      ctx.moveTo(dialX, dialY);
+      ctx.lineTo(hx, hy);
+      ctx.stroke();
+
+      // Needle point circle
+      ctx.fillStyle = '#fff';
+      ctx.beginPath();
+      ctx.arc(hx, hy, 2, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.restore();
+    }
+
+    // Launch loop
+    requestAnimationFrame(loop);
+
+  </script>
+</body>
+</html>

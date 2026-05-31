@@ -1,11 +1,11 @@
-import { Renderer } from './Renderer.js';
+﻿import { Renderer } from './Renderer.js';
 import { Environment } from './Environment.js';
 import { Robot } from './Robot.js';
 import { Lidar } from './Lidar.js';
 import { Mapper } from './Mapper.js';
 import { AStar } from './AStar.js';
 import { ChartManager } from './ChartManager.js';
-import { DynamicsChartManager } from './DynamicsChartManager.js'; // Added
+import { DynamicsChartManager } from './DynamicsChartManager.js';
 import { FrontierExplorer } from './FrontierExplorer.js';
 import { StatsTracker } from './StatsTracker.js';
 import { DynamicObstacles } from './DynamicObstacles.js';
@@ -20,1199 +20,433 @@ import { PointCloudViewer } from './PointCloudViewer.js';
 import { JoystickManager } from './JoystickManager.js';
 import { DynamicHumans } from './DynamicHumans.js';
 
-// ---- Application State ----
+// All state is lazily initialised inside launchSimulator() AFTER #app is
+// visible so canvases report their real pixel dimensions.
+let sim = null;
+let isSimulatorRunning = false;
+let lastTime = 0;
 const keys = { w: false, a: false, s: false, d: false };
 let currentView = 'realWorld';
 let interactionMode = 'drive';
 let autoExploreActive = false;
 let frontierTarget = null;
+let isBuilding = false, buildStart = null, buildCurrent = null;
+let prevPathActive = false, sweepSoundCounter = 0;
+let algoCompareEnabled = false, comparePaths = null;
+let frontierCooldown = 0;
+let partnerRobots = [], partnerScanHitsCache = [], partnerExplorers = [];
+let partnerPathfinders = [], partnerFrontierCooldowns = [];
+let partnerDistances = [], partnerLastPositions = [], partnerStatuses = [];
+let partnerExploredCells = [], lastDashboardUpdate = 0;
+const tutorialSignals = { goalClicks: 0, rayDensityChanges: 0, noiseChanges: 0 };
 
-// Build Mode State
-let isBuilding = false;
-let buildStart = null;
-let buildCurrent = null;
+const PARTNER_TRAIL_COLORS = ['#a855f7','#f97316','#22d3d1'];
+const ROBOT_NAMES = ['ALPHA','BETA','GAMMA','DELTA'];
+const PARTNER_RAY_STYLES = [
+  { strokeHit:'rgba(168,85,247,0.45)', strokeFree:'rgba(168,85,247,0.12)', hitDot:'#d8b4fe' },
+  { strokeHit:'rgba(249,115,22,0.45)', strokeFree:'rgba(249,115,22,0.12)', hitDot:'#fdba74' },
+  { strokeHit:'rgba(34,211,209,0.45)', strokeFree:'rgba(34,211,209,0.12)', hitDot:'#5eead4' },
+];
 
-// Track previous path state for goal-reached detection
-let prevPathActive = false;
-
-// LiDAR sweep sound throttle
-let sweepSoundCounter = 0;
-
-// ---- Core Components ----
-const renderer = new Renderer();
-const environment = new Environment(renderer.realWorldCanvas.width, renderer.realWorldCanvas.height);
-const robot = new Robot(renderer.realWorldCanvas.width / 2, renderer.realWorldCanvas.height / 2);
-const mapper = new Mapper(renderer.realWorldCanvas.width, renderer.realWorldCanvas.height, 10);
-const astar = new AStar(mapper);
-const dijkstra = new Dijkstra(mapper);
-const bugAlgorithm = new BugAlgorithm(mapper);
-let currentPathfinder = astar;
-const lidar = new Lidar();
-const chartManager = new ChartManager('lidarChart', lidar.maxRange);
-const dynamicsChartManager = new DynamicsChartManager('dynamicsChart'); // Added
-const frontierExplorer = new FrontierExplorer(mapper);
-const statsTracker = new StatsTracker();
-const dynamicObstacles = new DynamicObstacles(renderer.realWorldCanvas.width, renderer.realWorldCanvas.height);
-const dynamicHumans = new DynamicHumans(renderer.realWorldCanvas.width, renderer.realWorldCanvas.height);
-const soundManager = new SoundManager();
-const particleFilter = new ParticleFilter(200);
-const loopClosureDetector = new LoopClosureDetector();
-// Tutorial checkpoints / signals (lightweight “did the user do it?” tracking)
-const tutorialSignals = {
-  goalClicks: 0,
-  rayDensityChanges: 0,
-  noiseChanges: 0,
-};
-const tutorialManager = new TutorialManager({
-  getState: () => ({
-    currentView,
-    drift: parseInt(driftSlider?.value || '0', 10) || 0,
-    rayDensity: parseInt(rayDensitySlider?.value || '0', 10) || 0,
-    particleEnabled: !!particleFilter.enabled,
-    loopClosureEnabled: !!loopClosureDetector.enabled,
-    goalClicks: tutorialSignals.goalClicks,
-    rayDensityChanges: tutorialSignals.rayDensityChanges,
-    noiseChanges: tutorialSignals.noiseChanges,
-  }),
-});
-const sensorVisualizer = new SensorVisualizer();
-const pointCloudViewer = new PointCloudViewer();
-const joystickManager = new JoystickManager(keys);
-
-// Initialise the Fog of War canvas
-renderer.initFogCanvas(renderer.slamCanvas.width, renderer.slamCanvas.height);
-
-// Bind stats to DOM
-statsTracker.bindDOM();
-
-// ---- UI Bindings ----
-const noiseSlider = document.getElementById('noiseSlider');
-const noiseValue = document.getElementById('noiseValue');
-const speedSlider = document.getElementById('speedSlider');
-const speedValue = document.getElementById('speedValue');
-const rayDensitySlider = document.getElementById('rayDensitySlider');
-const rayDensityValue = document.getElementById('rayDensityValue');
-const driftSlider = document.getElementById('driftSlider');
-const driftValue = document.getElementById('driftValue');
-const volumeSlider = document.getElementById('volumeSlider');
-const volumeValue = document.getElementById('volumeValue');
-const volumeGroup = document.getElementById('volumeGroup');
-
-const btnRealWorld = document.getElementById('btnRealWorld');
-const btnSlamMap = document.getElementById('btnSlamMap');
-const btnDriveMode = document.getElementById('btnDriveMode');
-const btnBuildMode = document.getElementById('btnBuildMode');
-const btnAutoExplore = document.getElementById('btnAutoExplore');
-const btnDynamicObs = document.getElementById('btnDynamicObs');
-const btnDynamicHumans = document.getElementById('btnDynamicHumans');
-const btnParticleFilter = document.getElementById('btnParticleFilter');
-const particleCountSlider = document.getElementById('particleCountSlider');
-const particleCountValue = document.getElementById('particleCountValue');
-const particleCountGroup = document.getElementById('particleCountGroup');
-const btnSoundOff = document.getElementById('btnSoundOff');
-const btnSoundOn = document.getElementById('btnSoundOn');
-
-const btnReset = document.getElementById('btnReset');
-const btnClearCustom = document.getElementById('btnClearCustom');
-
-const presetSelect = document.getElementById('presetSelect');
-const btnExportMap = document.getElementById('btnExportMap');
-const btnImportMap = document.getElementById('btnImportMap');
-const importFileInput = document.getElementById('importFileInput');
-const btnTutorial = document.getElementById('btnTutorial');
-const algorithmSelect = document.getElementById('algorithmSelect');
-const pathComputeTime = document.getElementById('pathComputeTime');
-const driveModelSelect = document.getElementById('driveModelSelect');
-const btnAlgoCompare = document.getElementById('btnAlgoCompare');
-const algoComparePanel = document.getElementById('algoComparePanel');
-const cmpTimeAStar = document.getElementById('cmpTimeAStar');
-const cmpLenAStar = document.getElementById('cmpLenAStar');
-const cmpTimeDijkstra = document.getElementById('cmpTimeDijkstra');
-const cmpLenDijkstra = document.getElementById('cmpLenDijkstra');
-const cmpTimeBug2 = document.getElementById('cmpTimeBug2');
-const cmpLenBug2 = document.getElementById('cmpLenBug2');
-const multiRobotSelect = document.getElementById('multiRobotSelect');
-const chkPartnerLidar = document.getElementById('chkPartnerLidar');
-
-const instructionsDrive = document.getElementById('instructionsDrive');
-const instructionsBuild = document.getElementById('instructionsBuild');
-
-const realWorldCanvas = document.getElementById('realWorldCanvas');
-const slamCanvas = document.getElementById('slamCanvas');
-
-const btnToggleSidebar = document.getElementById('btnToggleSidebar');
-const btnToggleMobileUI = document.getElementById('btnToggleMobileUI');
-const sidebarPanel = document.querySelector('.sidebar');
-
-// ---- Algorithm Comparison Mode State ----
-let algoCompareEnabled = false;
-let comparePaths = null; // { astar, dijkstra, bug2 }
+const el = id => document.getElementById(id);
 
 function computePathLength(path) {
   if (!path || path.length < 2) return 0;
   let len = 0;
   for (let i = 1; i < path.length; i++) {
-    const dx = path[i].x - path[i - 1].x;
-    const dy = path[i].y - path[i - 1].y;
-    len += Math.sqrt(dx * dx + dy * dy);
+    const dx = path[i].x-path[i-1].x, dy = path[i].y-path[i-1].y;
+    len += Math.sqrt(dx*dx+dy*dy);
   }
   return len;
 }
 
-function setCompareRow(elTime, elLen, name, path, ms) {
-  if (!elTime || !elLen) return;
-  if (!path || path.length === 0) {
-    elTime.textContent = `${ms.toFixed(1)}ms`;
-    elLen.textContent = 'No path';
-    return;
-  }
-  const meters = computePathLength(path) / 100;
-  elTime.textContent = `${ms.toFixed(1)}ms`;
-  elLen.textContent = `${meters.toFixed(2)}m`;
+function setCompareRow(etEl, elEl, path, ms) {
+  if (!etEl||!elEl) return;
+  etEl.textContent = `${ms.toFixed(1)}ms`;
+  elEl.textContent = (!path||path.length===0) ? 'No path' : `${(computePathLength(path)/100).toFixed(2)}m`;
 }
 
-function computeComparisonPaths(goalX, goalY) {
-  const results = {};
-
-  // A*
-  {
-    const t0 = performance.now();
-    const path = astar.findPath(robot.x, robot.y, goalX, goalY);
-    const ms = performance.now() - t0;
-    results.astar = path;
-    setCompareRow(cmpTimeAStar, cmpLenAStar, 'A*', path, ms);
-  }
-  // Dijkstra
-  {
-    const t0 = performance.now();
-    const path = dijkstra.findPath(robot.x, robot.y, goalX, goalY);
-    const ms = performance.now() - t0;
-    results.dijkstra = path;
-    setCompareRow(cmpTimeDijkstra, cmpLenDijkstra, 'Dijkstra', path, ms);
-  }
-  // Bug2
-  {
-    const t0 = performance.now();
-    const path = bugAlgorithm.findPath(robot.x, robot.y, goalX, goalY);
-    const ms = performance.now() - t0;
-    results.bug2 = path;
-    setCompareRow(cmpTimeBug2, cmpLenBug2, 'Bug2', path, ms);
-  }
-
-  return results;
+function computeComparisonPaths(gx, gy) {
+  const r = {};
+  let t0, path, ms;
+  t0=performance.now(); path=sim.astar.findPath(sim.robot.x,sim.robot.y,gx,gy); ms=performance.now()-t0;
+  r.astar=path; setCompareRow(el('cmpTimeAStar'),el('cmpLenAStar'),path,ms);
+  t0=performance.now(); path=sim.dijkstra.findPath(sim.robot.x,sim.robot.y,gx,gy); ms=performance.now()-t0;
+  r.dijkstra=path; setCompareRow(el('cmpTimeDijkstra'),el('cmpLenDijkstra'),path,ms);
+  t0=performance.now(); path=sim.bugAlgorithm.findPath(sim.robot.x,sim.robot.y,gx,gy); ms=performance.now()-t0;
+  r.bug2=path; setCompareRow(el('cmpTimeBug2'),el('cmpLenBug2'),path,ms);
+  return r;
 }
 
-const PARTNER_TRAIL_COLORS = ['#a855f7', '#f97316', '#22d3d1'];
-const PARTNER_COLORS = ['#3B82F6', '#a855f7', '#f97316', '#22d3d1']; // Robot 0 = main (blue)
-const ROBOT_NAMES = ['ALPHA', 'BETA', 'GAMMA', 'DELTA'];
-const PARTNER_RAY_STYLES = [
-  { strokeHit: 'rgba(168, 85, 247, 0.45)', strokeFree: 'rgba(168, 85, 247, 0.12)', hitDot: '#d8b4fe' },
-  { strokeHit: 'rgba(249, 115, 22, 0.45)', strokeFree: 'rgba(249, 115, 22, 0.12)', hitDot: '#fdba74' },
-  { strokeHit: 'rgba(34, 211, 209, 0.45)', strokeFree: 'rgba(34, 211, 209, 0.12)', hitDot: '#5eead4' },
-];
+function buildDashboardCards(n) {
+  const c = el('mrdRobotCards'); if (!c) return; c.innerHTML='';
+  for (let i=0;i<n;i++) c.innerHTML+=`<div class="mrd-robot-card r${i}" id="mrdCard${i}"><div class="mrd-robot-header"><span class="mrd-robot-name r${i}">${ROBOT_NAMES[i]}</span><span class="mrd-robot-status idle" id="mrdStatus${i}">IDLE</span></div><div class="mrd-robot-pct-row"><span class="mrd-robot-pct-val r${i}" id="mrdPct${i}">0%</span><div class="mrd-robot-mini-bar"><div class="mrd-robot-mini-fill r${i}" id="mrdBar${i}" style="width:0%"></div></div></div><div class="mrd-robot-dist" id="mrdDist${i}">0.0 m travelled</div></div>`;
+}
 
-/** Secondary robots: collaborative mapping into the same occupancy grid */
-let partnerRobots = [];
-/** Latest partner scans (aligned with partnerRobots indices) for rendering only */
-let partnerScanHitsCache = [];
-/** Per-partner frontier explorer instances */
-let partnerExplorers = [];
-/** Per-partner A* pathfinder instances */
-let partnerPathfinders = [];
-/** Per-partner cooldown counters */
-let partnerFrontierCooldowns = [];
-/** Per-partner distance tracking */
-let partnerDistances = [];
-let partnerLastPositions = [];
-/** Per-partner status: 'idle' | 'navigating' | 'exploring' */
-let partnerStatuses = [];
-/** Per-partner cells explored at last sample (for individual %) */
-let partnerExploredCells = [];
-/** Last DOM update time for dashboard */
-let lastDashboardUpdate = 0;
-
-// Dashboard DOM refs (populated lazily)
-const elCombinedPct  = () => document.getElementById('mrdCombinedPct');
-const elCombinedBar  = () => document.getElementById('mrdCombinedBar');
-const elRobotCards   = () => document.getElementById('mrdRobotCards');
-const elMRDPanel     = () => document.getElementById('multiRobotDashboard');
-const chkPartnerAutoExplore = () => document.getElementById('chkPartnerAutoExplore');
-
-/** Build/rebuild the per-robot card elements inside the dashboard */
-function buildDashboardCards(numRobots) {
-  const container = elRobotCards();
-  if (!container) return;
-  container.innerHTML = '';
-  for (let i = 0; i < numRobots; i++) {
-    const rIdx = i; // 0 = main robot, 1..n = partners
-    container.innerHTML += `
-      <div class="mrd-robot-card r${rIdx}" id="mrdCard${rIdx}">
-        <div class="mrd-robot-header">
-          <span class="mrd-robot-name r${rIdx}">${ROBOT_NAMES[rIdx]}</span>
-          <span class="mrd-robot-status idle" id="mrdStatus${rIdx}">IDLE</span>
-        </div>
-        <div class="mrd-robot-pct-row">
-          <span class="mrd-robot-pct-val r${rIdx}" id="mrdPct${rIdx}">0%</span>
-          <div class="mrd-robot-mini-bar"><div class="mrd-robot-mini-fill r${rIdx}" id="mrdBar${rIdx}" style="width:0%"></div></div>
-        </div>
-        <div class="mrd-robot-dist" id="mrdDist${rIdx}">0.0 m travelled</div>
-      </div>`;
+function updateFleetDashboard(numRobots) {
+  const now=performance.now(); if(now-lastDashboardUpdate<300) return; lastDashboardUpdate=now;
+  const panel=el('multiRobotDashboard'); if(!panel) return;
+  if(numRobots<=1){panel.style.display='none';return;} panel.style.display='block';
+  const total=sim.mapper.grid.length; let known=0;
+  for(let i=0;i<total;i++) if(sim.mapper.grid[i]!==0) known++;
+  const pct=((known/total)*100).toFixed(1);
+  const cpEl=el('mrdCombinedPct'); if(cpEl) cpEl.textContent=`${pct}%`;
+  const cbEl=el('mrdCombinedBar'); if(cbEl) cbEl.style.width=`${Math.min(100,parseFloat(pct))}%`;
+  for(let i=0;i<numRobots;i++){
+    const pe=el(`mrdPct${i}`),be=el(`mrdBar${i}`),de=el(`mrdDist${i}`),se=el(`mrdStatus${i}`);
+    if(!pe) continue;
+    const ip=(partnerExploredCells[i]||0).toFixed(1);
+    pe.textContent=`${ip}%`; be.style.width=`${Math.min(100,parseFloat(ip))}%`;
+    de.textContent=`${((partnerDistances[i]||0)/100).toFixed(1)} m travelled`;
+    const st=partnerStatuses[i]||'idle'; se.textContent=st.toUpperCase(); se.className=`mrd-robot-status ${st}`;
   }
 }
 
-/** Update (or hide) the Fleet Status dashboard */
-function updateFleetDashboard(numRobots, allScanHits) {
-  const now = performance.now();
-  if (now - lastDashboardUpdate < 300) return; // Update at ~3fps
-  lastDashboardUpdate = now;
-
-  const panel = elMRDPanel();
-  if (!panel) return;
-
-  if (numRobots <= 1) {
-    panel.style.display = 'none';
-    return;
-  }
-  panel.style.display = 'block';
-
-  // Combined explored %
-  const total = mapper.grid.length;
-  let known = 0;
-  for (let i = 0; i < total; i++) { if (mapper.grid[i] !== 0) known++; }
-  const combinedPct = ((known / total) * 100).toFixed(1);
-  const cpEl = elCombinedPct();
-  if (cpEl) cpEl.textContent = `${combinedPct}%`;
-  const cbEl = elCombinedBar();
-  if (cbEl) cbEl.style.width = `${Math.min(100, parseFloat(combinedPct))}%`;
-
-  // Per-robot updates
-  for (let i = 0; i < numRobots; i++) {
-    const pctEl   = document.getElementById(`mrdPct${i}`);
-    const barEl   = document.getElementById(`mrdBar${i}`);
-    const distEl  = document.getElementById(`mrdDist${i}`);
-    const statEl  = document.getElementById(`mrdStatus${i}`);
-    if (!pctEl) continue;
-
-    // Individual explored pct = cells this robot has covered (we track via scan footprint)
-    const indivPct = (partnerExploredCells[i] || 0).toFixed(1);
-    pctEl.textContent = `${indivPct}%`;
-    barEl.style.width  = `${Math.min(100, parseFloat(indivPct))}%`;
-
-    // Distance
-    const dist = ((partnerDistances[i] || 0) / 100).toFixed(1);
-    distEl.textContent = `${dist} m travelled`;
-
-    // Status badge
-    const rawStatus = partnerStatuses[i] || 'idle';
-    statEl.textContent = rawStatus.toUpperCase();
-    statEl.className = `mrd-robot-status ${rawStatus}`;
-  }
-}
-
-/** Count individual cells explored approx from scan hits */
-function sampleRobotExplored(robotIndex, scanHits) {
-  // Approximate individual contribution as fraction of grid cells near this robot's scanned rays
-  const total = mapper.grid.length;
-  let known = 0;
-  // Simple heuristic: count known cells in a 180px radius of the robot
-  // For performance we use a cheap sampled scan over the whole grid once combined already
-  // Instead track a per-robot "known delta" set — lightweight approach:
-  // We reuse the mapper grid (shared). For per-robot % we track cells each robot personally updates.
-  // Simple approximation: each robot's % = its distance contribution relative to all robots.
-  if (partnerDistances[0] !== undefined) {
-    const totalDist = partnerDistances.reduce((s, v) => s + (v || 0), 0);
-    if (totalDist > 0) {
-      const total = mapper.grid.length;
-      let globalKnown = 0;
-      for (let i = 0; i < total; i++) { if (mapper.grid[i] !== 0) globalKnown++; }
-      const globalPct = (globalKnown / total) * 100;
-      // Weight each robot's % by dist share
-      const myShare = (partnerDistances[robotIndex] || 0) / totalDist;
-      return (globalPct * myShare);
-    }
+function sampleRobotExplored(idx) {
+  const totalDist=partnerDistances.reduce((s,v)=>s+(v||0),0);
+  if(totalDist>0){
+    const tot=sim.mapper.grid.length; let gk=0;
+    for(let i=0;i<tot;i++) if(sim.mapper.grid[i]!==0) gk++;
+    return ((gk/tot)*100)*((partnerDistances[idx]||0)/totalDist);
   }
   return 0;
 }
 
-function rebuildPartnerRobots() {
-  partnerRobots = [];
-  partnerExplorers = [];
-  partnerPathfinders = [];
-  partnerFrontierCooldowns = [];
-  partnerDistances = [0]; // index 0 = main robot
-  partnerLastPositions = [{ x: robot.x, y: robot.y }];
-  partnerStatuses = ['idle']; // index 0 = main robot
-  partnerExploredCells = [0];
-
-  const total = Math.max(1, Math.min(4, parseInt(multiRobotSelect?.value || '1', 10) || 1));
-  const n = total - 1;
-  const cx = robot.x;
-  const cy = robot.y;
-
-  for (let i = 0; i < n; i++) {
-    const a = (i / Math.max(1, n)) * Math.PI * 2;
-    const spawnX = cx + Math.cos(a) * 60;
-    const spawnY = cy + Math.sin(a) * 60;
-    // Find safe spawn — try nearby offsets if colliding
-    const spawn = environment.findSafeSpawn ? environment.findSafeSpawn(20) : { x: spawnX, y: spawnY };
-    const pr = new Robot(spawn.x, spawn.y);
-    pr.setDriveModel('differential');
-    pr.setSpeedMultiplier(robot.maxSpeed * 0.85);
-    pr.setDrift(0);
-    pr.theta = Math.random() * Math.PI * 2;
-    partnerRobots.push(pr);
-    partnerExplorers.push(new FrontierExplorer(mapper));
-    partnerPathfinders.push(new AStar(mapper));
-    partnerFrontierCooldowns.push(0);
-    partnerDistances.push(0);
-    partnerLastPositions.push({ x: spawn.x, y: spawn.y });
-    partnerStatuses.push('idle');
-    partnerExploredCells.push(0);
+function rebuildPartnerRobots(){
+  partnerRobots=[]; partnerExplorers=[]; partnerPathfinders=[]; partnerFrontierCooldowns=[];
+  partnerDistances=[0]; partnerLastPositions=[{x:sim.robot.x,y:sim.robot.y}];
+  partnerStatuses=['idle']; partnerExploredCells=[0];
+  const sel=el('multiRobotSelect');
+  const total=Math.max(1,Math.min(4,parseInt(sel?.value||'1',10)||1));
+  const n=total-1;
+  for(let i=0;i<n;i++){
+    const spawn=sim.environment.findSafeSpawn?sim.environment.findSafeSpawn(20):{x:sim.robot.x+Math.cos((i/Math.max(1,n))*Math.PI*2)*60,y:sim.robot.y+Math.sin((i/Math.max(1,n))*Math.PI*2)*60};
+    const pr=new Robot(spawn.x,spawn.y);
+    pr.setDriveModel('differential'); pr.setSpeedMultiplier(sim.robot.maxSpeed*0.85); pr.setDrift(0); pr.theta=Math.random()*Math.PI*2;
+    partnerRobots.push(pr); partnerExplorers.push(new FrontierExplorer(sim.mapper));
+    partnerPathfinders.push(new AStar(sim.mapper)); partnerFrontierCooldowns.push(0);
+    partnerDistances.push(0); partnerLastPositions.push({x:spawn.x,y:spawn.y});
+    partnerStatuses.push('idle'); partnerExploredCells.push(0);
   }
-
-  // Rebuild dashboard cards
   buildDashboardCards(total);
 }
 
-/** Reactive LiDAR-based wall avoidance: returns a steering delta angle */
-function computeLidarAvoidance(robot, scanHits) {
-  if (!scanHits || scanHits.length === 0) return 0;
-  const DANGER_DIST = robot.radius * 4.5;
-  let avoidX = 0, avoidY = 0;
-  let dangerCount = 0;
-  for (const hit of scanHits) {
-    if (!hit.hit) continue;
-    if (hit.distance > DANGER_DIST) continue;
-    // Repulsion force from the hit point
-    const dx = robot.x - hit.x;
-    const dy = robot.y - hit.y;
-    const d = Math.max(1, hit.distance);
-    const force = (DANGER_DIST - d) / DANGER_DIST;
-    avoidX += (dx / d) * force;
-    avoidY += (dy / d) * force;
-    dangerCount++;
+function computeLidarAvoidance(robot,scanHits){
+  if(!scanHits||scanHits.length===0) return 0;
+  const D=robot.radius*4.5; let ax=0,ay=0,cnt=0;
+  for(const h of scanHits){
+    if(!h.hit||h.distance>D) continue;
+    const dx=robot.x-h.x,dy=robot.y-h.y,d=Math.max(1,h.distance),f=(D-d)/D;
+    ax+=(dx/d)*f; ay+=(dy/d)*f; cnt++;
   }
-  if (dangerCount === 0) return 0;
-  const avoidAngle = Math.atan2(avoidY, avoidX);
-  let diff = avoidAngle - robot.theta;
-  while (diff > Math.PI) diff -= Math.PI * 2;
-  while (diff < -Math.PI) diff += Math.PI * 2;
-  return diff * 0.04; // gentle correction
+  if(cnt===0) return 0;
+  let diff=Math.atan2(ay,ax)-robot.theta;
+  while(diff>Math.PI) diff-=Math.PI*2; while(diff<-Math.PI) diff+=Math.PI*2;
+  return diff*0.04;
 }
 
-/** Main per-frame update for a single partner robot */
-function updatePartnerRobot(pr, pi, scanHits) {
-  const autoExplore = chkPartnerAutoExplore();
-  const shouldAutoExplore = !autoExplore || autoExplore.checked;
-
-  // Track distance
-  const lp = partnerLastPositions[pi + 1]; // +1 offset (index 0 = main)
-  if (lp) {
-    const dx = pr.x - lp.x;
-    const dy = pr.y - lp.y;
-    const step = Math.sqrt(dx * dx + dy * dy);
-    if (step > 0.1) partnerDistances[pi + 1] += step;
-    lp.x = pr.x;
-    lp.y = pr.y;
-  }
-
-  // If autonomous explore is OFF — just sit still
-  if (!shouldAutoExplore) {
-    pr.forwardSpeed = 0;
-    pr.turnSpeed = 0;
-    partnerStatuses[pi + 1] = 'idle';
-    return pr.update(environment, dynamicHumans);
-  }
-
-  // Reactive LiDAR wall avoidance (override path if too close)
-  const avoidDelta = computeLidarAvoidance(pr, scanHits);
-  const DANGER_DIST_HARD = pr.radius * 3.0;
-  let hardDanger = false;
-  if (scanHits) {
-    for (const h of scanHits) {
-      if (h.hit && h.distance < DANGER_DIST_HARD) { hardDanger = true; break; }
-    }
-  }
-
-  if (hardDanger) {
-    // Emergency: drop path and turn away
-    pr.path = null;
-    pr.forwardSpeed = pr.maxSpeed * 0.4;
-    pr.turnSpeed = (avoidDelta !== 0 ? Math.sign(avoidDelta) : (Math.random() > 0.5 ? 1 : -1)) * pr.maxTurn * 0.8;
-    partnerStatuses[pi + 1] = 'navigating';
-    return pr.update(environment, dynamicHumans);
-  }
-
-  // If following a path, apply gentle avoidance bias
-  if (pr.path && pr.pathIndex < pr.path.length) {
-    partnerStatuses[pi + 1] = 'navigating';
-    pr.turnSpeed += avoidDelta * 0.5;
-    return pr.update(environment, dynamicHumans);
-  }
-
-  // Frontier exploration logic
+function updatePartnerRobot(pr,pi,scanHits){
+  const shouldAuto=!(el('chkPartnerAutoExplore'))||el('chkPartnerAutoExplore').checked;
+  const lp=partnerLastPositions[pi+1];
+  if(lp){const dx=pr.x-lp.x,dy=pr.y-lp.y,s=Math.sqrt(dx*dx+dy*dy);if(s>0.1)partnerDistances[pi+1]+=s;lp.x=pr.x;lp.y=pr.y;}
+  if(!shouldAuto){pr.forwardSpeed=0;pr.turnSpeed=0;partnerStatuses[pi+1]='idle';return pr.update(sim.environment,sim.dynamicHumans);}
+  const avoidDelta=computeLidarAvoidance(pr,scanHits);
+  const HD=pr.radius*3.0; let hard=false;
+  if(scanHits)for(const h of scanHits)if(h.hit&&h.distance<HD){hard=true;break;}
+  if(hard){pr.path=null;pr.forwardSpeed=pr.maxSpeed*0.4;pr.turnSpeed=(avoidDelta?Math.sign(avoidDelta):(Math.random()>0.5?1:-1))*pr.maxTurn*0.8;partnerStatuses[pi+1]='navigating';return pr.update(sim.environment,sim.dynamicHumans);}
+  if(pr.path&&pr.pathIndex<pr.path.length){partnerStatuses[pi+1]='navigating';pr.turnSpeed+=avoidDelta*0.5;return pr.update(sim.environment,sim.dynamicHumans);}
   partnerFrontierCooldowns[pi]++;
-  if (partnerFrontierCooldowns[pi] < 40) {
-    partnerStatuses[pi + 1] = 'idle';
-    pr.forwardSpeed = 0;
-    pr.turnSpeed = 0;
-    return pr.update(environment, dynamicHumans);
-  }
-  partnerFrontierCooldowns[pi] = 0;
-
-  const explorer = partnerExplorers[pi];
-  const pathfinder = partnerPathfinders[pi];
-
-  let target = explorer.findBestFrontierExcluding(pr.x, pr.y, robot.x, robot.y, partnerRobots.map(r => ({ x: r.x, y: r.y })), pi);
-  if (!target) {
-    target = explorer.findBestFrontier(pr.x, pr.y);
-  }
-
-  if (target) {
-    const path = pathfinder.findPath(pr.x, pr.y, target.x, target.y);
-    if (path && path.length > 0) {
-      pr.setPath(path);
-      partnerStatuses[pi + 1] = 'exploring';
-    } else {
-      // No path — spin and retry
-      pr.forwardSpeed = 0;
-      pr.turnSpeed = pr.maxTurn * (Math.random() > 0.5 ? 1 : -1);
-      partnerFrontierCooldowns[pi] = 20;
-      partnerStatuses[pi + 1] = 'idle';
-    }
-  } else {
-    // Fully explored — wander
-    pr.forwardSpeed = pr.maxSpeed * 0.5;
-    pr.turnSpeed = (Math.random() - 0.5) * pr.maxTurn;
-    partnerStatuses[pi + 1] = 'exploring';
-  }
-
-  return pr.update(environment, dynamicHumans);
+  if(partnerFrontierCooldowns[pi]<40){partnerStatuses[pi+1]='idle';pr.forwardSpeed=0;pr.turnSpeed=0;return pr.update(sim.environment,sim.dynamicHumans);}
+  partnerFrontierCooldowns[pi]=0;
+  const exp=partnerExplorers[pi],pf=partnerPathfinders[pi];
+  let tgt=exp.findBestFrontierExcluding?exp.findBestFrontierExcluding(pr.x,pr.y,sim.robot.x,sim.robot.y,partnerRobots.map(r=>({x:r.x,y:r.y})),pi):null;
+  if(!tgt) tgt=exp.findBestFrontier(pr.x,pr.y);
+  if(tgt){const p=pf.findPath(pr.x,pr.y,tgt.x,tgt.y);if(p&&p.length>0){pr.setPath(p);partnerStatuses[pi+1]='exploring';}else{pr.forwardSpeed=0;pr.turnSpeed=pr.maxTurn*(Math.random()>0.5?1:-1);partnerFrontierCooldowns[pi]=20;partnerStatuses[pi+1]='idle';}}
+  else{pr.forwardSpeed=pr.maxSpeed*0.5;pr.turnSpeed=(Math.random()-0.5)*pr.maxTurn;partnerStatuses[pi+1]='exploring';}
+  return pr.update(sim.environment,sim.dynamicHumans);
 }
 
-function updatePartnerPatrol(timestamp) {
-  // Legacy stub — real logic moved to updatePartnerRobot
-}
-
-function resetSimulation() {
-  mapper.clear();
-  renderer.resetFog();
-
-  // Find a spawn position that doesn't collide with walls
-  const spawn = environment.findSafeSpawn(robot.radius);
-  robot.x = spawn.x;
-  robot.y = spawn.y;
-  robot.theta = 0;
-  robot.believedX = robot.x;
-  robot.believedY = robot.y;
-  robot.believedTheta = 0;
-  robot.path = null;
-  robot.resetTrails();
-  statsTracker.reset();
-  frontierTarget = null;
-  autoExploreActive = false;
-  btnAutoExplore.classList.remove('active');
-  btnAutoExplore.textContent = '🧭 Auto Explore';
-  prevPathActive = false;
-
-  // Regenerate dynamic obstacles for the new map
-  dynamicObstacles.generate();
-  if (dynamicHumans.enabled) {
-    dynamicHumans.generate();
-  }
-
-  // Reset particle filter if active
-  if (particleFilter.enabled) {
-    particleFilter.init(robot.x, robot.y, 0);
-  }
-
+function resetSimulation(){
+  sim.mapper.clear(); sim.renderer.resetFog();
+  const sp=sim.environment.findSafeSpawn(sim.robot.radius);
+  sim.robot.x=sp.x; sim.robot.y=sp.y; sim.robot.theta=0;
+  sim.robot.believedX=sp.x; sim.robot.believedY=sp.y; sim.robot.believedTheta=0;
+  sim.robot.path=null; sim.robot.resetTrails();
+  sim.statsTracker.reset();
+  frontierTarget=null; autoExploreActive=false;
+  const bae=el('btnAutoExplore'); if(bae){bae.classList.remove('active');bae.textContent='🧭 Auto Explore';}
+  prevPathActive=false;
+  sim.dynamicObstacles.generate();
+  if(sim.dynamicHumans.enabled) sim.dynamicHumans.generate();
+  if(sim.particleFilter.enabled) sim.particleFilter.init(sim.robot.x,sim.robot.y,0);
   rebuildPartnerRobots();
 }
 
-
-function setupEventListeners() {
-  // Tutorial
-  btnTutorial.addEventListener('click', () => {
-    tutorialManager.start();
+// ============================================================
+// INIT — runs AFTER #app is visible (canvas has real size)
+// ============================================================
+function initSim(){
+  if(sim) return;
+  const renderer=new Renderer();
+  const w=renderer.realWorldCanvas.width, h=renderer.realWorldCanvas.height;
+  const environment=new Environment(w,h);
+  environment.generateRandomMap();
+  const robot=new Robot(w/2,h/2);
+  const mapper=new Mapper(w,h,10);
+  const astar=new AStar(mapper);
+  const dijkstra=new Dijkstra(mapper);
+  const bugAlgorithm=new BugAlgorithm(mapper);
+  const lidar=new Lidar();
+  const chartManager=new ChartManager('lidarChart',lidar.maxRange);
+  const dynamicsChartManager=new DynamicsChartManager('dynamicsChart');
+  const frontierExplorer=new FrontierExplorer(mapper);
+  const statsTracker=new StatsTracker();
+  const dynamicObstacles=new DynamicObstacles(w,h);
+  const dynamicHumans=new DynamicHumans(w,h);
+  const soundManager=new SoundManager();
+  const particleFilter=new ParticleFilter(200);
+  const loopClosureDetector=new LoopClosureDetector();
+  const tutorialManager=new TutorialManager({
+    getState:()=>({currentView,drift:parseInt(el('driftSlider')?.value||'0',10)||0,
+      rayDensity:parseInt(el('rayDensitySlider')?.value||'0',10)||0,
+      particleEnabled:!!particleFilter.enabled,loopClosureEnabled:!!loopClosureDetector.enabled,
+      goalClicks:tutorialSignals.goalClicks,rayDensityChanges:tutorialSignals.rayDensityChanges,noiseChanges:tutorialSignals.noiseChanges}),
   });
+  const sensorVisualizer=new SensorVisualizer();
+  const pointCloudViewer=new PointCloudViewer();
+  const joystickManager=new JoystickManager(keys);
 
-  // Algorithm Compare Toggle
-  btnAlgoCompare?.addEventListener('click', () => {
-    algoCompareEnabled = !algoCompareEnabled;
-    if (algoComparePanel) {
-      algoComparePanel.style.display = algoCompareEnabled ? 'block' : 'none';
-    }
-    btnAlgoCompare.classList.toggle('active', algoCompareEnabled);
-    btnAlgoCompare.textContent = algoCompareEnabled ? 'Comparison: ON' : 'Compare Algorithms';
-    comparePaths = null;
+  renderer.initFogCanvas(w,h);
+  statsTracker.bindDOM();
+
+  // Find safe robot spawn
+  const sp=environment.findSafeSpawn?environment.findSafeSpawn(robot.radius):{x:w/2,y:h/2};
+  robot.x=sp.x; robot.y=sp.y; robot.believedX=sp.x; robot.believedY=sp.y;
+
+  sim={renderer,environment,robot,mapper,astar,dijkstra,bugAlgorithm,lidar,
+       chartManager,dynamicsChartManager,frontierExplorer,statsTracker,
+       dynamicObstacles,dynamicHumans,soundManager,particleFilter,
+       loopClosureDetector,tutorialManager,sensorVisualizer,pointCloudViewer,
+       joystickManager,currentPathfinder:astar};
+
+  setupEventListeners();
+  joystickManager.init();
+  lidar.setParameters(parseInt(el('rayDensitySlider').value),parseInt(el('noiseSlider').value));
+  robot.setSpeedMultiplier(parseInt(el('speedSlider').value));
+  robot.setDrift(parseInt(el('driftSlider').value));
+  rebuildPartnerRobots();
+}
+
+// ============================================================
+// EVENT LISTENERS
+// ============================================================
+function setupEventListeners(){
+  function switchView(view){
+    currentView=view;
+    el('btnRealWorld')?.classList.toggle('active',view==='realWorld');
+    el('btnSlamMap')?.classList.toggle('active',view==='slam');
+    el('btn3DView')?.classList.toggle('active',view==='3d');
+    el('realWorldCanvas')?.classList.toggle('hidden',view!=='realWorld');
+    el('slamCanvas')?.classList.toggle('hidden',view!=='slam');
+    el('pointCloudContainer')?.classList.toggle('hidden',view!=='3d');
+    sim.pointCloudViewer.setEnabled(view==='3d');
+    const badge=el('viewportBadge');
+    if(badge) badge.textContent=view==='realWorld'?'REAL WORLD VIEW':view==='slam'?'SLAM OCCUPANCY MAP':'3D LiDAR POINT CLOUD';
+  }
+
+  el('btnTutorial')?.addEventListener('click',()=>sim.tutorialManager.start());
+  el('btnAlgoCompare')?.addEventListener('click',()=>{
+    algoCompareEnabled=!algoCompareEnabled;
+    const ap=el('algoComparePanel'); if(ap) ap.style.display=algoCompareEnabled?'block':'none';
+    el('btnAlgoCompare').classList.toggle('active',algoCompareEnabled);
+    el('btnAlgoCompare').textContent=algoCompareEnabled?'Comparison: ON':'Compare Algorithms';
+    comparePaths=null;
   });
-
-  // Sidebar Toggle
-  btnToggleSidebar.addEventListener('click', () => {
-    sidebarPanel.classList.toggle('collapsed');
-    btnToggleSidebar.classList.toggle('open');
-  });
-
-  // Mobile UI Toggle
-  btnToggleMobileUI.addEventListener('click', () => {
+  el('btnToggleSidebar')?.addEventListener('click',()=>document.querySelector('.sidebar')?.classList.toggle('collapsed'));
+  el('btnToggleMobileUI')?.addEventListener('click',()=>{
     document.body.classList.toggle('mobile-mode');
-    btnToggleMobileUI.classList.toggle('active');
-
-    // Resize canvasses after CSS transition
-    setTimeout(() => {
-      if (renderer && renderer.resizeCanvas) {
-        renderer.resizeCanvas();
-        const w = renderer.realWorldCanvas.width;
-        const h = renderer.realWorldCanvas.height;
-        environment.resize(w, h);
-        mapper.resize(w, h);
-        dynamicObstacles.resize(w, h);
-        dynamicHumans.resize(w, h);
-        renderer.initFogCanvas(w, h);
-      }
-    }, 400); // Wait for 0.4s sidebar animation
+    setTimeout(()=>{sim.renderer.resizeCanvas();const w=sim.renderer.realWorldCanvas.width,h=sim.renderer.realWorldCanvas.height;sim.environment.resize(w,h);sim.mapper.resize(w,h);sim.dynamicObstacles.resize(w,h);sim.dynamicHumans.resize(w,h);sim.renderer.initFogCanvas(w,h);},400);
   });
 
-  // Keyboard
-  window.addEventListener('keydown', (e) => {
-    if (interactionMode !== 'drive') return;
-    if (keys.hasOwnProperty(e.key.toLowerCase())) {
-      keys[e.key.toLowerCase()] = true;
-      // Manual input cancels auto-explore
-      if (autoExploreActive) {
-        autoExploreActive = false;
-        btnAutoExplore.classList.remove('active');
-        btnAutoExplore.textContent = '🧭 Auto Explore';
-        frontierTarget = null;
-      }
+  window.addEventListener('keydown',(e)=>{
+    if(interactionMode!=='drive') return;
+    if(keys.hasOwnProperty(e.key.toLowerCase())){
+      keys[e.key.toLowerCase()]=true;
+      if(autoExploreActive){autoExploreActive=false;const b=el('btnAutoExplore');if(b){b.classList.remove('active');b.textContent='🧭 Auto Explore';}frontierTarget=null;}
     }
   });
+  window.addEventListener('keyup',(e)=>{if(keys.hasOwnProperty(e.key.toLowerCase())) keys[e.key.toLowerCase()]=false;});
 
-  window.addEventListener('keyup', (e) => {
-    if (keys.hasOwnProperty(e.key.toLowerCase())) {
-      keys[e.key.toLowerCase()] = false;
-    }
+  el('noiseSlider')?.addEventListener('input',(e)=>{const v=parseInt(e.target.value);const dv=el('noiseValue');if(dv)dv.textContent=`${v}%`;sim.lidar.setParameters(sim.lidar.numRays,v);tutorialSignals.noiseChanges++;});
+  el('speedSlider')?.addEventListener('input',(e)=>{const v=parseInt(e.target.value);const dv=el('speedValue');if(dv)dv.textContent=`${v}x`;sim.robot.setSpeedMultiplier(v);partnerRobots.forEach(pr=>pr.setSpeedMultiplier(v));});
+  el('rayDensitySlider')?.addEventListener('input',(e)=>{const v=parseInt(e.target.value);const dv=el('rayDensityValue');if(dv)dv.textContent=`${v} Rays`;sim.lidar.setParameters(v,sim.lidar.noisePercent);tutorialSignals.rayDensityChanges++;});
+  el('driftSlider')?.addEventListener('input',(e)=>{const v=parseInt(e.target.value);const dv=el('driftValue');if(dv)dv.textContent=v===0?'Off':`${v}`;sim.robot.setDrift(v);});
+  el('volumeSlider')?.addEventListener('input',(e)=>{const v=parseInt(e.target.value);const dv=el('volumeValue');if(dv)dv.textContent=`${v}%`;sim.soundManager.setVolume(v/100);});
+
+  el('btnRealWorld')?.addEventListener('click',()=>switchView('realWorld'));
+  el('btnSlamMap')?.addEventListener('click',()=>switchView('slam'));
+  el('btn3DView')?.addEventListener('click',()=>switchView('3d'));
+
+  el('btnDriveMode')?.addEventListener('click',()=>{interactionMode='drive';el('btnDriveMode')?.classList.add('active');el('btnBuildMode')?.classList.remove('active');el('instructionsDrive')?.classList.remove('hidden');el('instructionsBuild')?.classList.add('hidden');});
+  el('btnBuildMode')?.addEventListener('click',()=>{interactionMode='build';el('btnBuildMode')?.classList.add('active');el('btnDriveMode')?.classList.remove('active');el('instructionsBuild')?.classList.remove('hidden');el('instructionsDrive')?.classList.add('hidden');sim.robot.path=null;sim.robot.forwardSpeed=0;sim.robot.turnSpeed=0;autoExploreActive=false;const b=el('btnAutoExplore');if(b){b.classList.remove('active');b.textContent='🧭 Auto Explore';}frontierTarget=null;el('btnRealWorld')?.click();});
+
+  el('btnAutoExplore')?.addEventListener('click',()=>{
+    autoExploreActive=!autoExploreActive;
+    const b=el('btnAutoExplore');
+    if(autoExploreActive){b.classList.add('active');b.textContent='⏹️ Stop Exploring';el('btnSlamMap')?.click();interactionMode='drive';el('btnDriveMode')?.classList.add('active');el('btnBuildMode')?.classList.remove('active');el('instructionsDrive')?.classList.remove('hidden');el('instructionsBuild')?.classList.add('hidden');}
+    else{b.classList.remove('active');b.textContent='🧭 Auto Explore';sim.robot.path=null;sim.robot.forwardSpeed=0;sim.robot.turnSpeed=0;frontierTarget=null;}
   });
 
-  // Sliders
-  noiseSlider.addEventListener('input', (e) => {
-    const val = parseInt(e.target.value);
-    noiseValue.textContent = `${val}%`;
-    lidar.setParameters(lidar.numRays, val);
-    tutorialSignals.noiseChanges++;
+  el('btnDynamicObs')?.addEventListener('click',()=>{const on=!sim.dynamicObstacles.enabled;sim.dynamicObstacles.setEnabled(on);const b=el('btnDynamicObs');if(on){b.classList.add('active');b.textContent='⏹️ Stop Obstacles';sim.dynamicObstacles.generate();}else{b.classList.remove('active');b.textContent='🔮 Dynamic Obstacles';sim.environment.setDynamicWalls([]);}});
+  el('btnDynamicHumans')?.addEventListener('click',()=>{const on=!sim.dynamicHumans.enabled;sim.dynamicHumans.setEnabled(on);const b=el('btnDynamicHumans');if(on){b.classList.add('active');b.textContent='⏹️ Stop Workers';}else{b.classList.remove('active');b.textContent='👷 Moving Workers';}});
+  el('btnParticleFilter')?.addEventListener('click',()=>{const on=!sim.particleFilter.enabled;sim.particleFilter.setEnabled(on);const b=el('btnParticleFilter'),pg=el('particleCountGroup');if(on){b.classList.add('active');b.textContent='⏹️ Stop Particles';if(pg)pg.style.display='flex';sim.particleFilter.init(sim.robot.x,sim.robot.y,sim.robot.theta);}else{b.classList.remove('active');b.textContent='🎯 Particle Filter';if(pg)pg.style.display='none';}});
+  el('btnLoopClosure')?.addEventListener('click',()=>{const on=!sim.loopClosureDetector.enabled;sim.loopClosureDetector.setEnabled(on);const b=el('btnLoopClosure');if(on){b.classList.add('active');b.textContent='⏹️ Stop Loop Closure';}else{b.classList.remove('active');b.textContent='🔗 Loop Closure';}});
+  el('particleCountSlider')?.addEventListener('input',(e)=>{const v=parseInt(e.target.value);const dv=el('particleCountValue');if(dv)dv.textContent=`${v}`;sim.particleFilter.setCount(v);sim.particleFilter.init(sim.robot.x,sim.robot.y,sim.robot.theta);});
+
+  el('btnSoundOn')?.addEventListener('click',()=>{sim.soundManager.setEnabled(true);el('btnSoundOn')?.classList.add('active');el('btnSoundOff')?.classList.remove('active');const vg=el('volumeGroup');if(vg)vg.style.display='flex';});
+  el('btnSoundOff')?.addEventListener('click',()=>{sim.soundManager.setEnabled(false);el('btnSoundOff')?.classList.add('active');el('btnSoundOn')?.classList.remove('active');const vg=el('volumeGroup');if(vg)vg.style.display='none';});
+
+  el('btnReset')?.addEventListener('click',()=>{const ps=el('presetSelect');if(ps)ps.value='random';sim.environment.generateRandomMap();resetSimulation();});
+  el('btnClearCustom')?.addEventListener('click',()=>{sim.environment.clearCustomWalls();sim.mapper.clear();});
+  el('driveModelSelect')?.addEventListener('change',(e)=>sim.robot.setDriveModel(e.target.value));
+  el('algorithmSelect')?.addEventListener('change',(e)=>{switch(e.target.value){case'dijkstra':sim.currentPathfinder=sim.dijkstra;break;case'bug2':sim.currentPathfinder=sim.bugAlgorithm;break;default:sim.currentPathfinder=sim.astar;}const pt=el('pathComputeTime');if(pt)pt.textContent='';sim.robot.path=null;sim.robot.forwardSpeed=0;sim.robot.turnSpeed=0;});
+  el('presetSelect')?.addEventListener('change',(e)=>{if(e.target.value==='random')sim.environment.generateRandomMap();else sim.environment.loadPreset(e.target.value);resetSimulation();});
+  el('multiRobotSelect')?.addEventListener('change',()=>rebuildPartnerRobots());
+
+  el('btnExportMap')?.addEventListener('click',()=>{const j=sim.environment.exportWalls();const b=new Blob([j],{type:'application/json'});const u=URL.createObjectURL(b);const a=document.createElement('a');a.href=u;a.download='slam-map.json';a.click();URL.revokeObjectURL(u);});
+  el('btnImportMap')?.addEventListener('click',()=>el('importFileInput')?.click());
+  el('importFileInput')?.addEventListener('change',(e)=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=(ev)=>{if(sim.environment.importWalls(ev.target.result)){resetSimulation();const ps=el('presetSelect');if(ps)ps.value='random';}};r.readAsText(f);e.target.value='';});
+
+  const slamCanvas=el('slamCanvas');
+  slamCanvas?.addEventListener('mousedown',(e)=>{
+    if(interactionMode!=='drive') return;
+    const rect=slamCanvas.getBoundingClientRect();
+    const x=e.clientX-rect.left,y=e.clientY-rect.top;
+    if(algoCompareEnabled) comparePaths=computeComparisonPaths(x,y);
+    const t0=performance.now(); const path=sim.currentPathfinder.findPath(sim.robot.x,sim.robot.y,x,y); const dt=(performance.now()-t0).toFixed(1);
+    const pt=el('pathComputeTime'); if(pt) pt.textContent=`${sim.currentPathfinder.name||'A*'} · ${dt}ms`;
+    if(path.length>0){tutorialSignals.goalClicks++;sim.robot.setPath(path);if(autoExploreActive){autoExploreActive=false;const b=el('btnAutoExplore');if(b){b.classList.remove('active');b.textContent='🧭 Auto Explore';}frontierTarget=null;}}
   });
 
-  speedSlider.addEventListener('input', (e) => {
-    const val = parseInt(e.target.value);
-    speedValue.textContent = `${val}x`;
-    robot.setSpeedMultiplier(val);
-    partnerRobots.forEach((pr) => pr.setSpeedMultiplier(val));
-  });
+  const rwc=el('realWorldCanvas');
+  rwc?.addEventListener('mousedown',(e)=>{if(interactionMode!=='build')return;isBuilding=true;const r=rwc.getBoundingClientRect();buildStart={x:e.clientX-r.left,y:e.clientY-r.top};buildCurrent={...buildStart};});
+  rwc?.addEventListener('mousemove',(e)=>{if(!isBuilding||interactionMode!=='build')return;const r=rwc.getBoundingClientRect();buildCurrent={x:e.clientX-r.left,y:e.clientY-r.top};});
+  const commitWall=()=>{if(!isBuilding)return;isBuilding=false;const dx=buildCurrent.x-buildStart.x,dy=buildCurrent.y-buildStart.y;if(Math.sqrt(dx*dx+dy*dy)>10){sim.environment.addCustomWall(buildStart,buildCurrent);sim.mapper.clear();}buildStart=null;buildCurrent=null;};
+  rwc?.addEventListener('mouseup',commitWall); rwc?.addEventListener('mouseleave',commitWall);
 
-  rayDensitySlider.addEventListener('input', (e) => {
-    const val = parseInt(e.target.value);
-    rayDensityValue.textContent = `${val} Rays`;
-    lidar.setParameters(val, lidar.noisePercent);
-    tutorialSignals.rayDensityChanges++;
-  });
-
-  driftSlider.addEventListener('input', (e) => {
-    const val = parseInt(e.target.value);
-    driftValue.textContent = val === 0 ? 'Off' : `${val}`;
-    robot.setDrift(val);
-  });
-
-  volumeSlider.addEventListener('input', (e) => {
-    const val = parseInt(e.target.value);
-    volumeValue.textContent = `${val}%`;
-    soundManager.setVolume(val / 100);
-  });
-
-  // View Toggles
-  const btn3DView = document.getElementById('btn3DView');
-  const pointCloudContainer = document.getElementById('pointCloudContainer');
-
-  function switchView(view) {
-    currentView = view;
-    btnRealWorld.classList.toggle('active', view === 'realWorld');
-    btnSlamMap.classList.toggle('active', view === 'slam');
-    btn3DView.classList.toggle('active', view === '3d');
-    realWorldCanvas.classList.toggle('hidden', view !== 'realWorld');
-    slamCanvas.classList.toggle('hidden', view !== 'slam');
-    pointCloudContainer.classList.toggle('hidden', view !== '3d');
-    pointCloudViewer.setEnabled(view === '3d');
-  }
-
-  btnRealWorld.addEventListener('click', () => switchView('realWorld'));
-  btnSlamMap.addEventListener('click', () => switchView('slam'));
-  btn3DView.addEventListener('click', () => switchView('3d'));
-
-  btnDriveMode.addEventListener('click', () => {
-    interactionMode = 'drive';
-    btnDriveMode.classList.add('active');
-    btnBuildMode.classList.remove('active');
-    instructionsDrive.classList.remove('hidden');
-    instructionsBuild.classList.add('hidden');
-  });
-
-  btnBuildMode.addEventListener('click', () => {
-    interactionMode = 'build';
-    btnBuildMode.classList.add('active');
-    btnDriveMode.classList.remove('active');
-    instructionsBuild.classList.remove('hidden');
-    instructionsDrive.classList.add('hidden');
-    robot.path = null;
-    robot.forwardSpeed = 0;
-    robot.turnSpeed = 0;
-    autoExploreActive = false;
-    btnAutoExplore.classList.remove('active');
-    btnAutoExplore.textContent = '🧭 Auto Explore';
-    frontierTarget = null;
-    btnRealWorld.click();
-  });
-
-  // Auto Explore Toggle
-  btnAutoExplore.addEventListener('click', () => {
-    autoExploreActive = !autoExploreActive;
-    if (autoExploreActive) {
-      btnAutoExplore.classList.add('active');
-      btnAutoExplore.textContent = '⏹️ Stop Exploring';
-      btnSlamMap.click();
-      interactionMode = 'drive';
-      btnDriveMode.classList.add('active');
-      btnBuildMode.classList.remove('active');
-      instructionsDrive.classList.remove('hidden');
-      instructionsBuild.classList.add('hidden');
-    } else {
-      btnAutoExplore.classList.remove('active');
-      btnAutoExplore.textContent = '🧭 Auto Explore';
-      robot.path = null;
-      robot.forwardSpeed = 0;
-      robot.turnSpeed = 0;
-      frontierTarget = null;
-    }
-  });
-
-  // Dynamic Obstacles Toggle
-  btnDynamicObs.addEventListener('click', () => {
-    const nowEnabled = !dynamicObstacles.enabled;
-    dynamicObstacles.setEnabled(nowEnabled);
-    if (nowEnabled) {
-      btnDynamicObs.classList.add('active');
-      btnDynamicObs.textContent = '⏹️ Stop Obstacles';
-      dynamicObstacles.generate();
-    } else {
-      btnDynamicObs.classList.remove('active');
-      btnDynamicObs.textContent = '🔮 Dynamic Obstacles';
-      environment.setDynamicWalls([]);
-    }
-  });
-
-  // Dynamic Humans Toggle
-  if (btnDynamicHumans) {
-    btnDynamicHumans.addEventListener('click', () => {
-      const nowEnabled = !dynamicHumans.enabled;
-      dynamicHumans.setEnabled(nowEnabled);
-      if (nowEnabled) {
-        btnDynamicHumans.classList.add('active');
-        btnDynamicHumans.textContent = '⏹️ Stop Workers';
-      } else {
-        btnDynamicHumans.classList.remove('active');
-        btnDynamicHumans.textContent = '👷‍♂️ Moving Workers';
-      }
-    });
-  }
-
-  // Particle Filter Toggle
-  btnParticleFilter.addEventListener('click', () => {
-    const nowEnabled = !particleFilter.enabled;
-    particleFilter.setEnabled(nowEnabled);
-    if (nowEnabled) {
-      btnParticleFilter.classList.add('active');
-      btnParticleFilter.textContent = '⏹️ Stop Particles';
-      particleCountGroup.style.display = 'flex';
-      particleFilter.init(robot.x, robot.y, robot.theta);
-    } else {
-      btnParticleFilter.classList.remove('active');
-      btnParticleFilter.textContent = '🎯 Particle Filter';
-      particleCountGroup.style.display = 'none';
-    }
-  });
-
-  // Loop Closure Toggle
-  const btnLoopClosure = document.getElementById('btnLoopClosure');
-  btnLoopClosure.addEventListener('click', () => {
-    const nowEnabled = !loopClosureDetector.enabled;
-    loopClosureDetector.setEnabled(nowEnabled);
-    if (nowEnabled) {
-      btnLoopClosure.classList.add('active');
-      btnLoopClosure.textContent = '⏹️ Stop Loop Closure';
-    } else {
-      btnLoopClosure.classList.remove('active');
-      btnLoopClosure.textContent = '🔗 Loop Closure';
-    }
-  });
-
-  particleCountSlider.addEventListener('input', (e) => {
-    const val = parseInt(e.target.value);
-    particleCountValue.textContent = `${val}`;
-    particleFilter.setCount(val);
-    particleFilter.init(robot.x, robot.y, robot.theta);
-  });
-
-  // Sound Toggle
-  btnSoundOn.addEventListener('click', () => {
-    soundManager.setEnabled(true);
-    btnSoundOn.classList.add('active');
-    btnSoundOff.classList.remove('active');
-    volumeGroup.style.display = 'flex';
-  });
-
-  btnSoundOff.addEventListener('click', () => {
-    soundManager.setEnabled(false);
-    btnSoundOff.classList.add('active');
-    btnSoundOn.classList.remove('active');
-    volumeGroup.style.display = 'none';
-  });
-
-  // Reset Map
-  btnReset.addEventListener('click', () => {
-    presetSelect.value = 'random';
-    environment.generateRandomMap();
-    resetSimulation();
-  });
-
-  btnClearCustom.addEventListener('click', () => {
-    environment.clearCustomWalls();
-    mapper.clear();
-  });
-
-  // ── Drive Model Selector ──
-  driveModelSelect.addEventListener('change', (e) => {
-    robot.setDriveModel(e.target.value);
-    // Update instructions per model
-    const drives = {
-      differential: 'W/S: Forward/Back · A/D: Turn Left/Right',
-      ackermann: 'W/S: Accelerate/Brake · A/D: Steer Left/Right',
-      holonomic: 'W/S: Forward/Back · A/D: Strafe Left/Right'
-    };
-    instructionsDrive.textContent = drives[e.target.value] || drives.differential;
-  });
-
-  // ── Algorithm Selector ──
-  algorithmSelect.addEventListener('change', (e) => {
-    const algo = e.target.value;
-    switch (algo) {
-      case 'dijkstra': currentPathfinder = dijkstra; break;
-      case 'bug2': currentPathfinder = bugAlgorithm; break;
-      default: currentPathfinder = astar; break;
-    }
-    pathComputeTime.textContent = '';
-    robot.path = null;
-    robot.forwardSpeed = 0;
-    robot.turnSpeed = 0;
-  });
-
-  // ── Environment Presets ──
-  presetSelect.addEventListener('change', (e) => {
-    const preset = e.target.value;
-    if (preset === 'random') {
-      environment.generateRandomMap();
-    } else {
-      environment.loadPreset(preset);
-    }
-    resetSimulation();
-  });
-
-  multiRobotSelect?.addEventListener('change', () => {
-    rebuildPartnerRobots();
-  });
-
-  // ── Map Export ──
-  btnExportMap.addEventListener('click', () => {
-    const json = environment.exportWalls();
-    const blob = new Blob([json], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'slam-map.json';
-    a.click();
-    URL.revokeObjectURL(url);
-  });
-
-  // ── Map Import ──
-  btnImportMap.addEventListener('click', () => {
-    importFileInput.click();
-  });
-
-  importFileInput.addEventListener('change', (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-
-    const reader = new FileReader();
-    reader.onload = (evt) => {
-      const success = environment.importWalls(evt.target.result);
-      if (success) {
-        resetSimulation();
-        presetSelect.value = 'random';
-      }
-    };
-    reader.readAsText(file);
-    importFileInput.value = '';
-  });
-
-  // Mouse Click for Autonomous Pathfinding
-  slamCanvas.addEventListener('mousedown', (e) => {
-    if (interactionMode !== 'drive') return;
-
-    const rect = slamCanvas.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
-
-    if (algoCompareEnabled) {
-      comparePaths = computeComparisonPaths(x, y);
-    }
-
-    const t0 = performance.now();
-    const path = currentPathfinder.findPath(robot.x, robot.y, x, y);
-    const dt = (performance.now() - t0).toFixed(1);
-    pathComputeTime.textContent = `${currentPathfinder.name || 'A*'} · ${dt}ms`;
-    if (path.length > 0) {
-      tutorialSignals.goalClicks++;
-      robot.setPath(path);
-      if (autoExploreActive) {
-        autoExploreActive = false;
-        btnAutoExplore.classList.remove('active');
-        btnAutoExplore.textContent = '🧭 Auto Explore';
-        frontierTarget = null;
-      }
-    }
-  });
-
-  // Mouse Drag for Building Custom Walls
-  realWorldCanvas.addEventListener('mousedown', (e) => {
-    if (interactionMode !== 'build') return;
-    isBuilding = true;
-    const rect = realWorldCanvas.getBoundingClientRect();
-    buildStart = { x: e.clientX - rect.left, y: e.clientY - rect.top };
-    buildCurrent = { ...buildStart };
-  });
-
-  realWorldCanvas.addEventListener('mousemove', (e) => {
-    if (!isBuilding || interactionMode !== 'build') return;
-    const rect = realWorldCanvas.getBoundingClientRect();
-    buildCurrent = { x: e.clientX - rect.left, y: e.clientY - rect.top };
-  });
-
-  const commitWall = () => {
-    if (!isBuilding) return;
-    isBuilding = false;
-
-    const dx = buildCurrent.x - buildStart.x;
-    const dy = buildCurrent.y - buildStart.y;
-    if (Math.sqrt(dx * dx + dy * dy) > 10) {
-      environment.addCustomWall(buildStart, buildCurrent);
-      mapper.clear();
-    }
-    buildStart = null;
-    buildCurrent = null;
-  };
-
-  realWorldCanvas.addEventListener('mouseup', commitWall);
-  realWorldCanvas.addEventListener('mouseleave', commitWall);
+  el('btnDonate')?.addEventListener('click',()=>{const m=el('donateModal');if(m)m.style.display='flex';});
+  el('btnDonateClose')?.addEventListener('click',()=>{const m=el('donateModal');if(m)m.style.display='none';});
+  window.addEventListener('click',(e)=>{const m=el('donateModal');if(m&&e.target===m)m.style.display='none';});
 }
 
+// ============================================================
+// FRONTIER EXPLORATION
+// ============================================================
+function handleFrontierExploration(){
+  if(!autoExploreActive) return;
+  if(sim.robot.path&&sim.robot.pathIndex<sim.robot.path.length) return;
+  frontierCooldown++; if(frontierCooldown<30) return; frontierCooldown=0;
+  const target=sim.frontierExplorer.findBestFrontier(sim.robot.x,sim.robot.y);
+  frontierTarget=target;
+  if(target){const p=sim.currentPathfinder.findPath(sim.robot.x,sim.robot.y,target.x,target.y);if(p.length>0)sim.robot.setPath(p);else frontierCooldown=15;}
+  else{autoExploreActive=false;const b=el('btnAutoExplore');if(b){b.classList.remove('active');b.textContent='✅ Fully Explored';}sim.soundManager.playExplorationComplete();}
+}
 
-// ---- Frontier Exploration Logic ----
-let frontierCooldown = 0;
+// ============================================================
+// GAME LOOP
+// ============================================================
+function gameLoop(timestamp){
+  if(!isSimulatorRunning||!sim) return;
+  requestAnimationFrame(gameLoop);
+  sim.robot.applyInput(keys);
+  sim.dynamicObstacles.update();
+  sim.environment.setDynamicWalls(sim.dynamicObstacles.getWalls());
+  if(sim.dynamicHumans.enabled) sim.dynamicHumans.update(sim.environment);
+  const hitWall=sim.robot.update(sim.environment,sim.dynamicHumans);
+  {const lp=partnerLastPositions[0];if(lp){const dx=sim.robot.x-lp.x,dy=sim.robot.y-lp.y,s=Math.sqrt(dx*dx+dy*dy);if(s>0.1)partnerDistances[0]+=s;lp.x=sim.robot.x;lp.y=sim.robot.y;}partnerStatuses[0]=(sim.robot.path&&sim.robot.pathIndex<sim.robot.path.length)?'navigating':(autoExploreActive?'exploring':'idle');}
+  if(hitWall) sim.soundManager.playCollision();
+  const scanHits=sim.lidar.scan(sim.robot,sim.environment,sim.dynamicHumans);
+  partnerScanHitsCache=[];
+  for(let pi=0;pi<partnerRobots.length;pi++){const pr=partnerRobots[pi];const ph=sim.lidar.scan(pr,sim.environment,sim.dynamicHumans);sim.mapper.updateMap(pr,ph);updatePartnerRobot(pr,pi,ph);partnerScanHitsCache.push(ph);}
+  if(sim.particleFilter.enabled){sim.particleFilter.predict(sim.robot.forwardSpeed,sim.robot.turnSpeed);sim.particleFilter.update(scanHits,sim.environment);sim.particleFilter.resample();}
+  sweepSoundCounter++; if(sweepSoundCounter>=6){sweepSoundCounter=0;sim.soundManager.playSweepTick();}
+  sim.mapper.updateMap(sim.robot,scanHits);
+  sim.chartManager.updateData(scanHits);
+  sim.dynamicsChartManager.updateData(sim.robot);
+  sim.sensorVisualizer.update(sim.robot,scanHits);
+  if(sim.loopClosureDetector.enabled){sim.loopClosureDetector.addKeyframe(sim.robot,scanHits);const cr=sim.loopClosureDetector.checkForClosure(sim.robot,scanHits);if(cr.detected)sim.loopClosureDetector.applyCorrection(sim.robot,cr.correction);sim.loopClosureDetector.updateIndicator();}
+  sim.statsTracker.update(sim.robot,sim.mapper,hitWall);
+  const numRobots=1+partnerRobots.length;
+  for(let i=0;i<numRobots;i++) partnerExploredCells[i]=sampleRobotExplored(i);
+  updateFleetDashboard(numRobots);
+  if(currentView==='3d') sim.pointCloudViewer.update(sim.robot,scanHits,sim.renderer.realWorldCanvas.width,sim.renderer.realWorldCanvas.height);
+  const pathActive=!!(sim.robot.path&&sim.robot.pathIndex<sim.robot.path.length);
+  if(prevPathActive&&!pathActive&&!autoExploreActive) sim.soundManager.playGoalReached();
+  prevPathActive=pathActive;
+  handleFrontierExploration();
+  if(sim.tutorialManager.active) sim.tutorialManager.tick();
 
-function handleFrontierExploration() {
-  if (!autoExploreActive) return;
-
-  if (robot.path && robot.pathIndex < robot.path.length) return;
-
-  frontierCooldown++;
-  if (frontierCooldown < 30) return;
-  frontierCooldown = 0;
-
-  const target = frontierExplorer.findBestFrontier(robot.x, robot.y);
-  frontierTarget = target;
-
-  if (target) {
-    const path = currentPathfinder.findPath(robot.x, robot.y, target.x, target.y);
-    if (path.length > 0) {
-      robot.setPath(path);
-    } else {
-      frontierCooldown = 15;
-    }
+  // Render
+  sim.renderer.clear();
+  const cpl=el('chkPartnerLidar');
+  if(currentView==='realWorld'){
+    sim.renderer.drawEnvironment(sim.environment,sim.renderer.realWorldCtx);
+    sim.renderer.drawDynamicObstacles(sim.dynamicObstacles,sim.renderer.realWorldCtx);
+    sim.renderer.drawHumans(sim.dynamicHumans,sim.renderer.realWorldCtx);
+    sim.lidar.drawRays(scanHits,sim.robot,sim.renderer.realWorldCtx);
+    partnerRobots.forEach((pr,pi)=>{if(cpl?.checked){const ph=partnerScanHitsCache[pi];if(ph)sim.lidar.drawRays(ph,pr,sim.renderer.realWorldCtx,PARTNER_RAY_STYLES[pi%PARTNER_RAY_STYLES.length]);}sim.renderer.drawTrail(pr.trueTrail,PARTNER_TRAIL_COLORS[pi%PARTNER_TRAIL_COLORS.length],sim.renderer.realWorldCtx);sim.renderer.drawRobot(pr,sim.renderer.realWorldCtx);});
+    sim.renderer.drawTrail(sim.robot.trueTrail,'#1E90FF',sim.renderer.realWorldCtx);
+    sim.renderer.drawPath(sim.robot.path,sim.renderer.realWorldCtx);
+    sim.renderer.drawRobot(sim.robot,sim.renderer.realWorldCtx);
+    sim.renderer.drawBelievedRobot(sim.robot,sim.renderer.realWorldCtx);
+    if(sim.particleFilter.enabled) sim.renderer.drawParticles(sim.particleFilter.getParticles(),sim.renderer.realWorldCtx);
+    if(sim.loopClosureDetector.enabled) sim.loopClosureDetector.drawIndicator(sim.renderer.realWorldCtx,sim.renderer.realWorldCanvas.width);
+    if(isBuilding&&buildStart&&buildCurrent) sim.renderer.drawBuildLine(buildStart,buildCurrent,sim.renderer.realWorldCtx);
   } else {
-    // No more frontiers — map fully explored!
-    autoExploreActive = false;
-    btnAutoExplore.classList.remove('active');
-    btnAutoExplore.textContent = '✅ Fully Explored';
-    soundManager.playExplorationComplete();
+    sim.mapper.drawMap(sim.renderer.slamCtx);
+    sim.renderer.drawFogOfWar(scanHits,sim.robot);
+    sim.renderer.drawFogOverlay(sim.renderer.slamCtx);
+    sim.renderer.drawTrail(sim.robot.believedTrail,'#f59e0b',sim.renderer.slamCtx);
+    if(algoCompareEnabled&&comparePaths){sim.renderer.drawPath(comparePaths.astar,sim.renderer.slamCtx,{color:'#10b981',lineWidth:2,dashPattern:[8,8]});sim.renderer.drawPath(comparePaths.dijkstra,sim.renderer.slamCtx,{color:'#06b6d4',lineWidth:2,dashPattern:[4,6]});sim.renderer.drawPath(comparePaths.bug2,sim.renderer.slamCtx,{color:'#f59e0b',lineWidth:2,dashPattern:[2,6]});}
+    sim.renderer.drawPath(sim.robot.path,sim.renderer.slamCtx,{color:'#22c55e',lineWidth:3,dashPattern:[10,10]});
+    if(autoExploreActive) sim.renderer.drawFrontierTarget(frontierTarget,sim.renderer.slamCtx);
+    partnerRobots.forEach((pr,pi)=>{if(cpl?.checked){const ph=partnerScanHitsCache[pi];if(ph)sim.lidar.drawRays(ph,pr,sim.renderer.slamCtx,PARTNER_RAY_STYLES[pi%PARTNER_RAY_STYLES.length]);}sim.renderer.drawTrail(pr.trueTrail,PARTNER_TRAIL_COLORS[pi%PARTNER_TRAIL_COLORS.length],sim.renderer.slamCtx);sim.renderer.drawRobot(pr,sim.renderer.slamCtx);});
+    sim.renderer.drawRobot(sim.robot,sim.renderer.slamCtx);
+    sim.lidar.drawRays(scanHits,sim.robot,sim.renderer.slamCtx);
   }
 }
 
+// ============================================================
+// LAUNCH — called by button onclick
+// ============================================================
+function launchSimulator(){
+  const landing=el('landingPage'), simNav=el('sim-nav'), appEl=el('app');
+  if(landing) landing.style.display='none';
+  if(simNav)  simNav.style.display='flex';
+  if(appEl)   appEl.style.display='flex';
 
-// ---- Page Transition Logic ----
-const landingPage = document.getElementById('landingPage');
-const appSimulator = document.getElementById('app');
-const btnGetStarted = document.getElementById('btnGetStarted');
+  // Canvases are now visible → init everything with real dimensions
+  initSim();
 
-let isSimulatorRunning = false;
+  // Reset to real-world view
+  currentView='realWorld';
+  el('realWorldCanvas')?.classList.remove('hidden');
+  el('slamCanvas')?.classList.add('hidden');
+  el('pointCloudContainer')?.classList.add('hidden');
+  el('btnRealWorld')?.classList.add('active');
+  el('btnSlamMap')?.classList.remove('active');
+  el('btn3DView')?.classList.remove('active');
+  const badge=el('viewportBadge'); if(badge) badge.textContent='REAL WORLD VIEW';
 
-function launchSimulator() {
-  if (landingPage) landingPage.style.display = 'none';
-  const simNav = document.getElementById('sim-nav');
-  if (simNav) simNav.style.display = 'flex';
-  appSimulator.style.display = 'flex'; // Use flex to maintain sidebar/canvas layout
-
-  // Now that #app is visible, resize canvases to fit the actual container
-  renderer.resizeCanvas();
-
-  // Re-initialize environment and robot with the correct canvas dimensions
-  const w = renderer.realWorldCanvas.width;
-  const h = renderer.realWorldCanvas.height;
-  environment.resize(w, h);
-  mapper.resize(w, h);
-  dynamicObstacles.resize(w, h);
-  renderer.initFogCanvas(w, h);
-  robot.x = w / 2;
-  robot.y = h / 2;
-  robot.believedX = robot.x;
-  robot.believedY = robot.y;
-
-  // Start the simulator loop only now
-  if (!isSimulatorRunning) {
-    isSimulatorRunning = true;
-    lastTime = performance.now();
+  if(!isSimulatorRunning){
+    isSimulatorRunning=true;
+    lastTime=performance.now();
     requestAnimationFrame(gameLoop);
   }
 }
 
-if (btnGetStarted) {
-  btnGetStarted.addEventListener('click', () => {
-    launchSimulator();
-  });
-}
-
-const btnDonate = document.getElementById('btnDonate');
-const donateModal = document.getElementById('donateModal');
-const btnDonateClose = document.getElementById('btnDonateClose');
-
-if (btnDonate) {
-  btnDonate.addEventListener('click', () => {
-    donateModal.style.display = 'flex';
-  });
-}
-
-if (btnDonateClose) {
-  btnDonateClose.addEventListener('click', () => {
-    donateModal.style.display = 'none';
-  });
-}
-
-// Close if clicked outside
-window.addEventListener('click', (e) => {
-  if (e.target === donateModal) {
-    donateModal.style.display = 'none';
-  }
+// Expose globally for the inline onclick AND for DOMContentLoaded
+window._launchSim = launchSimulator;
+document.addEventListener('DOMContentLoaded',()=>{
+  el('btnGetStarted')?.addEventListener('click',launchSimulator);
 });
-
-// ---- Main Loop ----
-let lastTime = 0;
-function gameLoop(timestamp) {
-  if (!isSimulatorRunning) return;
-  requestAnimationFrame(gameLoop); // Changed from animate to gameLoop
-
-  // 1. Process Input
-  robot.applyInput(keys);
-
-  // 2. Update Dynamic Obstacles
-  dynamicObstacles.update();
-  environment.setDynamicWalls(dynamicObstacles.getWalls());
-
-  // 3. Update Physics (returns true if wall collision)
-  if (dynamicHumans.enabled) dynamicHumans.update(environment);
-  const hitWall = robot.update(environment, dynamicHumans);
-
-  // Track main robot distance for fleet dashboard
-  {
-    const lp = partnerLastPositions[0];
-    if (lp) {
-      const dx = robot.x - lp.x;
-      const dy = robot.y - lp.y;
-      const step = Math.sqrt(dx * dx + dy * dy);
-      if (step > 0.1) partnerDistances[0] += step;
-      lp.x = robot.x;
-      lp.y = robot.y;
-    }
-    partnerStatuses[0] = (robot.path && robot.pathIndex < robot.path.length) ? 'navigating' : (autoExploreActive ? 'exploring' : 'idle');
-  }
-
-  updatePartnerPatrol(timestamp);
-
-  // 4. Sound: collision bump
-  if (hitWall) {
-    soundManager.playCollision();
-  }
-
-  // 5. Sensor Update (LiDAR Raycasting)
-  const scanHits = lidar.scan(robot, environment, dynamicHumans);
-
-  partnerScanHitsCache = [];
-  for (let pi = 0; pi < partnerRobots.length; pi++) {
-    const pr = partnerRobots[pi];
-    const ph = lidar.scan(pr, environment, dynamicHumans);
-    mapper.updateMap(pr, ph);
-    // Run autonomous exploration logic for this partner
-    updatePartnerRobot(pr, pi, ph);
-    partnerScanHitsCache.push(ph);
-  }
-
-  // 5b. Particle Filter update
-  if (particleFilter.enabled) {
-    particleFilter.predict(robot.forwardSpeed, robot.turnSpeed);
-    particleFilter.update(scanHits, environment);
-    particleFilter.resample();
-  }
-
-  // 6. Sound: sweep tick (every 6 frames for subtle effect)
-  sweepSoundCounter++;
-  if (sweepSoundCounter >= 6) {
-    sweepSoundCounter = 0;
-    soundManager.playSweepTick();
-  }
-
-  // 7. SLAM Mapping
-  mapper.updateMap(robot, scanHits);
-
-  // 8. Update Live Charts
-  chartManager.updateData(scanHits);
-  dynamicsChartManager.updateData(robot);
-
-  // 8b. Update Sensor HUD
-  sensorVisualizer.update(robot, scanHits);
-
-  // 8c. Loop Closure Detection
-  if (loopClosureDetector.enabled) {
-    loopClosureDetector.addKeyframe(robot, scanHits);
-    const closureResult = loopClosureDetector.checkForClosure(robot, scanHits);
-    if (closureResult.detected) {
-      loopClosureDetector.applyCorrection(robot, closureResult.correction);
-    }
-    loopClosureDetector.updateIndicator();
-  }
-
-  // 9. Update Stats
-  statsTracker.update(robot, mapper, hitWall);
-
-  // 9b. Update per-robot explored %
-  const numRobots = 1 + partnerRobots.length;
-  for (let i = 0; i < numRobots; i++) {
-    partnerExploredCells[i] = sampleRobotExplored(i);
-  }
-
-  // 9c. Fleet dashboard
-  updateFleetDashboard(numRobots, partnerScanHitsCache);
-
-  // 9d. Update 3D Point Cloud
-  if (currentView === '3d') {
-    pointCloudViewer.update(robot, scanHits, renderer.realWorldCanvas.width, renderer.realWorldCanvas.height);
-  }
-
-  // 10. Detect goal reached (path was active, now it's null)
-  const pathActive = !!(robot.path && robot.pathIndex < robot.path.length);
-  if (prevPathActive && !pathActive && !autoExploreActive) {
-    soundManager.playGoalReached();
-  }
-  prevPathActive = pathActive;
-
-  // 11. Frontier Exploration
-  handleFrontierExploration();
-
-  if (tutorialManager.active) {
-    tutorialManager.tick();
-  }
-
-  // 12. Draw Frame
-  renderer.clear();
-
-  if (currentView === 'realWorld') {
-    renderer.drawEnvironment(environment, renderer.realWorldCtx);
-    renderer.drawDynamicObstacles(dynamicObstacles, renderer.realWorldCtx);
-    renderer.drawHumans(dynamicHumans, renderer.realWorldCtx);
-    lidar.drawRays(scanHits, robot, renderer.realWorldCtx);
-    partnerRobots.forEach((pr, pi) => {
-      if (chkPartnerLidar?.checked) {
-        const ph = partnerScanHitsCache[pi];
-        if (ph) {
-          lidar.drawRays(ph, pr, renderer.realWorldCtx, PARTNER_RAY_STYLES[pi % PARTNER_RAY_STYLES.length]);
-        }
-      }
-      renderer.drawTrail(pr.trueTrail, PARTNER_TRAIL_COLORS[pi % PARTNER_TRAIL_COLORS.length], renderer.realWorldCtx);
-      renderer.drawRobot(pr, renderer.realWorldCtx);
-    });
-    renderer.drawTrail(robot.trueTrail, '#1E90FF', renderer.realWorldCtx);
-    renderer.drawPath(robot.path, renderer.realWorldCtx);
-    renderer.drawRobot(robot, renderer.realWorldCtx);
-    renderer.drawBelievedRobot(robot, renderer.realWorldCtx);
-
-    // Draw particle cloud
-    if (particleFilter.enabled) {
-      renderer.drawParticles(particleFilter.getParticles(), renderer.realWorldCtx);
-    }
-
-    // Draw loop closure indicator
-    if (loopClosureDetector.enabled) {
-      loopClosureDetector.drawIndicator(renderer.realWorldCtx, renderer.realWorldCanvas.width);
-    }
-
-    if (isBuilding && buildStart && buildCurrent) {
-      renderer.drawBuildLine(buildStart, buildCurrent, renderer.realWorldCtx);
-    }
-  } else {
-    // 1. Draw the discovered occupancy grid
-    mapper.drawMap(renderer.slamCtx);
-    // 2. Update fog
-    renderer.drawFogOfWar(scanHits, robot);
-    // 3. Composite fog
-    renderer.drawFogOverlay(renderer.slamCtx);
-    // 4. Draw believed trajectory trail
-    renderer.drawTrail(robot.believedTrail, '#f59e0b', renderer.slamCtx);
-    // 5. Draw paths (comparison overlays first)
-    if (algoCompareEnabled && comparePaths) {
-      renderer.drawPath(comparePaths.astar, renderer.slamCtx, { color: '#10b981', lineWidth: 2, dashPattern: [8, 8] });
-      renderer.drawPath(comparePaths.dijkstra, renderer.slamCtx, { color: '#06b6d4', lineWidth: 2, dashPattern: [4, 6] });
-      renderer.drawPath(comparePaths.bug2, renderer.slamCtx, { color: '#f59e0b', lineWidth: 2, dashPattern: [2, 6] });
-    }
-    renderer.drawPath(robot.path, renderer.slamCtx, { color: '#22c55e', lineWidth: 3, dashPattern: [10, 10] });
-    // 6. Draw frontier target
-    if (autoExploreActive) {
-      renderer.drawFrontierTarget(frontierTarget, renderer.slamCtx);
-    }
-    // 7. Draw robot
-    partnerRobots.forEach((pr, pi) => {
-      if (chkPartnerLidar?.checked) {
-        const ph = partnerScanHitsCache[pi];
-        if (ph) {
-          lidar.drawRays(ph, pr, renderer.slamCtx, PARTNER_RAY_STYLES[pi % PARTNER_RAY_STYLES.length]);
-        }
-      }
-      renderer.drawTrail(pr.trueTrail, PARTNER_TRAIL_COLORS[pi % PARTNER_TRAIL_COLORS.length], renderer.slamCtx);
-      renderer.drawRobot(pr, renderer.slamCtx);
-    });
-    renderer.drawRobot(robot, renderer.slamCtx);
-    // 8. Draw noisy rays
-    lidar.drawRays(scanHits, robot, renderer.slamCtx);
-  }
-}
-
-// Bootstrap
-setupEventListeners();
-joystickManager.init();
-lidar.setParameters(parseInt(rayDensitySlider.value), parseInt(noiseSlider.value));
-robot.setSpeedMultiplier(parseInt(speedSlider.value));
-robot.setDrift(parseInt(driftSlider.value));
-rebuildPartnerRobots();

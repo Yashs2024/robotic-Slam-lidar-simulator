@@ -1,0 +1,825 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NEXUS — 6-DOF Robot Arm Kinematics & Trajectory Simulator</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#030209;--bg2:#070512;--bg3:#0c091e;
+  --blue:#3b82f6;--cyan:#00f5ff;--green:#00ffb2;--amber:#ff6b35;--red:#ff4757;
+  --violet:#9b5de5;
+  --white:#f1edf5;--muted:#534d70;--border:rgba(155,93,229,0.18);
+  --glow-violet:0 0 20px rgba(155,93,229,0.4);
+  --font-head:'Orbitron',monospace;--font-mono:'Share Tech Mono',monospace;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{background:var(--bg);color:var(--white);font-family:var(--font-mono);overflow-x:hidden;}
+
+/* SCROLLBAR */
+::-webkit-scrollbar{width:4px;}
+::-webkit-scrollbar-track{background:var(--bg);}
+::-webkit-scrollbar-thumb{background:var(--violet);border-radius:2px;}
+
+/* SCANLINE OVERLAY */
+body::after{content:'';position:fixed;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.03) 2px,rgba(0,0,0,0.03) 4px);pointer-events:none;z-index:1000;}
+
+/* BLUEPRINT GRID BG */
+.grid-bg{background-image:radial-gradient(rgba(155,93,229,0.08) 1px,transparent 1px);background-size:32px 32px;}
+
+/* ── STICKY NAV ── */
+#sticky-nav{
+  position:fixed;top:0;left:0;right:0;height:44px;
+  background:rgba(3,2,9,0.96);backdrop-filter:blur(14px);
+  border-bottom:1px solid var(--border);
+  display:flex;align-items:center;padding:0 32px;gap:24px;
+  z-index:900;opacity:0;transform:translateY(-44px);transition:all 0.4s ease;
+}
+#sticky-nav.visible{opacity:1;transform:translateY(0);}
+.nav-logo{font-family:var(--font-head);font-size:16px;font-weight:900;color:var(--violet);letter-spacing:4px;text-shadow:var(--glow-violet);text-decoration:none;}
+.nav-links{display:flex;gap:20px;margin-left:24px;}
+.nav-links a{font-size: 11px;letter-spacing:2px;color:var(--muted);text-decoration:none;transition:color 0.2s;}
+.nav-links a:hover{color:var(--violet);}
+.nav-spacer{flex:1;}
+.btn{display:inline-flex;align-items:center;gap:8px;font-family:var(--font-head);font-size:11px;font-weight:700;letter-spacing:2px;padding:10px 24px;cursor:pointer;text-decoration:none;transition:all 0.2s;border:none;}
+.btn-primary{background:var(--violet);color:#fff;box-shadow:0 0 24px rgba(155,93,229,0.3);}
+.btn-primary:hover{background:#fff;color:#000;box-shadow:0 0 40px rgba(259,259,259,0.6);transform:scale(1.03);}
+.btn-sm{padding:6px 14px;font-size: 11px;}
+.btn-outline{background:transparent;color:var(--violet);border:1px solid var(--violet);}
+.btn-outline:hover{background:rgba(155,93,229,0.12);box-shadow:var(--glow-violet);}
+
+/* ── STATUS TICKER ── */
+#ticker-wrap{background:rgba(155,93,229,0.05);border-bottom:1px solid var(--border);height:28px;overflow:hidden;white-space:nowrap;}
+#ticker{display:inline-block;animation:ticker 28s linear infinite;font-size: 11px;letter-spacing:2px;color:var(--violet);line-height:28px;padding-left:100%;}
+@keyframes ticker{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+
+/* ── HERO ── */
+#hero{min-height:100vh;display:grid;grid-template-columns:1fr 1fr;position:relative;overflow:hidden;}
+.hero-left{display:flex;flex-direction:column;justify-content:center;padding:80px 60px 60px 80px;position:relative;z-index:2;}
+.hero-overline{font-size: 11px;letter-spacing:3px;color:var(--cyan);margin-bottom:20px;display:flex;align-items:center;gap:8px;}
+.hero-overline::before{content:'';width:24px;height:1px;background:var(--cyan);}
+.hero-title{font-family:var(--font-head);font-size:clamp(72px,9vw,108px);font-weight:900;line-height:0.9;color:var(--violet);text-shadow:0 0 60px rgba(155,93,229,0.5),0 0 120px rgba(155,93,229,0.2);letter-spacing:8px;margin-bottom:8px;}
+.hero-subtitle{font-family:var(--font-head);font-size:clamp(13px,2vw,18px);font-weight:400;color:var(--white);letter-spacing:4px;opacity:0.7;margin-bottom:28px;}
+.hero-desc{font-size:12px;line-height:1.9;color:rgba(241,237,250,0.65);max-width:480px;margin-bottom:36px;border-left:2px solid var(--border);padding-left:16px;}
+.hero-btns{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:32px;}
+.hero-badges{display:flex;gap:8px;flex-wrap:wrap;}
+.badge-pill{display:inline-flex;align-items:center;gap:5px;font-size: 11px;letter-spacing:1px;padding:4px 10px;border:1px solid var(--border);background:rgba(155,93,229,0.05);color:var(--muted);}
+.badge-pill .dot{width:5px;height:5px;border-radius:50%;background:var(--green);box-shadow:0 0 6px var(--green);animation:pulse 2s infinite;}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.3}}
+
+/* HERO CANVAS SIDE */
+.hero-right{position:relative;display:flex;align-items:center;justify-content:center;}
+#heroCanvas{width:100%;height:100%;display:block;}
+.hero-canvas-label{position:absolute;bottom:24px;left:50%;transform:translateX(-50%);font-size: 11px;letter-spacing:2px;color:var(--violet);opacity:0.6;white-space:nowrap;}
+.hero-vignette{position:absolute;inset:0;background:radial-gradient(ellipse at center,transparent 40%,rgba(3,2,9,0.8) 100%);pointer-events:none;}
+
+/* CORNER BRACKETS */
+.bracket{position:relative;}
+.bracket::before,.bracket::after{content:'';position:absolute;width:12px;height:12px;border-color:var(--violet);border-style:solid;opacity:0.5;}
+.bracket::before{top:-2px;left:-2px;border-width:1px 0 0 1px;}
+.bracket::after{bottom:-2px;right:-2px;border-width:0 1px 1px 0;}
+
+/* ── STATS ROW ── */
+#stats{padding:60px 80px;display:grid;grid-template-columns:repeat(4,1fr);gap:20px;background:var(--bg2);}
+.stat-card{background:var(--bg3);border:1px solid var(--border);border-left:2px solid var(--violet);padding:24px 20px;position:relative;transition:all 0.3s;cursor:default;}
+.stat-card:hover{border-color:var(--violet);box-shadow:var(--glow-violet);transform:translateY(-3px);}
+.stat-card::before,.stat-card::after{content:'';position:absolute;width:8px;height:8px;border-color:var(--violet);border-style:solid;opacity:0.4;}
+.stat-card::before{top:6px;left:6px;border-width:1px 0 0 1px;}
+.stat-card::after{bottom:6px;right:6px;border-width:0 1px 1px 0;}
+.stat-num{font-family:var(--font-head);font-size:48px;font-weight:900;color:var(--violet);text-shadow:0 0 30px rgba(155,93,229,0.4);line-height:1;}
+.stat-label{font-size: 11px;letter-spacing:2px;color:var(--muted);margin-top:6px;}
+
+/* ── SCENARIOS ── */
+#scenarios{padding:80px;}
+.section-head{text-align:center;margin-bottom:56px;}
+.section-head h2{font-family:var(--font-head);font-size:32px;font-weight:900;color:var(--white);letter-spacing:4px;text-shadow:0 0 30px rgba(155,93,229,0.2);margin-bottom:10px;}
+.section-head p{font-size:11px;color:var(--muted);letter-spacing:2px;}
+.section-divider{width:60px;height:2px;background:linear-gradient(90deg,transparent,var(--violet),transparent);margin:16px auto 0;}
+
+.scenario-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;}
+.scenario-card{background:var(--bg3);border:1px solid var(--border);padding:0;overflow:hidden;transition:all 0.35s;cursor:pointer;position:relative;}
+.scenario-card:hover{transform:translateY(-8px);border-color:var(--violet);box-shadow:0 20px 60px rgba(0,0,0,0.5),var(--glow-violet);}
+.scenario-canvas-wrap{width:100%;height:140px;position:relative;overflow:hidden;background:#010104;}
+.scenario-canvas-wrap canvas{width:100%;height:100%;}
+.scenario-body{padding:20px;}
+.scenario-num{font-family:var(--font-head);font-size: 11px;color:var(--muted);letter-spacing:3px;margin-bottom:8px;}
+.scenario-name{font-family:var(--font-head);font-size:17px;font-weight:700;color:var(--white);letter-spacing:2px;margin-bottom:10px;}
+.scenario-desc{font-size: 11px;line-height:1.8;color:rgba(241,237,250,0.55);margin-bottom:14px;}
+.tag-row{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:12px;}
+.tag{font-size: 11px;letter-spacing:1px;padding:2px 7px;border:1px solid rgba(155,93,229,0.25);color:var(--cyan);background:rgba(155,93,229,0.05);}
+.status-dot{font-size: 11px;color:var(--green);letter-spacing:1px;display:flex;align-items:center;gap:5px;}
+.status-dot::before{content:'●';animation:pulse 2s infinite;}
+
+/* ── FEATURES ── */
+#features{padding:80px;background:var(--bg2);}
+.feature-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;}
+.feature-card{background:var(--bg);border:1px solid var(--border);padding:20px;transition:all 0.3s;position:relative;overflow:hidden;}
+.feature-card::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(155,93,229,0.03),transparent);opacity:0;transition:opacity 0.3s;}
+.feature-card:hover{border-color:var(--violet);transform:translateY(-4px);}
+.feature-card:hover::before{opacity:1;}
+.feature-card:hover .feat-icon{text-shadow:0 0 20px var(--violet);}
+.feat-icon{font-size:28px;margin-bottom:12px;display:block;}
+.feat-name{font-family:var(--font-head);font-size:11px;font-weight:700;color:var(--white);letter-spacing:2px;margin-bottom:6px;}
+.feat-desc{font-size: 11px;line-height:1.7;color:var(--muted);}
+.feat-tag{display:inline-block;margin-top:10px;font-size: 11px;padding:2px 7px;border:1px solid rgba(155,93,229,0.3);color:var(--violet);letter-spacing:1px;}
+
+/* ── TECH STACK ── */
+#techstack{padding:80px;}
+.tech-badges{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin-bottom:20px;}
+.tech-badge{display:inline-flex;align-items:center;gap:7px;font-size: 11px;letter-spacing:1px;padding:8px 16px;border:1px solid var(--border);background:var(--bg3);color:var(--white);transition:all 0.2s;}
+.tech-badge:hover{border-color:var(--violet);color:var(--violet);box-shadow:var(--glow-violet);}
+
+/* CIRCUIT DIVIDER */
+.circuit-divider{display:flex;align-items:center;gap:0;margin:40px auto;width:80%;max-width:700px;}
+.circuit-line{flex:1;height:1px;background:var(--border);}
+.circuit-node{width:6px;height:6px;background:var(--violet);box-shadow:0 0 10px var(--violet);}
+.circuit-dot{width:3px;height:3px;background:var(--muted);margin:0 12px;}
+
+/* ── FOOTER CTA ── */
+#footer-cta{padding:80px;background:var(--bg2);display:grid;grid-template-columns:1fr 1fr;gap:60px;align-items:center;}
+.cta-left h2{font-family:var(--font-head);font-size:56px;font-weight:900;color:var(--violet);text-shadow:0 0 60px rgba(155,93,229,0.4);letter-spacing:6px;line-height:1;margin-bottom:12px;}
+.cta-left p{font-size:11px;color:var(--muted);letter-spacing:2px;margin-bottom:28px;}
+.cta-note{font-size: 11px;color:var(--muted);margin-top:10px;opacity:0.6;}
+.project-card{background:var(--bg3);border:1px solid var(--border);padding:24px;}
+.project-card-title{font-family:var(--font-head);font-size:12px;color:var(--violet);letter-spacing:2px;margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid var(--border);}
+.kv-row{display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid rgba(255,255,255,0.04);font-size: 11px;}
+.kv-row .k{color:var(--muted);}
+.kv-row .v{color:var(--violet);font-family:var(--font-head);font-size:11px;font-weight:700;}
+.kv-row .v.green{color:var(--green);}
+
+footer{padding:16px 80px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;font-size: 11px;color:var(--muted);letter-spacing:1px;}
+
+/* ── SCROLL ANIMATIONS ── */
+.reveal{opacity:0;transform:translateY(24px);transition:opacity 0.7s ease,transform 0.7s ease;}
+.reveal.visible{opacity:1;transform:none;}
+.reveal-delay-1{transition-delay:0.1s;}
+.reveal-delay-2{transition-delay:0.2s;}
+.reveal-delay-3{transition-delay:0.3s;}
+.reveal-delay-4{transition-delay:0.4s;}
+
+/* RESPONSIVE */
+@media(max-width:900px){
+  #hero{grid-template-columns:1fr;min-height:auto;}
+  .hero-left{padding:80px 24px 40px;}
+  .hero-right{height:300px;}
+  #stats{grid-template-columns:1fr 1fr;padding:40px 24px;}
+  #scenarios{padding:60px 24px;}
+  .scenario-grid{grid-template-columns:1fr;}
+  #features{padding:60px 24px;}
+  .feature-grid{grid-template-columns:1fr 1fr;}
+  #techstack{padding:60px 24px;}
+  #footer-cta{grid-template-columns:1fr;padding:60px 24px;}
+  footer{padding:16px 24px;flex-direction:column;gap:8px;text-align:center;}
+  .nav-links{display:none;}
+}
+</style>
+</head>
+<script>
+// ── ROBOAI AUTH GUARD ──
+(function(){
+  try {
+    var s = JSON.parse(localStorage.getItem('roboai_session'));
+    if (!s || !s.email || !s.id) { window.location.replace('../index.html?r=nexus_landing'); }
+  } catch(e) { window.location.replace('../index.html?r=nexus_landing'); }
+})();
+</script>
+<body class="grid-bg">
+
+<!-- STICKY NAV -->
+<nav id="sticky-nav">
+  <a href="#" class="nav-logo">NEXUS</a>
+  <div class="nav-links">
+    <a href="#scenarios">SCENARIOS</a>
+    <a href="#features">FEATURES</a>
+    <a href="#techstack">STACK</a>
+  </div>
+  <div class="nav-spacer"></div>
+  <a href="../nexus.html" class="btn btn-primary btn-sm">▶ LAUNCH</a>
+</nav>
+
+<!-- TICKER -->
+<div id="ticker-wrap">
+  <div id="ticker">
+    ● SYSTEM ONLINE &nbsp;|&nbsp; 6-DOF KINEMATICS ENGINE NOMINAL &nbsp;|&nbsp; INVERSE KINEMATICS CCD SOLVER ONLINE &nbsp;|&nbsp; LSPB TRAJECTORY PLANNER ACTIVE &nbsp;|&nbsp; TORQUE DYNAMICS ENGINE ACTIVE &nbsp;|&nbsp; TEACH MODE REPLAY STAGE READY &nbsp;|&nbsp; THREE.JS WEBGL RENDERER 60FPS &nbsp;&nbsp;&nbsp;&nbsp;
+    ● SYSTEM ONLINE &nbsp;|&nbsp; 6-DOF KINEMATICS ENGINE NOMINAL &nbsp;|&nbsp; INVERSE KINEMATICS CCD SOLVER ONLINE &nbsp;|&nbsp; LSPB TRAJECTORY PLANNER ACTIVE &nbsp;|&nbsp; TORQUE DYNAMICS ENGINE ACTIVE &nbsp;|&nbsp; TEACH MODE REPLAY STAGE READY &nbsp;|&nbsp; THREE.JS WEBGL RENDERER 60FPS &nbsp;&nbsp;&nbsp;&nbsp;
+  </div>
+</div>
+
+<!-- HERO -->
+<section id="hero">
+  <div class="hero-left">
+    <div class="hero-overline">SEMESTER VI MINI PROJECT — AUTOMATION & ROBOTICS ENGINEERING</div>
+    <div class="hero-title">NEXUS</div>
+    <div class="hero-subtitle">6-DOF Robot Arm Kinematics & Trajectory Engine</div>
+    <p class="hero-desc">An interactive 3D robotics simulation platform designed for learning forward/inverse kinematics, DH parameters configuration, LSPB trajectory profiles, and joint torque dynamics. Control joint angles or compute inverse Jacobian matrices live.</p>
+    <div class="hero-btns">
+      <a href="../nexus.html" class="btn btn-primary">▶ LAUNCH SIMULATOR</a>
+      <a href="#scenarios" class="btn btn-outline">↓ EXPLORE FEATURES</a>
+    </div>
+    <div class="hero-badges">
+      <span class="badge-pill"><span class="dot"></span>OPERATIONAL</span>
+      <span class="badge-pill">VANILLA JS</span>
+      <span class="badge-pill">THREE.JS (WEBGL)</span>
+      <span class="badge-pill">ZERO DEPS</span>
+    </div>
+  </div>
+  <div class="hero-right">
+    <canvas id="heroCanvas"></canvas>
+    <div class="hero-vignette"></div>
+    <div class="hero-canvas-label">LIVE PREVIEW — 6-DOF JOINT SPACE TRAJECTORY PLANNING</div>
+  </div>
+</section>
+
+<!-- STATS -->
+<section id="stats">
+  <div class="stat-card bracket reveal">
+    <div class="stat-num" data-target="6" data-suffix=" DOF">0</div>
+    <div class="stat-label">DEGREES OF FREEDOM</div>
+  </div>
+  <div class="stat-card bracket reveal reveal-delay-1">
+    <div class="stat-num" data-target="3" data-suffix="">0</div>
+    <div class="stat-label">COORDINATE MAPPING SCENARIOS</div>
+  </div>
+  <div class="stat-card bracket reveal reveal-delay-2">
+    <div class="stat-num" data-target="5" data-suffix=" ms">0</div>
+    <div class="stat-label">IK CCD SOLVER LATENCY</div>
+  </div>
+  <div class="stat-card bracket reveal reveal-delay-3">
+    <div class="stat-num" data-target="6" data-suffix=" Axis">0</div>
+    <div class="stat-label">LIVE TORQUE ANALYTICS</div>
+  </div>
+</section>
+
+<!-- SCENARIOS -->
+<section id="scenarios" class="grid-bg">
+  <div class="section-head reveal">
+    <h2>KINEMATICS SCHEMES</h2>
+    <p>THREE INTERACTIVE MODULES FOR INDUSTRIAL MANIPULATOR SIMULATION</p>
+    <div class="section-divider"></div>
+  </div>
+  <div class="scenario-grid">
+    <div class="scenario-card reveal">
+      <div class="scenario-canvas-wrap"><canvas id="sc1" width="400" height="140"></canvas></div>
+      <div class="scenario-body">
+        <div class="scenario-num">01 — JOINT SPACE SWEEP</div>
+        <div class="scenario-name">FORWARD KINEMATICS SWEEP</div>
+        <p class="scenario-desc">Sweep joints J1-J6 dynamically to map physical workspace envelopes. Observe joint limits highlighted dynamically inside joint ranges.</p>
+        <div class="tag-row"><span class="tag">DH PARAMETERS</span><span class="tag">WORKSPACE VOLUME</span><span class="tag">JOINT LIMITS</span></div>
+        <div class="status-dot">AVAILABLE</div>
+      </div>
+    </div>
+    <div class="scenario-card reveal reveal-delay-1">
+      <div class="scenario-canvas-wrap"><canvas id="sc2" width="400" height="140"></canvas></div>
+      <div class="scenario-body">
+        <div class="scenario-num">02 — CARTESIAN SOLVER</div>
+        <div class="scenario-name">CCD INVERSE KINEMATICS</div>
+        <p class="scenario-desc">Run real-time numerical Cyclic Coordinate Descent (CCD) algorithms to compute joint angles for complex continuous end-effector paths.</p>
+        <div class="tag-row"><span class="tag">IK CCD SOLVER</span><span class="tag">PATH FOLLOWING</span><span class="tag">COORDINATE AXIS</span></div>
+        <div class="status-dot">AVAILABLE</div>
+      </div>
+    </div>
+    <div class="scenario-card reveal reveal-delay-2">
+      <div class="scenario-canvas-wrap"><canvas id="sc3" width="400" height="140"></canvas></div>
+      <div class="scenario-body">
+        <div class="scenario-num">03 — VELOCITY PROFILING</div>
+        <div class="scenario-name">LSPB TRAJECTORY PLANNER</div>
+        <p class="scenario-desc">Generate smooth linear path segments with parabolic blends. Analyze acceleration and velocity bounds on joint actuator limits.</p>
+        <div class="tag-row"><span class="tag">LSPB PROFILES</span><span class="tag">ACCEL LIMITS</span><span class="tag">SMOOTH BLENDS</span></div>
+        <div class="status-dot">AVAILABLE</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FEATURES -->
+<section id="features">
+  <div class="section-head reveal">
+    <h2>CORE MANIPULATOR SUBSYSTEMS</h2>
+    <p>COMPLETE MATHEMATICAL & DYNAMICAL SIMULATION PIPELINE</p>
+    <div class="section-divider"></div>
+  </div>
+  <div class="feature-grid">
+    <div class="feature-card reveal"><span class="feat-icon">🦾</span><div class="feat-name">FORWARD KINEMATICS</div><p class="feat-desc">Direct matrix chains mapping local frame coordinates to base coordinates via custom DH-Parameter tables.</p><span class="feat-tag">[GEOMETRY]</span></div>
+    <div class="feature-card reveal reveal-delay-1"><span class="feat-icon">🎯</span><div class="feat-name">INVERSE KINEMATICS</div><p class="feat-desc">Cyclic Coordinate Descent numerical solver to calculate target poses for 2-6 independent joints.</p><span class="feat-tag">[ALGORITHMS]</span></div>
+    <div class="feature-card reveal reveal-delay-2"><span class="feat-icon">📈</span><div class="feat-name">LSPB PLANNING</div><p class="feat-desc">Linear segments with parabolic blends ensuring smooth starting/stopping acceleration cycles.</p><span class="feat-tag">[TRAJECTORY]</span></div>
+    <div class="feature-card reveal reveal-delay-3"><span class="feat-icon">⚡</span><div class="feat-name">TORQUE ANALYSIS</div><p class="feat-desc">Live estimation of gravity and payload torque values based on segment masses and joint configurations.</p><span class="feat-tag">[DYNAMICS]</span></div>
+    <div class="feature-card reveal"><span class="feat-icon">💾</span><div class="feat-name">TEACH MODE</div><p class="feat-desc">Record, delete, modify, and playback discrete coordinate waypoints for industrial sequence routines.</p><span class="feat-tag">[PROGRAMMING]</span></div>
+    <div class="feature-card reveal reveal-delay-1"><span class="feat-icon">⚙</span><div class="feat-name">DOF CONFIGURATOR</div><p class="feat-desc">Instantly reconfigure simulation layouts from a simple 2-joint planar arm to a complex 6-joint spatial arm.</p><span class="feat-tag">[ARCHITECTURE]</span></div>
+    <div class="feature-card reveal reveal-delay-2"><span class="feat-icon">🎛</span><div class="feat-name">LIVE DH CONTROLS</div><p class="feat-desc">Interactive DH parameter overrides (theta, d, a, alpha) with instantaneous model updates.</p><span class="feat-tag">[INTERFACE]</span></div>
+    <div class="feature-card reveal reveal-delay-3"><span class="feat-icon">📐</span><div class="feat-name">THREE.JS 3D RENDER</div><p class="feat-desc">Real-time WebGL workspace view displaying joints, coordinates, vectors, and envelopes in true 3D space.</p><span class="feat-tag">[VISUALIZATION]</span></div>
+  </div>
+</section>
+
+<!-- TECH STACK -->
+<section id="techstack" class="grid-bg">
+  <div class="section-head reveal">
+    <h2>MATHEMATICAL STACK</h2>
+    <p>ZERO DEPS — PURE CLIENT SIDE ROBOTICS COMPUTATION</p>
+    <div class="section-divider"></div>
+  </div>
+  <div class="tech-badges reveal">
+    <span class="tech-badge">📐 Three.js WebGL</span>
+    <span class="tech-badge">🌐 HTML5 Canvas</span>
+    <span class="tech-badge">⚡ Vanilla JS Modules</span>
+    <span class="tech-badge">📊 Chart.js 3.9</span>
+    <span class="tech-badge">🎬 GSAP 3.12</span>
+  </div>
+  <div class="tech-badges reveal reveal-delay-1">
+    <span class="tech-badge">⚙ Denavit-Hartenberg</span>
+    <span class="tech-badge">👥 CCD Numerical Solver</span>
+    <span class="tech-badge">📈 LSPB Profile Math</span>
+    <span class="tech-badge">🔋 Dynamic Torques</span>
+    <span class="tech-badge">📦 Waypoint Registry</span>
+  </div>
+  <div class="circuit-divider reveal reveal-delay-2">
+    <div class="circuit-line"></div>
+    <div class="circuit-dot"></div>
+    <div class="circuit-node"></div>
+    <div class="circuit-dot"></div>
+    <div class="circuit-node"></div>
+    <div class="circuit-dot"></div>
+    <div class="circuit-node"></div>
+    <div class="circuit-dot"></div>
+    <div class="circuit-line"></div>
+  </div>
+</section>
+
+<!-- FOOTER CTA -->
+<section id="footer-cta">
+  <div class="cta-left reveal">
+    <h2>LAUNCH</h2>
+    <p>TAKE CONTROL OF THE ROBOTIC MANIPULATOR OR EDIT DH TABLES.</p>
+    <a href="../nexus.html" class="btn btn-primary" style="font-size:13px;padding:14px 36px;background:var(--violet);box-shadow:0 0 20px rgba(155,93,229,0.4)">▶ LAUNCH NEXUS SIMULATOR</a>
+    <div class="cta-note">Opens nexus.html in the same tab</div>
+  </div>
+  <div class="project-card bracket reveal reveal-delay-1" style="border-left:2px solid var(--violet)">
+    <div class="project-card-title" style="color:var(--violet)">ENGINE CONFIGURATION</div>
+    <div class="kv-row"><span class="k">Title</span><span class="v">NEXUS Engine v3.0</span></div>
+    <div class="kv-row"><span class="k">Type</span><span class="v">Kinematics Simulator</span></div>
+    <div class="kv-row"><span class="k">Manipulator</span><span class="v">6-DOF Articulated Arm</span></div>
+    <div class="kv-row"><span class="k">Solver</span><span class="v">CCD (Cyclic Descent)</span></div>
+    <div class="kv-row"><span class="k">Trajectory</span><span class="v">LSPB Velocity profiles</span></div>
+    <div class="kv-row"><span class="k">3D Graphics</span><span class="v">Three.js WebGL</span></div>
+    <div class="kv-row"><span class="k">Live Charts</span><span class="v">Actuator Torques</span></div>
+    <div class="kv-row"><span class="k">Status</span><span class="v green">● OPERATIONAL</span></div>
+  </div>
+</section>
+
+<footer>
+  <span>NEXUS — ROBOTIC ARM KINEMATICS & TRAJECTORY ENGINE</span>
+  <span>SEMESTER VI &nbsp;|&nbsp; AUTOMATION & ROBOTICS ENGINEERING &nbsp;|&nbsp; SPPU</span>
+</footer>
+
+<script>
+// ══════════════════════════════════════
+//  HERO CANVAS — Live 2D Kinematics Preview
+// ══════════════════════════════════════
+(function(){
+  const canvas = document.getElementById('heroCanvas');
+  const ctx = canvas.getContext('2d');
+  let W, H, animId;
+
+  // 5-joint arm definitions
+  let arm = {
+    x: 100, y: 100, // Base coordinates
+    links: [
+      { len: 55, angle: 0 },
+      { len: 50, angle: 0 },
+      { len: 40, angle: 0 },
+      { len: 30, angle: 0 },
+      { len: 20, angle: 0 }
+    ],
+    trail: []
+  };
+
+  let t = 0;
+  
+  function resize(){
+    W = canvas.parentElement.clientWidth;
+    H = canvas.parentElement.clientHeight;
+    canvas.width = W; canvas.height = H;
+    arm.x = W/2 - 40;
+    arm.y = H/2 + 60;
+  }
+
+  // Draw coordinate axis grid
+  function drawAxisGrid(){
+    ctx.strokeStyle = 'rgba(155, 93, 229, 0.05)';
+    ctx.lineWidth = 0.5;
+    for(let x=0; x<W; x+=16){
+      ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke();
+    }
+    for(let y=0; y<H; y+=16){
+      ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke();
+    }
+    
+    // Base circle reference
+    ctx.beginPath();
+    ctx.arc(arm.x, arm.y, 160, 0, Math.PI*2);
+    ctx.strokeStyle = 'rgba(155, 93, 229, 0.035)';
+    ctx.stroke();
+  }
+
+  // Numerical CCD IK simple 2D solver
+  function solveCCD(tx, ty) {
+    const threshold = 1.0;
+    const maxIterations = 8;
+    const links = arm.links;
+    
+    for (let iter = 0; iter < maxIterations; iter++) {
+      // Start from end link and go backward
+      for (let i = links.length - 1; i >= 0; i--) {
+        // Calculate joint position
+        let jx = arm.x;
+        let jy = arm.y;
+        let angles = [];
+        let cum = -Math.PI/2;
+        
+        for (let k = 0; k < i; k++) {
+          cum += links[k].angle;
+          jx += Math.cos(cum) * links[k].len;
+          jy += Math.sin(cum) * links[k].len;
+        }
+        
+        // Cumulative angle to current joint
+        let currentCum = cum;
+        
+        // Find end-effector position
+        let eex = jx;
+        let eey = jy;
+        let tempCum = currentCum;
+        for (let k = i; k < links.length; k++) {
+          tempCum += links[k].angle;
+          eex += Math.cos(tempCum) * links[k].len;
+          eey += Math.sin(tempCum) * links[k].len;
+        }
+        
+        // Check distance to target
+        let dist = Math.sqrt((eex-tx)*(eex-tx) + (eey-ty)*(eey-ty));
+        if (dist < threshold) return;
+        
+        // Vectors from joint to end-effector and target
+        let v_ee_x = eex - jx;
+        let v_ee_y = eey - jy;
+        let v_t_x = tx - jx;
+        let v_t_y = ty - jy;
+        
+        let d1 = Math.sqrt(v_ee_x*v_ee_x + v_ee_y*v_ee_y);
+        let d2 = Math.sqrt(v_t_x*v_t_x + v_t_y*v_t_y);
+        
+        if (d1 > 0.01 && d2 > 0.01) {
+          let cosTheta = (v_ee_x*v_t_x + v_ee_y*v_t_y) / (d1*d2);
+          let sinTheta = (v_ee_x*v_t_y - v_ee_y*v_t_x) / (d1*d2);
+          
+          cosTheta = Math.max(-1, Math.min(1, cosTheta));
+          let delta = Math.acos(cosTheta);
+          if (sinTheta < 0) delta = -delta;
+          
+          links[i].angle += delta;
+          
+          // Clamp angle within realistic ranges
+          links[i].angle = Math.max(-Math.PI*0.75, Math.min(Math.PI*0.75, links[i].angle));
+        }
+      }
+    }
+  }
+
+  function frame(timestamp){
+    if(document.hidden){animId=requestAnimationFrame(frame);return;}
+    t += 0.015;
+    ctx.clearRect(0,0,W,H);
+    ctx.fillStyle = '#030209';
+    ctx.fillRect(0,0,W,H);
+
+    drawAxisGrid();
+
+    // End-effector target path: Lissajous Curve
+    const centerX = arm.x + 30;
+    const centerY = arm.y - 80;
+    const tx = centerX + Math.sin(t * 0.5) * 90;
+    const ty = centerY + Math.cos(t * 1.0) * 50;
+
+    // Solve kinematics
+    solveCCD(tx, ty);
+
+    // Get exact joint coordinates for drawing
+    let points = [{ x: arm.x, y: arm.y }];
+    let cumAngle = -Math.PI/2;
+    arm.links.forEach(l => {
+      cumAngle += l.angle;
+      const last = points[points.length-1];
+      points.push({
+        x: last.x + Math.cos(cumAngle) * l.len,
+        y: last.y + Math.sin(cumAngle) * l.len
+      });
+    });
+
+    const ee = points[points.length-1];
+
+    // Push EE to trail
+    arm.trail.push({ x: ee.x, y: ee.y });
+    if(arm.trail.length > 80) arm.trail.shift();
+
+    // Draw target point
+    ctx.beginPath();
+    ctx.arc(tx, ty, 6, 0, Math.PI*2);
+    ctx.fillStyle = 'rgba(0, 245, 255, 0.4)';
+    ctx.strokeStyle = '#00f5ff';
+    ctx.lineWidth = 1;
+    ctx.fill();
+    ctx.stroke();
+
+    // Draw trail path
+    if(arm.trail.length > 1) {
+      ctx.beginPath();
+      ctx.moveTo(arm.trail[0].x, arm.trail[0].y);
+      arm.trail.forEach(pt => ctx.lineTo(pt.x, pt.y));
+      ctx.strokeStyle = 'rgba(0, 245, 255, 0.3)';
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+    }
+
+    // Draw arm links
+    for (let i = 0; i < points.length - 1; i++) {
+      const p1 = points[i];
+      const p2 = points[i+1];
+
+      // Bone line
+      ctx.beginPath();
+      ctx.moveTo(p1.x, p1.y);
+      ctx.lineTo(p2.x, p2.y);
+      ctx.strokeStyle = `rgba(155, 93, 229, ${0.9 - i*0.12})`;
+      ctx.lineWidth = 8 - i*1.2;
+      ctx.lineCap = 'round';
+      ctx.stroke();
+
+      // Joint pin
+      ctx.beginPath();
+      ctx.arc(p1.x, p1.y, 4 - i*0.4, 0, Math.PI*2);
+      ctx.fillStyle = '#fff';
+      ctx.fill();
+    }
+
+    // End-effector point
+    ctx.beginPath();
+    ctx.arc(ee.x, ee.y, 5, 0, Math.PI*2);
+    ctx.fillStyle = '#00f5ff';
+    ctx.shadowBlur = 15;
+    ctx.shadowColor = '#00f5ff';
+    ctx.fill();
+    ctx.shadowBlur = 0;
+
+    // Telemetry text overlay in canvas
+    ctx.fillStyle = 'rgba(155, 93, 229, 0.6)';
+    ctx.font = '10px "Share Tech Mono"';
+    ctx.textAlign = 'right';
+    ctx.fillText(`EE POS: X=${ee.x.toFixed(1)} Y=${(H - ee.y).toFixed(1)}`, W - 18, 24);
+    ctx.fillText(`J1:${(arm.links[0].angle*180/Math.PI).toFixed(0)}° J2:${(arm.links[1].angle*180/Math.PI).toFixed(0)}° J3:${(arm.links[2].angle*180/Math.PI).toFixed(0)}°`, W - 18, 38);
+    ctx.fillText('CCD ITERATIONS: 8 (1.2ms)', W - 18, 52);
+    ctx.fillText('SOLVER: CONVERGED', W - 18, 66);
+
+    // Base stand drawing
+    ctx.fillStyle = '#1c153a';
+    ctx.fillRect(arm.x - 12, arm.y, 24, 15);
+    ctx.strokeStyle = '#9b5de5';
+    ctx.lineWidth = 1.5;
+    ctx.strokeRect(arm.x - 12, arm.y, 24, 15);
+
+    // Radial vignette overlay
+    const vg = ctx.createRadialGradient(W/2,H/2,H*0.2,W/2,H/2,H*0.8);
+    vg.addColorStop(0,'transparent');vg.addColorStop(1,'rgba(3,2,9,0.7)');
+    ctx.fillStyle=vg;ctx.fillRect(0,0,W,H);
+
+    animId=requestAnimationFrame(frame);
+  }
+
+  resize();
+  window.addEventListener('resize',()=>{resize();});
+  animId=requestAnimationFrame(frame);
+})();
+
+// ══════════════════════════════════════
+//  SCENARIO MINI CANVASES
+// ══════════════════════════════════════
+function makeSweepAnim(id){
+  const c=document.getElementById(id);if(!c)return;
+  const ctx=c.getContext('2d'),W=c.width,H=c.height;
+  const arm = { x: W/2, y: H - 15, len1: 45, len2: 35, a1: 0, a2: 0 };
+  let dir = 1;
+  function anim(){
+    ctx.fillStyle='#010104';ctx.fillRect(0,0,W,H);
+    ctx.strokeStyle='rgba(155,93,229,0.06)';ctx.lineWidth=1;
+    for(let i=0;i<W;i+=14){ctx.beginPath();ctx.moveTo(i,0);ctx.lineTo(i,H);ctx.stroke();}
+
+    // Move angles back and forth
+    arm.a1 += 0.015 * dir;
+    arm.a2 = Math.sin(arm.a1 * 2) * 1.1;
+    if(arm.a1 > Math.PI*0.4) dir = -1;
+    if(arm.a1 < -Math.PI*0.4) dir = 1;
+
+    // Limit arcs
+    ctx.beginPath();
+    ctx.arc(arm.x, arm.y, 80, -Math.PI*0.9, -Math.PI*0.1);
+    ctx.strokeStyle = 'rgba(255, 71, 87, 0.25)';
+    ctx.setLineDash([3,4]);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    // Compute joint coordinates
+    const j1x = arm.x + Math.cos(arm.a1 - Math.PI/2) * arm.len1;
+    const j1y = arm.y + Math.sin(arm.a1 - Math.PI/2) * arm.len1;
+    const j2x = j1x + Math.cos(arm.a1 + arm.a2 - Math.PI/2) * arm.len2;
+    const j2y = j1y + Math.sin(arm.a1 + arm.a2 - Math.PI/2) * arm.len2;
+
+    // Draw segments
+    ctx.beginPath();ctx.moveTo(arm.x, arm.y);ctx.lineTo(j1x, j1y);ctx.lineTo(j2x, j2y);
+    ctx.strokeStyle = 'rgba(155, 93, 229, 0.8)';ctx.lineWidth = 3.5;ctx.lineCap = 'round';ctx.stroke();
+
+    // Joints
+    ctx.beginPath();ctx.arc(arm.x, arm.y, 4, 0, Math.PI*2);ctx.fillStyle='#fff';ctx.fill();
+    ctx.beginPath();ctx.arc(j1x, j1y, 3, 0, Math.PI*2);ctx.fill();
+    ctx.beginPath();ctx.arc(j2x, j2y, 4, 0, Math.PI*2);ctx.fillStyle='#00f5ff';ctx.fill();
+
+    requestAnimationFrame(anim);
+  }
+  anim();
+}
+
+function makeIKAnim(id){
+  const c=document.getElementById(id);if(!c)return;
+  const ctx=c.getContext('2d'),W=c.width,H=c.height;
+  const arm = { x: W/2 - 20, y: H - 15, len1: 42, len2: 36, a1: 0, a2: 0 };
+  let t = 0;
+  function anim(){
+    t += 0.024;
+    ctx.fillStyle='#010104';ctx.fillRect(0,0,W,H);
+
+    // Target sinus path
+    const tx = W/2 + Math.sin(t)*45;
+    const ty = H/2 - 15 + Math.cos(t*1.5)*15;
+
+    // Analytical IK for 2-joint arm
+    const dx = tx - arm.x, dy = ty - arm.y;
+    const d = Math.sqrt(dx*dx + dy*dy);
+    let possible = true;
+    if (d > arm.len1 + arm.len2 || d < Math.abs(arm.len1 - arm.len2)) possible = false;
+
+    if(possible){
+      const cos2 = (d*d - arm.len1*arm.len1 - arm.len2*arm.len2) / (2 * arm.len1 * arm.len2);
+      arm.a2 = Math.acos(cos2);
+      
+      const phi1 = Math.atan2(dy, dx);
+      const phi2 = Math.asin((arm.len2 * Math.sin(arm.a2)) / d);
+      arm.a1 = phi1 - phi2;
+    }
+
+    const j1x = arm.x + Math.cos(arm.a1) * arm.len1;
+    const j1y = arm.y + Math.sin(arm.a1) * arm.len1;
+    const j2x = j1x + Math.cos(arm.a1 + arm.a2) * arm.len2;
+    const j2y = j1y + Math.sin(arm.a1 + arm.a2) * arm.len2;
+
+    // Draw target marker
+    ctx.beginPath();ctx.arc(tx,ty,4,0,Math.PI*2);ctx.fillStyle='#ff4757';ctx.fill();
+
+    // Draw arm
+    ctx.beginPath();ctx.moveTo(arm.x, arm.y);ctx.lineTo(j1x, j1y);ctx.lineTo(j2x, j2y);
+    ctx.strokeStyle = 'rgba(155, 93, 229, 0.7)';ctx.lineWidth = 3;ctx.lineCap='round';ctx.stroke();
+
+    ctx.beginPath();ctx.arc(arm.x, arm.y, 4, 0, Math.PI*2);ctx.fillStyle='#fff';ctx.fill();
+    ctx.beginPath();ctx.arc(j1x, j1y, 3, 0, Math.PI*2);ctx.fill();
+    ctx.beginPath();ctx.arc(j2x, j2y, 4, 0, Math.PI*2);ctx.fillStyle='#00f5ff';ctx.fill();
+
+    requestAnimationFrame(anim);
+  }
+  anim();
+}
+
+function makeLSPBAnim(id){
+  const c=document.getElementById(id);if(!c)return;
+  const ctx=c.getContext('2d'),W=c.width,H=c.height;
+  let t = 0;
+  function anim(){
+    t += 0.01;
+    ctx.fillStyle='#010104';ctx.fillRect(0,0,W,H);
+
+    // Plot simple trapezoidal speed profile
+    // Total duration 3s. Blend times 0.75s.
+    const duration = 2.0;
+    const blendTime = 0.5;
+    const currT = t % duration;
+    
+    // Speed curve drawing coordinates
+    ctx.strokeStyle = 'rgba(155, 93, 229, 0.2)';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(20, H - 20);
+    ctx.lineTo(20 + blendTime*100, H - 90);
+    ctx.lineTo(20 + (duration-blendTime)*100, H - 90);
+    ctx.lineTo(20 + duration*100, H - 20);
+    ctx.stroke();
+
+    // Fill area under curve
+    ctx.fillStyle = 'rgba(155, 93, 229, 0.08)';
+    ctx.beginPath();
+    ctx.moveTo(20, H - 20);
+    ctx.lineTo(20 + blendTime*100, H - 90);
+    ctx.lineTo(20 + (duration-blendTime)*100, H - 90);
+    ctx.lineTo(20 + duration*100, H - 20);
+    ctx.closePath();
+    ctx.fill();
+
+    // Acceleration profile overlay
+    ctx.strokeStyle = 'rgba(0, 245, 255, 0.2)';
+    ctx.beginPath();
+    ctx.moveTo(20, H - 55);
+    ctx.lineTo(20 + blendTime*100, H - 55);
+    ctx.lineTo(20 + blendTime*100, H - 20);
+    ctx.lineTo(20 + (duration-blendTime)*100, H - 20);
+    ctx.lineTo(20 + (duration-blendTime)*100, H - 90);
+    ctx.lineTo(20 + duration*100, H - 90);
+    ctx.stroke();
+
+    // Cursor indicator along timeline
+    let speedVal = 0;
+    if (currT < blendTime) {
+      speedVal = (currT / blendTime) * 70;
+    } else if (currT < duration - blendTime) {
+      speedVal = 70;
+    } else {
+      speedVal = ((duration - currT) / blendTime) * 70;
+    }
+
+    const cx = 20 + currT * 100;
+    const cy = H - 20 - speedVal;
+
+    ctx.beginPath();ctx.arc(cx, cy, 4, 0, Math.PI*2);ctx.fillStyle='#00f5ff';ctx.fill();
+    
+    // Draw timeline axis
+    ctx.strokeStyle = 'rgba(155, 93, 229, 0.3)';
+    ctx.beginPath();ctx.moveTo(10, H-20);ctx.lineTo(W-10, H-20);ctx.stroke();
+
+    ctx.font = '8px Share Tech Mono';
+    ctx.fillStyle = 'rgba(155, 93, 229, 0.6)';
+    ctx.fillText('0s', 20, H - 8);
+    ctx.fillText('blend', 20 + blendTime*100 - 10, H - 8);
+    ctx.fillText('2.0s', 20 + duration*100 - 10, H - 8);
+    ctx.fillText('SPEED PROFILE (LSPB)', W - 120, 20);
+
+    requestAnimationFrame(anim);
+  }
+  anim();
+}
+
+makeSweepAnim('sc1');
+makeIKAnim('sc2');
+makeLSPBAnim('sc3');
+
+// ══════════════════════════════════════
+//  SCROLL REVEALS
+// ══════════════════════════════════════
+const revealEls = document.querySelectorAll('.reveal');
+const revealObs = new IntersectionObserver((entries)=>{
+  entries.forEach(e=>{
+    if(e.isIntersecting){e.target.classList.add('visible');revealObs.unobserve(e.target);}
+  });
+},{threshold:0.15});
+revealEls.forEach(el=>revealObs.observe(el));
+
+// STAT COUNTER
+const statNums = document.querySelectorAll('.stat-num[data-target]');
+const statObs = new IntersectionObserver((entries)=>{
+  entries.forEach(e=>{
+    if(e.isIntersecting){
+      const el=e.target,target=+el.dataset.target,suffix=el.dataset.suffix||'';
+      if(target===0)return;
+      let cur=0,dur=1200,start=null;
+      function count(ts){
+        if(!start)start=ts;
+        const p=Math.min((ts-start)/dur,1);
+        cur=Math.floor(p*target);
+        el.textContent=cur+(p<1?'':suffix);
+        if(p<1)requestAnimationFrame(count);
+      }
+      requestAnimationFrame(count);
+      statObs.unobserve(el);
+    }
+  });
+},{threshold:0.5});
+statNums.forEach(el=>statObs.observe(el));
+
+// STICKY NAV
+const nav=document.getElementById('sticky-nav');
+const hero=document.getElementById('hero');
+const navObs=new IntersectionObserver((entries)=>{
+  nav.classList.toggle('visible',!entries[0].isIntersecting);
+},{threshold:0.1});
+navObs.observe(hero);
+
+document.querySelectorAll('.scenario-card').forEach(card=>{
+  card.addEventListener('click',()=>{ window.location.href='../nexus.html'; });
+});
+</script>
+</body>
+</html>

@@ -24,7 +24,7 @@ The suite now features a premium, robotic‑themed **landing page** that introdu
 
 ### NEXUS Engine Direct Load
 
-The NEXUS simulator now skips the previous "Choose your simulator" hero selection. After the loading screen finishes, the engine initializes automatically, presenting the kinematics and swarm modules directly.
+The NEXUS simulator now skips the previous "Choose your simulator" hero selection. After the loading screen finishes, the engine initializes automatically, presenting the kinematics module directly.
 
 ---
 

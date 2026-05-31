@@ -1,1130 +1,1834 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>SLAM — Autonomous Mapping Engine</title>
-  <meta name="description" content="Interactive browser-based SLAM & LiDAR simulator for robotics education. Features autonomous frontier exploration, A* pathfinding, occupancy grid mapping, and real-time sensor visualization." />
-  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=JetBrains+Mono:wght@300;400;700&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/nipplejs/0.10.1/nipplejs.min.js"></script>
-  <link rel="stylesheet" href="./style.css">
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>SLAM Simulator — Antigravity</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=Share+Tech+Mono&family=Rajdhani:wght@300;400;500;600;700&family=JetBrains+Mono:wght@300;400;500;700&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --bg: #020509;
+    --bg2: #050810;
+    --bg3: #080d1a;
+    --panel: rgba(5, 8, 16, 0.9);
+    --surface: rgba(0, 245, 255, 0.04);
+    --surface-hover: rgba(0, 245, 255, 0.08);
+    --border: rgba(0, 245, 255, 0.12);
+    --border-hover: rgba(0, 245, 255, 0.3);
+    --cyan: #00F5FF;
+    --blue: #3b82f6;
+    --blue-dim: rgba(59, 130, 246, 0.15);
+    --blue-glow: 0 0 20px rgba(59, 130, 246, 0.4);
+    --cyan-glow: 0 0 20px rgba(0, 245, 255, 0.4);
+    --green: #00E676;
+    --red: #FF4757;
+    --yellow: #FFD166;
+    --text: #EEF2FF;
+    --text-dim: #A0B0C8;
+    --text-muted: #5A6E85;
+    --font-display: 'Orbitron', sans-serif;
+    --font-mono: 'Share Tech Mono', monospace;
+    --font-body: 'Rajdhani', sans-serif;
+    --radius: 4px;
+    --radius-sm: 3px;
+    --glow: 0 0 20px rgba(59,130,246,0.3);
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { width: 100%; height: 100%; overflow: hidden; background: var(--bg); font-family: var(--font-body); color: var(--text); }
 
-  <style>
-    /* ===================================
-       DESIGN TOKENS — SLAM BLUE THEME
-    =================================== */
-    :root {
-      --bg-0:   #020509;
-      --bg-1:   #050810;
-      --bg-2:   #080d1a;
-      --bg-3:   #0c1220;
-      --panel:  rgba(8, 13, 26, 0.94);
-      --glass:  rgba(59, 130, 246, 0.04);
-      --border: rgba(59, 130, 246, 0.14);
-      --border-h: rgba(59, 130, 246, 0.35);
-      --blue:   #3B82F6;
-      --blue-d: #2563EB;
-      --cyan:   #06B6D4;
-      --violet: #8B5CF6;
-      --green:  #10B981;
-      --red:    #EF4444;
-      --amber:  #F59E0B;
-      --text-0: #EEF2FF;
-      --text-1: #94A3B8;
-      --text-2: #475569;
-      --font-d: 'Orbitron', sans-serif;
-      --font-m: 'JetBrains Mono', monospace;
-      --font-b: 'Inter', sans-serif;
-      --nav-h:  52px;
-      --r:      4px;
-      --r-lg:   8px;
-    }
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 4px; height: 4px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--cyan); border-radius: 2px; }
 
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    ::-webkit-scrollbar { width: 4px; height: 4px; }
-    ::-webkit-scrollbar-track { background: transparent; }
-    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
-    ::-webkit-scrollbar-thumb:hover { background: var(--blue); }
+  /* ── LAYOUT ── */
+  #app { display: flex; flex-direction: column; height: 100vh; width: 100vw; }
 
-    body {
-      background: var(--bg-0);
-      color: var(--text-0);
-      font-family: var(--font-m);
-      overflow: hidden;
-      width: 100vw;
-      height: 100vh;
-      user-select: none;
-    }
+  /* TOP BAR */
+  #topbar {
+    display: flex; align-items: center; gap: 16px; padding: 10px 20px;
+    background: rgba(5, 8, 16, 0.95); border-bottom: 1px solid var(--border);
+    backdrop-filter: blur(20px); z-index: 10; flex-shrink: 0;
+  }
+  #topbar .logo { display: flex; align-items: center; gap: 8px; }
+  #topbar .logo-icon {
+    width: 32px; height: 32px; border-radius: var(--radius);
+    background: linear-gradient(135deg, var(--blue), var(--cyan));
+    display: flex; align-items: center; justify-content: center; font-size: 16px;
+    box-shadow: var(--cyan-glow);
+  }
+  #topbar .logo-text { font-family: var(--font-display); font-size: 15px; font-weight: 700; letter-spacing: 2px; color: var(--blue); text-shadow: var(--blue-glow); }
+  #topbar .logo-sub { font-family: var(--font-mono); font-size: 10px; color: var(--text-muted); margin-top: 1px; letter-spacing: 1px; }
+  #topbar .divider { width: 1px; height: 28px; background: var(--border); }
+  #topbar .btn {
+    display: flex; align-items: center; gap: 6px; padding: 6px 14px;
+    border-radius: var(--radius); font-family: var(--font-display); font-size: 11px; font-weight: 700;
+    cursor: pointer; border: 1px solid var(--border); background: var(--surface);
+    color: var(--cyan); transition: all .15s; white-space: nowrap; letter-spacing: 1px;
+  }
+  #topbar .btn:hover { background: var(--cyan); color: #000; border-color: var(--cyan); box-shadow: var(--cyan-glow); }
+  #topbar .btn.primary { background: var(--blue); border-color: var(--blue); color: #fff; box-shadow: var(--blue-glow); }
+  #topbar .btn.primary:hover { background: #60a5fa; box-shadow: 0 0 30px rgba(96,165,250,0.6); }
+  #topbar .btn.danger { background: rgba(255,71,87,0.15); border-color: rgba(255,71,87,0.4); color: var(--red); }
+  #topbar .btn.danger:hover { background: var(--red); color: #fff; border-color: var(--red); box-shadow: 0 0 15px rgba(255,71,87,0.4); }
+  #topbar .spacer { flex: 1; }
+  #topbar .status-badge {
+    display: flex; align-items: center; gap: 6px; padding: 4px 10px;
+    border-radius: 20px; font-family: var(--font-display); font-size: 11px; font-weight: 700; letter-spacing: 1px;
+    background: rgba(0,230,118,0.1); border: 1px solid rgba(0,230,118,0.3); color: var(--green);
+  }
+  #topbar .status-badge.stopped { background: rgba(255,71,87,0.1); border-color: rgba(255,71,87,0.3); color: var(--red); }
+  #topbar .status-badge .dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; animation: pulse 1.5s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
 
-    /* ===================================
-       LOADING SCREEN
-    =================================== */
-    #loader {
-      position: fixed; inset: 0;
-      background: var(--bg-0);
-      display: flex; flex-direction: column;
-      justify-content: center; align-items: center;
-      z-index: 9999;
-      transition: opacity 0.8s ease;
-    }
-    #loader.fade { opacity: 0; pointer-events: none; }
-    .loader-logo {
-      font-family: var(--font-d);
-      font-size: 3rem;
-      font-weight: 900;
-      color: var(--blue);
-      letter-spacing: 14px;
-      text-shadow: 0 0 40px rgba(59,130,246,0.7), 0 0 80px rgba(59,130,246,0.3);
-      animation: logoPulse 2s ease-in-out infinite alternate;
-    }
-    @keyframes logoPulse {
-      from { text-shadow: 0 0 20px rgba(59,130,246,0.5), 0 0 40px rgba(59,130,246,0.2); }
-      to   { text-shadow: 0 0 60px rgba(59,130,246,0.9), 0 0 100px rgba(139,92,246,0.5); }
-    }
-    .loader-sub {
-      font-family: var(--font-m);
-      font-size: 0.7rem;
-      color: var(--text-2);
-      letter-spacing: 4px;
-      margin-top: 14px;
-    }
-    .loader-bar-wrap {
-      width: 280px; height: 2px;
-      background: var(--bg-3);
-      margin-top: 32px;
-      border-radius: 2px;
-      overflow: hidden;
-    }
-    .loader-bar {
-      height: 100%;
-      background: linear-gradient(90deg, var(--violet), var(--blue));
-      width: 0%;
-      animation: loadBar 1.2s ease-in-out forwards;
-      box-shadow: 0 0 12px var(--blue);
-    }
-    @keyframes loadBar { to { width: 100%; } }
-    .loader-status {
-      font-size: 0.62rem;
-      color: var(--blue);
-      margin-top: 14px;
-      letter-spacing: 3px;
-      opacity: 0.8;
-      animation: blink 1s infinite alternate;
-    }
-    @keyframes blink { from { opacity: 0.4; } to { opacity: 1; } }
+  /* MAIN CONTENT */
+  #main { display: flex; flex: 1; overflow: hidden; }
 
-    /* ===================================
-       LANDING PAGE
-    =================================== */
-    #landingPage {
-      position: fixed; inset: 0;
-      background: radial-gradient(ellipse 80% 60% at 50% -10%, rgba(59,130,246,0.08) 0%, transparent 60%),
-                  radial-gradient(ellipse 60% 50% at 80% 80%, rgba(139,92,246,0.06) 0%, transparent 60%),
-                  var(--bg-0);
-      z-index: 500;
-      overflow-y: auto;
-      overflow-x: hidden;
-    }
-    .landing-grid-overlay {
-      position: fixed; inset: 0;
-      pointer-events: none;
-      background-image: linear-gradient(rgba(59,130,246,0.04) 1px, transparent 1px),
-                        linear-gradient(90deg, rgba(59,130,246,0.04) 1px, transparent 1px);
-      background-size: 60px 60px;
-      animation: gridDrift 20s linear infinite;
-      z-index: 0;
-    }
-    @keyframes gridDrift { from { background-position: 0 0; } to { background-position: 60px 60px; } }
-    .glow-orb {
-      position: absolute; border-radius: 50%; pointer-events: none;
-      filter: blur(80px); animation: orbFloat 8s ease-in-out infinite alternate;
-    }
-    .glow-orb.primary { width: 400px; height: 400px; background: rgba(59,130,246,0.08); top: -100px; left: -100px; }
-    .glow-orb.secondary { width: 300px; height: 300px; background: rgba(139,92,246,0.07); bottom: 10%; right: -80px; animation-delay: -4s; }
-    @keyframes orbFloat { from { transform: translate(0,0); } to { transform: translate(30px,20px); } }
+  /* LEFT PANEL */
+  #left-panel {
+    width: 280px; flex-shrink: 0; display: flex; flex-direction: column; gap: 0;
+    background: var(--panel); border-right: 1px solid var(--border);
+    overflow-y: auto; overflow-x: hidden;
+  }
+  #left-panel::-webkit-scrollbar { width: 4px; }
+  #left-panel::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
 
-    /* Landing navbar */
-    .landing-nav {
-      position: sticky; top: 0; z-index: 100;
-      display: flex; align-items: center; justify-content: space-between;
-      padding: 0 36px; height: 60px;
-      background: rgba(5,8,16,0.9); backdrop-filter: blur(16px);
-      border-bottom: 1px solid var(--border);
-    }
-    .landing-nav-brand { font-family: var(--font-d); font-size: 1.1rem; font-weight: 900; letter-spacing: 4px; }
-    .landing-nav-brand .n-blue { color: var(--blue); }
-    .landing-nav-brand .n-sep { color: var(--text-2); font-weight: 300; margin: 0 6px; }
-    .landing-nav-links { display: flex; gap: 16px; align-items: center; }
-    .landing-nav-links a {
-      color: var(--text-2); font-size: 0.72rem; font-family: var(--font-d); letter-spacing: 2px;
-      text-decoration: none; transition: color 0.2s;
-    }
-    .landing-nav-links a:hover { color: var(--blue); }
-    .hub-link-btn {
-      background: rgba(59,130,246,0.08); border: 1px solid var(--border);
-      color: var(--blue); font-family: var(--font-d); font-size: 0.62rem;
-      letter-spacing: 2px; padding: 7px 16px; cursor: pointer; transition: all 0.3s;
-      text-decoration: none; border-radius: var(--r);
-    }
-    .hub-link-btn:hover { box-shadow: 0 0 20px rgba(59,130,246,0.25); background: rgba(59,130,246,0.15); }
+  .panel-section { padding: 16px; border-bottom: 1px solid var(--border); }
+  .panel-section:last-child { border-bottom: none; }
+  .panel-title { font-family: var(--font-display); font-size: 11px; font-weight: 700; letter-spacing: 1.5px; color: var(--cyan); text-transform: uppercase; margin-bottom: 12px; border-bottom: 1px solid var(--border); padding-bottom: 6px; }
 
-    /* Hero */
-    .landing-hero {
-      display: flex; align-items: center; justify-content: center;
-      min-height: calc(100vh - 60px); padding: 60px 48px; gap: 60px; flex-wrap: wrap;
-      position: relative; z-index: 1;
-    }
-    .hero-text { max-width: 580px; flex: 1; min-width: 320px; }
-    .hero-badge {
-      display: inline-block; color: var(--blue);
-      border: 1px solid rgba(59,130,246,0.3); background: rgba(59,130,246,0.05);
-      font-family: var(--font-d); font-size: 0.55rem; letter-spacing: 3px;
-      padding: 6px 16px; border-radius: 20px; margin-bottom: 24px;
-    }
-    .hero-title { font-family: var(--font-d); font-size: clamp(2rem,5vw,3.5rem); font-weight: 900; line-height: 1.1; letter-spacing: 2px; margin-bottom: 18px; }
-    .gradient-text { background: linear-gradient(135deg, var(--blue), var(--violet)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
-    .hero-sub { font-size: 0.95rem; color: var(--text-1); line-height: 1.8; margin-bottom: 28px; font-family: var(--font-b); font-weight: 300; max-width: 480px; }
-    .hero-features-row { display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 32px; }
-    .hero-feat-tag {
-      display: flex; align-items: center; gap: 6px;
-      font-size: 0.72rem; color: var(--text-1); font-family: var(--font-m);
-      padding: 5px 12px; background: rgba(59,130,246,0.05); border: 1px solid var(--border); border-radius: 20px;
-    }
-    .hero-feat-tag .fe { font-size: 0.85rem; }
-    .hero-cta { display: flex; gap: 14px; flex-wrap: wrap; position: relative; z-index: 9999; }
-    .btn-launch {
-      padding: 14px 32px; font-family: var(--font-d); font-size: 0.75rem; letter-spacing: 2px;
-      cursor: pointer; transition: all 0.3s; border-radius: var(--r);
-      background: linear-gradient(135deg, rgba(59,130,246,0.2), rgba(139,92,246,0.15));
-      border: 1px solid var(--blue); color: var(--blue); position: relative; z-index: 9999;
-      display: flex; align-items: center; gap: 10px;
-    }
-    .btn-launch:hover { box-shadow: 0 0 30px rgba(59,130,246,0.4); transform: translateY(-2px); }
-    .btn-ghost {
-      padding: 14px 28px; font-family: var(--font-d); font-size: 0.72rem; letter-spacing: 2px;
-      cursor: pointer; background: transparent; border: 1px solid rgba(255,255,255,0.12);
-      color: var(--text-2); transition: all 0.3s; border-radius: var(--r);
-      text-decoration: none; display: flex; align-items: center;
-    }
-    .btn-ghost:hover { border-color: var(--blue); color: var(--blue); }
+  /* Map selector */
+  .map-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+  .map-btn {
+    padding: 8px 6px; border-radius: var(--radius-sm); border: 1px solid var(--border);
+    background: rgba(0,0,0,0.3); color: var(--text-dim); font-family: var(--font-mono); font-size: 11px;
+    cursor: pointer; text-align: center; transition: all .15s;
+  }
+  .map-btn:hover { background: var(--surface-hover); color: var(--text); border-color: var(--border-hover); }
+  .map-btn.active { background: var(--blue-dim); border-color: var(--blue); color: var(--blue); box-shadow: var(--blue-glow); }
 
-    /* Robot Visual */
-    .hero-visual { flex: 1; min-width: 280px; max-width: 420px; display: flex; align-items: center; justify-content: center; position: relative; }
-    .robot-scene { width: 340px; height: 340px; position: relative; perspective: 800px; }
-    .robot-body { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; animation: robotHover 4s ease-in-out infinite; }
-    @keyframes robotHover { 0%,100% { transform: translateY(0) rotateY(0); } 50% { transform: translateY(-12px) rotateY(5deg); } }
-    .robot-svg { width: 200px; height: 200px; filter: drop-shadow(0 0 40px rgba(59,130,246,0.4)); }
-    .orbit-ring { position: absolute; border-radius: 50%; border: 1px solid; animation: spinRing linear infinite; }
-    .ring-1 { inset: 20px; border-color: rgba(59,130,246,0.15); animation-duration: 12s; }
-    .ring-2 { inset: 0; border-color: rgba(139,92,246,0.1); animation-duration: 18s; animation-direction: reverse; }
-    @keyframes spinRing { from { transform: rotateX(65deg) rotateZ(0); } to { transform: rotateX(65deg) rotateZ(360deg); } }
-    .orbit-dot { position: absolute; width: 6px; height: 6px; border-radius: 50%; }
-    .scan-line {
-      position: absolute; left: 50%; top: 10%; height: 80%; width: 2px;
-      background: linear-gradient(to bottom, transparent, var(--blue), transparent);
-      opacity: 0.3; animation: scanMove 3s ease-in-out infinite;
-    }
-    @keyframes scanMove { 0%,100% { transform: translateX(-50px); } 50% { transform: translateX(50px); } }
+  /* Slider controls */
+  .control-row { display: flex; flex-direction: column; gap: 6px; margin-bottom: 10px; }
+  .control-label { display: flex; justify-content: space-between; align-items: center; }
+  .control-label span:first-child { font-size: 12px; color: var(--text-dim); }
+  .control-val { font-size: 12px; font-family: var(--font-mono); color: var(--cyan); }
+  input[type=range] {
+    width: 100%; -webkit-appearance: none; height: 4px; border-radius: 2px;
+    background: rgba(255,255,255,0.08); outline: none; cursor: pointer;
+  }
+  input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none; width: 12px; height: 12px; border-radius: 50%;
+    background: var(--cyan); cursor: pointer; box-shadow: var(--cyan-glow);
+  }
 
-    /* Features section */
-    .features-section { padding: 80px 48px; max-width: 1100px; margin: 0 auto; position: relative; z-index: 1; }
-    .section-label { font-family: var(--font-d); font-size: 0.58rem; letter-spacing: 4px; color: var(--blue); text-align: center; margin-bottom: 10px; }
-    .section-title { font-family: var(--font-d); font-size: clamp(1.3rem,3vw,1.8rem); font-weight: 700; text-align: center; margin-bottom: 10px; }
-    .section-sub { color: var(--text-2); text-align: center; font-size: 0.85rem; max-width: 520px; margin: 0 auto 48px; font-family: var(--font-b); }
-    .feat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; margin-bottom: 48px; }
-    .feat-card {
-      background: var(--panel); border: 1px solid var(--border); border-radius: var(--r-lg);
-      padding: 24px; transition: all 0.35s; position: relative; overflow: hidden;
-      opacity: 0; transform: translateY(16px);
-    }
-    .feat-card.visible { opacity: 1; transform: translateY(0); }
-    .feat-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: linear-gradient(90deg, transparent, var(--blue), transparent); opacity: 0; transition: opacity 0.3s; }
-    .feat-card:hover { transform: translateY(-4px); border-color: var(--border-h); }
-    .feat-card:hover::before { opacity: 1; }
-    .feat-icon { font-size: 1.5rem; margin-bottom: 12px; }
-    .feat-name { font-family: var(--font-d); font-size: 0.72rem; letter-spacing: 1px; margin-bottom: 8px; color: var(--text-0); }
-    .feat-desc { font-size: 0.72rem; color: var(--text-2); line-height: 1.6; font-family: var(--font-b); }
-    .cat-label { font-family: var(--font-d); font-size: 0.62rem; letter-spacing: 2px; color: var(--blue); margin-bottom: 14px; display: flex; align-items: center; gap: 8px; }
-    .cat-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--blue); box-shadow: 0 0 8px var(--blue); }
-    .cat-dot.violet { background: var(--violet); box-shadow: 0 0 8px var(--violet); }
-    .cat-dot.green { background: var(--green); box-shadow: 0 0 8px var(--green); }
-    .cat-dot.amber { background: var(--amber); box-shadow: 0 0 8px var(--amber); }
+  /* Toggle switches */
+  .toggle-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+  .toggle-label { font-size: 12px; color: var(--text-dim); }
+  .toggle {
+    position: relative; width: 36px; height: 20px; cursor: pointer;
+  }
+  .toggle input { opacity: 0; width: 0; height: 0; }
+  .toggle-slider {
+    position: absolute; inset: 0; background: rgba(255,255,255,0.08); border-radius: 20px; transition: .2s;
+  }
+  .toggle-slider::before {
+    content: ''; position: absolute; left: 2px; top: 2px; width: 16px; height: 16px;
+    border-radius: 50%; background: var(--text-muted); transition: .2s;
+  }
+  .toggle input:checked + .toggle-slider { background: var(--blue); }
+  .toggle input:checked + .toggle-slider::before { transform: translateX(16px); background: #fff; }
 
-    .features-cta { text-align: center; margin: 24px 0 60px; }
+  /* Drive model select */
+  .select-row { display: flex; gap: 6px; flex-wrap: wrap; }
+  .sel-btn {
+    padding: 5px 10px; border-radius: var(--radius-sm); border: 1px solid var(--border);
+    background: rgba(0,0,0,0.3); color: var(--text-dim); font-family: var(--font-mono); font-size: 11px;
+    cursor: pointer; transition: all .15s;
+  }
+  .sel-btn:hover { background: var(--surface-hover); color: var(--text); border-color: var(--border-hover); }
+  .sel-btn.active { background: var(--blue-dim); border-color: var(--blue); color: var(--blue); box-shadow: var(--blue-glow); }
 
-    /* Landing footer */
-    .landing-footer {
-      text-align: center; padding: 28px 20px; color: var(--text-2); font-size: 0.72rem;
-      border-top: 1px solid rgba(255,255,255,0.05); position: relative; z-index: 1;
-    }
-    .landing-footer strong { color: var(--text-0); }
-    .footer-social { display: flex; align-items: center; justify-content: center; gap: 12px; margin-top: 12px; }
-    .footer-social-link {
-      display: flex; align-items: center; gap: 6px; color: var(--text-2); text-decoration: none;
-      font-family: var(--font-d); font-size: 0.55rem; letter-spacing: 1px;
-      padding: 6px 12px; border: 1px solid rgba(255,255,255,0.08); border-radius: 6px;
-      background: rgba(255,255,255,0.02); transition: all 0.25s;
-    }
-    .footer-social-link:hover { transform: translateY(-2px); border-color: var(--blue); color: var(--blue); }
+  /* Stats */
+  .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .stat-card {
+    background: rgba(0, 0, 0, 0.4); border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 10px; display: flex; flex-direction: column; gap: 4px;
+    border-left: 2px solid var(--cyan);
+  }
+  .stat-label { font-family: var(--font-mono); font-size: 10px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; }
+  .stat-val { font-size: 18px; font-weight: 700; font-family: var(--font-mono); color: var(--text); }
+  .stat-val.green { color: var(--green); text-shadow: 0 0 10px rgba(0, 230, 118, 0.3); }
+  .stat-val.yellow { color: var(--yellow); text-shadow: 0 0 10px rgba(255, 209, 102, 0.3); }
 
-    /* ===================================
-       NAVIGATION BAR (Simulator)
-    =================================== */
-    nav#sim-nav {
-      position: fixed; top: 0; left: 0; width: 100%; height: var(--nav-h);
-      background: rgba(5, 8, 16, 0.96); border-bottom: 1px solid var(--border);
-      backdrop-filter: blur(20px); display: flex; justify-content: space-between;
-      align-items: center; padding: 0 16px; z-index: 200; gap: 10px;
-    }
-    .nav-brand { font-family: var(--font-d); font-size: 1rem; font-weight: 900; letter-spacing: 3px; white-space: nowrap; flex-shrink: 0; }
-    .nav-brand .n-blue { color: var(--blue); }
-    .nav-brand .n-sep { color: var(--text-2); font-weight: 300; margin: 0 4px; }
-    .nav-brand .n-sub { color: var(--text-2); font-size: 0.55rem; letter-spacing: 2px; }
-    .nav-center { display: flex; align-items: center; gap: 12px; }
-    .view-tabs {
-      display: flex; gap: 2px; background: var(--bg-3);
-      border: 1px solid var(--border); border-radius: var(--r); padding: 3px;
-    }
-    .view-tab {
-      background: transparent; border: none; color: var(--text-2);
-      font-family: var(--font-d); font-size: 0.6rem; font-weight: 500;
-      letter-spacing: 1.5px; padding: 5px 12px; cursor: pointer; border-radius: 3px;
-      transition: all 0.25s; white-space: nowrap;
-    }
-    .view-tab:hover { color: var(--text-0); background: var(--glass); }
-    .view-tab.active { color: var(--bg-0); background: var(--blue); box-shadow: 0 0 12px rgba(59,130,246,0.4); }
-    .nav-right { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
-    .nav-hint { color: var(--text-2); font-size: 0.55rem; letter-spacing: 1px; display: flex; gap: 4px; }
-    .nav-hint kbd {
-      background: var(--bg-3); border: 1px solid var(--border); border-radius: 3px;
-      padding: 1px 5px; color: var(--blue); font-family: var(--font-m); font-size: 0.52rem;
-    }
-    .nav-status {
-      font-size: 0.58rem; letter-spacing: 2px; color: var(--green);
-      text-shadow: 0 0 8px var(--green); padding: 3px 8px;
-      border: 1px solid rgba(16,185,129,0.3); border-radius: var(--r);
-      background: rgba(16,185,129,0.05);
-    }
-    .btn-hub {
-      background: rgba(59,130,246,0.07); border: 1px solid var(--border);
-      color: var(--blue); font-family: var(--font-d); font-size: 0.55rem;
-      letter-spacing: 1px; padding: 5px 10px; cursor: pointer;
-      border-radius: var(--r); transition: all 0.2s; text-decoration: none;
-      display: flex; align-items: center; gap: 4px;
-    }
-    .btn-hub:hover { background: var(--blue); color: var(--bg-0); box-shadow: 0 0 12px rgba(59,130,246,0.4); }
+  /* Legend */
+  .legend-row { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+  .legend-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+  .legend-line { width: 20px; height: 3px; border-radius: 2px; flex-shrink: 0; }
+  .legend-label { font-size: 11px; color: var(--text-dim); }
 
-    /* ===================================
-       MAIN LAYOUT (Simulator Active)
-    =================================== */
-    #app {
-      position: fixed; top: var(--nav-h); left: 0;
-      width: 100%; height: calc(100vh - var(--nav-h));
-      display: flex; overflow: hidden;
-    }
+  /* CANVAS AREA */
+  #canvas-area {
+    flex: 1; position: relative; overflow: hidden;
+    background: radial-gradient(ellipse at 50% 50%, #06090f 0%, #020509 100%);
+  }
+  #simCanvas { position: absolute; inset: 0; cursor: crosshair; display: block; }
+  #overlayCanvas { position: absolute; inset: 0; pointer-events: none; }
 
-    /* ===================================
-       LEFT PANEL (Controls)
-    =================================== */
-    .side-panel {
-      width: 290px; min-width: 290px; height: 100%;
-      background: var(--panel); border-right: 1px solid var(--border);
-      backdrop-filter: blur(16px); display: flex; flex-direction: column;
-      overflow-y: auto; overflow-x: hidden; z-index: 50; flex-shrink: 0;
-      transition: transform 0.35s cubic-bezier(0.2,0.8,0.2,1), opacity 0.35s ease;
-    }
-    .side-panel.collapsed { transform: translateX(-100%); opacity: 0; pointer-events: none; }
+  /* Canvas overlay info */
+  #canvas-info {
+    position: absolute; top: 16px; left: 50%; transform: translateX(-50%);
+    background: rgba(5,8,16,0.9); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 6px 16px; font-family: var(--font-mono); font-size: 11px; color: var(--cyan);
+    backdrop-filter: blur(10px); pointer-events: none; white-space: nowrap;
+    box-shadow: var(--cyan-glow);
+  }
+  #click-hint {
+    position: absolute; bottom: 16px; left: 50%; transform: translateX(-50%);
+    background: rgba(5,8,16,0.9); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 8px 18px; font-family: var(--font-display); font-size: 11px; color: var(--yellow);
+    backdrop-filter: blur(10px); pointer-events: none; white-space: nowrap;
+    transition: opacity .3s;
+  }
 
-    /* Panel Section */
-    .ps {
-      border-bottom: 1px solid rgba(59,130,246,0.07);
-      padding: 10px 14px;
-    }
-    .ps:last-child { border-bottom: none; }
-    .ps-header {
-      font-family: var(--font-d); font-size: 0.58rem; font-weight: 700;
-      letter-spacing: 2px; color: var(--blue);
-      display: flex; justify-content: space-between; align-items: center;
-      margin-bottom: 8px; padding-bottom: 6px; border-bottom: 1px solid var(--border);
-    }
-    .ps-header .ps-icon { font-size: 0.72rem; margin-right: 4px; }
+  /* RIGHT PANEL */
+  #right-panel {
+    width: 220px; flex-shrink: 0; display: flex; flex-direction: column;
+    background: var(--panel); border-left: 1px solid var(--border);
+    overflow-y: auto; overflow-x: hidden;
+  }
+  #right-panel > * { flex-shrink: 0; }
+  #right-panel::-webkit-scrollbar { width: 4px; }
+  #right-panel::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
 
-    /* Stats Grid */
-    .stats-grid {
-      display: grid; grid-template-columns: 1fr 1fr; gap: 6px;
-    }
-    .stat-box {
-      background: rgba(255,255,255,0.02); border: 1px solid var(--border);
-      border-radius: var(--r); padding: 8px; text-align: center;
-    }
-    .stat-box .sv {
-      font-family: var(--font-d); font-size: 1rem; font-weight: 700; color: var(--blue);
-    }
-    .stat-box .sl { font-size: 0.55rem; color: var(--text-2); letter-spacing: 1px; margin-top: 2px; }
+  /* Algorithm display */
+  .algo-badge {
+    display: flex; align-items: center; gap: 8px; padding: 10px;
+    background: var(--blue-dim); border: 1px solid rgba(59,130,246,0.3);
+    border-radius: var(--radius); margin-bottom: 8px;
+  }
+  .algo-icon { font-size: 18px; }
+  .algo-name { font-family: var(--font-display); font-size: 11px; font-weight: 700; color: var(--blue); letter-spacing: 1px; }
+  .algo-desc { font-family: var(--font-body); font-size: 11px; color: var(--text-dim); margin-top: 2px; }
 
-    /* Multi-Robot Dashboard */
-    .mrd-combined {
-      display: flex; align-items: center; justify-content: space-between;
-      background: rgba(59,130,246,0.06); border: 1px solid rgba(59,130,246,0.2);
-      border-radius: var(--r); padding: 8px 10px; margin-bottom: 8px;
-    }
-    .mrd-combined-lbl { font-size: 0.6rem; color: var(--text-2); letter-spacing: 1px; }
-    .mrd-combined-val { font-family: var(--font-d); font-size: 1.1rem; font-weight: 700; color: var(--blue); }
-    .mrd-progress-bar {
-      height: 4px; background: rgba(255,255,255,0.06); border-radius: 2px;
-      overflow: hidden; margin: 4px 0 8px;
-    }
-    .mrd-progress-fill {
-      height: 100%; border-radius: 2px;
-      background: linear-gradient(90deg, var(--blue), var(--violet));
-      transition: width 0.6s ease;
-      box-shadow: 0 0 8px var(--blue);
-    }
-    .mrd-robot-card {
-      background: rgba(255,255,255,0.02); border: 1px solid var(--border);
-      border-radius: var(--r); padding: 8px 10px; margin-bottom: 5px;
-      position: relative; overflow: hidden;
-    }
-    .mrd-robot-card::before {
-      content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px;
-    }
-    .mrd-robot-card.r0::before { background: var(--blue); }
-    .mrd-robot-card.r1::before { background: #a855f7; }
-    .mrd-robot-card.r2::before { background: #f97316; }
-    .mrd-robot-card.r3::before { background: #22d3d1; }
-    .mrd-robot-header {
-      display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;
-    }
-    .mrd-robot-name { font-family: var(--font-d); font-size: 0.6rem; letter-spacing: 1px; }
-    .mrd-robot-name.r0 { color: var(--blue); }
-    .mrd-robot-name.r1 { color: #a855f7; }
-    .mrd-robot-name.r2 { color: #f97316; }
-    .mrd-robot-name.r3 { color: #22d3d1; }
-    .mrd-robot-status {
-      font-size: 0.52rem; letter-spacing: 1px;
-      padding: 2px 6px; border-radius: 10px;
-    }
-    .mrd-robot-status.exploring { color: var(--green); background: rgba(16,185,129,0.1); border: 1px solid rgba(16,185,129,0.25); }
-    .mrd-robot-status.idle { color: var(--text-2); background: rgba(255,255,255,0.04); border: 1px solid var(--border); }
-    .mrd-robot-status.navigating { color: var(--amber); background: rgba(245,158,11,0.1); border: 1px solid rgba(245,158,11,0.25); }
-    .mrd-robot-pct-row { display: flex; align-items: center; gap: 6px; margin-bottom: 3px; }
-    .mrd-robot-pct-val { font-family: var(--font-d); font-size: 0.8rem; font-weight: 700; min-width: 36px; }
-    .mrd-robot-pct-val.r0 { color: var(--blue); }
-    .mrd-robot-pct-val.r1 { color: #a855f7; }
-    .mrd-robot-pct-val.r2 { color: #f97316; }
-    .mrd-robot-pct-val.r3 { color: #22d3d1; }
-    .mrd-robot-mini-bar {
-      flex: 1; height: 4px; background: rgba(255,255,255,0.06); border-radius: 2px; overflow: hidden;
-    }
-    .mrd-robot-mini-fill { height: 100%; border-radius: 2px; transition: width 0.5s ease; }
-    .mrd-robot-mini-fill.r0 { background: var(--blue); }
-    .mrd-robot-mini-fill.r1 { background: #a855f7; }
-    .mrd-robot-mini-fill.r2 { background: #f97316; }
-    .mrd-robot-mini-fill.r3 { background: #22d3d1; }
-    .mrd-robot-dist { font-size: 0.55rem; color: var(--text-2); text-align: right; }
-    #multiRobotDashboard { transition: all 0.3s ease; }
+  .keys-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; margin-bottom: 8px; }
+  .key {
+    background: rgba(0,0,0,0.3); border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 6px 4px; text-align: center; font-size: 11px; font-weight: 600;
+    color: var(--text-dim); font-family: var(--font-mono);
+  }
+  .key.active { background: var(--blue-dim); border-color: var(--blue); color: var(--blue); box-shadow: var(--blue-glow); }
+  .key-label { font-family: var(--font-display); font-size: 10px; color: var(--text-muted); text-align: center; margin-bottom: 8px; letter-spacing: 1px; }
 
-    /* ===== Panel Tab Bar ===== */
-    .panel-tab-bar {
-      display: flex; position: relative;
-      border-bottom: 1px solid var(--border);
-      background: rgba(0,0,0,0.18);
-      flex-shrink: 0;
-    }
-    .panel-tab {
-      flex: 1; padding: 10px 0; background: none; border: none;
-      color: var(--text-2); font-family: var(--font-d); font-size: 0.62rem;
-      letter-spacing: 1.5px; cursor: pointer; position: relative; z-index: 1;
-      transition: color 0.25s;
-      display: flex; align-items: center; justify-content: center; gap: 5px;
-    }
-    .panel-tab:hover { color: var(--text-0); }
-    .panel-tab.active { color: var(--blue); }
-    .ptab-icon { font-size: 0.8rem; }
-    .panel-tab-ink {
-      position: absolute; bottom: 0; left: 0;
-      width: 50%; height: 2px;
-      background: linear-gradient(90deg, var(--blue), var(--violet));
-      border-radius: 2px 2px 0 0;
-      transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1);
-      box-shadow: 0 0 8px var(--blue);
-    }
-    .panel-tab-ink.advanced { transform: translateX(100%); }
-    .panel-tab-content {
-      flex: 1; overflow-y: auto; overflow-x: hidden;
-    }
-    .panel-tab-content.hidden { display: none; }
-    /* Make the sidebar itself a flex column so tab bar sticks to top */
-    .side-panel.sidebar {
-      display: flex !important;
-      flex-direction: column !important;
-    }
+  /* Log panel */
+  #log-panel {
+    margin: 8px 16px 16px; height: 150px;
+    background: rgba(0,0,0,0.5); border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 8px; font-family: var(--font-mono); font-size: 11px;
+    color: var(--text-dim); overflow-y: auto;
+    line-height: 1.6;
+  }
+  #log-panel::-webkit-scrollbar { width: 3px; }
+  #log-panel::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+  .log-entry { margin-bottom: 2px; }
+  .log-entry.info { color: var(--cyan); }
+  .log-entry.warn { color: var(--yellow); }
+  .log-entry.success { color: var(--green); }
 
-    /* Controls */
-    .ctrl-row {
-      display: flex; justify-content: space-between; align-items: center; margin-bottom: 3px;
-    }
-    .ctrl-lbl { font-size: 0.68rem; color: var(--text-1); }
-    .ctrl-val { font-size: 0.68rem; color: var(--blue); font-weight: 700; min-width: 40px; text-align: right; }
+  /* Mini map */
+  #minimap-container {
+    margin: 0 16px 12px; border-radius: var(--radius); overflow: hidden;
+    border: 1px solid var(--border); position: relative;
+  }
+  #minimapCanvas { display: block; width: 100%; }
+  #minimap-label {
+    position: absolute; top: 4px; left: 6px; font-size: 9px;
+    color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px;
+  }
 
-    input[type="range"] {
-      -webkit-appearance: none; width: 100%; height: 3px;
-      background: rgba(255,255,255,0.08); border-radius: 2px; outline: none;
-      margin-top: 2px; margin-bottom: 6px;
-    }
-    input[type="range"]::-webkit-slider-thumb {
-      -webkit-appearance: none; width: 12px; height: 12px;
-      background: var(--blue); border-radius: 50%; cursor: pointer;
-      box-shadow: 0 0 8px rgba(59,130,246,0.6); transition: transform 0.15s;
-    }
-    input[type="range"]::-webkit-slider-thumb:hover { transform: scale(1.3); }
-
-    select {
-      width: 100%; background: var(--bg-3); border: 1px solid var(--border);
-      color: var(--text-0); font-family: var(--font-m); font-size: 0.68rem;
-      padding: 6px 8px; cursor: pointer; border-radius: var(--r);
-      outline: none; transition: all 0.2s;
-    }
-    select:hover { border-color: var(--blue); }
-
-    /* Button groups */
-    .btn-group { display: flex; gap: 2px; background: var(--bg-3); border: 1px solid var(--border); border-radius: var(--r); padding: 3px; }
-    .btn-grp {
-      flex: 1; background: transparent; border: none; color: var(--text-2);
-      font-family: var(--font-d); font-size: 0.55rem; font-weight: 500;
-      letter-spacing: 1px; padding: 5px 6px; cursor: pointer; border-radius: 3px;
-      transition: all 0.25s; white-space: nowrap;
-    }
-    .btn-grp:hover { color: var(--text-0); background: var(--glass); }
-    .btn-grp.active { color: var(--bg-0); background: var(--blue); box-shadow: 0 0 10px rgba(59,130,246,0.3); }
-
-    /* Feature buttons */
-    .btn-feat {
-      width: 100%; background: rgba(59,130,246,0.06); border: 1px solid var(--border);
-      color: var(--text-1); font-family: var(--font-m); font-size: 0.65rem;
-      padding: 6px 10px; cursor: pointer; border-radius: var(--r);
-      transition: all 0.2s; display: flex; align-items: center; gap: 6px; margin-top: 5px;
-    }
-    .btn-feat:hover { border-color: var(--blue); color: var(--blue); background: rgba(59,130,246,0.1); }
-    .btn-feat.active { border-color: var(--blue); color: var(--blue); background: rgba(59,130,246,0.12); box-shadow: 0 0 8px rgba(59,130,246,0.15); }
-    .btn-feat.violet { color: var(--violet); border-color: rgba(139,92,246,0.25); }
-    .btn-feat.violet:hover, .btn-feat.violet.active { border-color: var(--violet); color: var(--violet); background: rgba(139,92,246,0.1); box-shadow: 0 0 8px rgba(139,92,246,0.15); }
-    .btn-feat.green { color: var(--green); border-color: rgba(16,185,129,0.25); }
-    .btn-feat.green:hover, .btn-feat.green.active { border-color: var(--green); color: var(--green); background: rgba(16,185,129,0.1); box-shadow: 0 0 8px rgba(16,185,129,0.15); }
-    .btn-feat.amber { color: var(--amber); border-color: rgba(245,158,11,0.25); }
-    .btn-feat.amber:hover, .btn-feat.amber.active { border-color: var(--amber); color: var(--amber); background: rgba(245,158,11,0.1); }
-
-    /* Map tool buttons */
-    .btn-tool {
-      flex: 1; background: var(--bg-3); border: 1px solid var(--border);
-      color: var(--text-1); font-family: var(--font-m); font-size: 0.6rem;
-      padding: 5px 6px; cursor: pointer; border-radius: var(--r); transition: all 0.2s;
-    }
-    .btn-tool:hover { border-color: var(--blue); color: var(--blue); }
-
-    /* Danger buttons */
-    .btn-danger {
-      width: 100%; background: rgba(239,68,68,0.06); border: 1px solid rgba(239,68,68,0.2);
-      color: var(--red); font-family: var(--font-m); font-size: 0.62rem;
-      padding: 6px 10px; cursor: pointer; border-radius: var(--r); transition: all 0.2s;
-    }
-    .btn-danger:hover { background: rgba(239,68,68,0.12); border-color: var(--red); box-shadow: 0 0 8px rgba(239,68,68,0.2); }
-
-    /* Tutorial button */
-    .btn-tutorial {
-      width: 100%; background: rgba(139,92,246,0.08); border: 1px solid rgba(139,92,246,0.25);
-      color: var(--violet); font-family: var(--font-d); font-size: 0.58rem;
-      letter-spacing: 1px; padding: 7px 10px; cursor: pointer; border-radius: var(--r);
-      transition: all 0.2s; display: flex; align-items: center; gap: 6px; justify-content: center;
-    }
-    .btn-tutorial:hover { background: rgba(139,92,246,0.15); box-shadow: 0 0 12px rgba(139,92,246,0.2); }
-
-    /* Chart wrappers */
-    .chart-wrap {
-      background: rgba(255,255,255,0.02); border: 1px solid var(--border);
-      border-radius: var(--r); padding: 8px; margin-top: 6px;
-    }
-    .chart-wrap canvas { display: block; width: 100% !important; max-height: 120px; }
-
-    /* Instructions */
-    .kbd-row { display: flex; align-items: center; gap: 6px; margin-bottom: 3px; font-size: 0.65rem; color: var(--text-2); }
-    .kbd-row kbd {
-      background: var(--bg-3); border: 1px solid var(--border); border-radius: 3px;
-      padding: 1px 6px; color: var(--blue); font-family: var(--font-m); font-size: 0.6rem;
-      min-width: 20px; text-align: center;
-    }
-
-    .hidden { display: none !important; }
-
-    /* ===================================
-       CANVAS AREA
-    =================================== */
-    .canvas-area {
-      flex: 1; position: relative; overflow: hidden;
-      background: radial-gradient(circle at 50% 50%, #0c1220, var(--bg-0));
-    }
-    .canvas-area canvas {
-      position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-    }
-    #pointCloudContainer {
-      position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-    }
-
-    /* View badge */
-    .viewport-badge {
-      position: absolute; top: 10px; left: 50%; transform: translateX(-50%);
-      background: rgba(8,13,26,0.9); border: 1px solid var(--border);
-      padding: 4px 16px; font-family: var(--font-d); font-size: 0.6rem;
-      letter-spacing: 3px; color: var(--blue); border-radius: 20px;
-      backdrop-filter: blur(8px); white-space: nowrap; z-index: 10;
-    }
-
-    /* Joystick zones */
-    .joystick-zone { position: absolute; bottom: 0; width: 50%; height: 40%; z-index: 5; }
-    .joystick-zone.left-zone { left: 0; }
-    .joystick-zone.right-zone { right: 0; }
-
-    /* Sidebar toggle */
-    .sidebar-toggle {
-      position: absolute; top: 8px; left: 8px; width: 32px; height: 32px;
-      background: var(--panel); border: 1px solid var(--border); border-radius: var(--r);
-      color: var(--blue); display: flex; align-items: center; justify-content: center;
-      cursor: pointer; z-index: 60; transition: all 0.3s;
-    }
-    .sidebar-toggle:hover { background: rgba(59,130,246,0.1); box-shadow: 0 0 8px rgba(59,130,246,0.2); }
-
-    /* Mobile toggle */
-    .mobile-toggle-btn {
-      position: fixed; top: calc(var(--nav-h) + 8px); right: 8px;
-      width: 32px; height: 32px; background: var(--panel);
-      border: 1px solid var(--border); border-radius: var(--r);
-      color: var(--blue); display: none; align-items: center; justify-content: center;
-      cursor: pointer; z-index: 60;
-    }
-    @media (max-width: 768px) { .mobile-toggle-btn { display: flex; } }
-
-    /* Sensor HUD overrides to match the new theme */
-    .sensor-hud {
-      position: absolute; bottom: 10px; right: 10px; z-index: 50; width: 200px;
-      background: rgba(8,13,26,0.88); backdrop-filter: blur(16px);
-      border: 1px solid var(--border); border-radius: var(--r-lg);
-      padding: 10px; font-size: 0.65rem; color: var(--text-1);
-      box-shadow: 0 8px 24px rgba(0,0,0,0.4); font-variant-numeric: tabular-nums;
-    }
-
-    /* Donation modal */
-    .donate-overlay {
-      position: fixed; inset: 0; z-index: 999;
-      display: flex; align-items: center; justify-content: center;
-      background: rgba(5,8,16,0.85); backdrop-filter: blur(12px);
-    }
-    .donate-modal {
-      background: linear-gradient(145deg, rgba(10,15,30,0.95), rgba(8,12,24,0.98));
-      border: 1px solid rgba(245,159,11,0.3); border-radius: 16px;
-      padding: 36px; max-width: 400px; width: 90%; position: relative;
-      box-shadow: 0 0 60px rgba(245,159,11,0.1);
-    }
-    .donate-modal h2 { font-family: var(--font-d); font-size: 1.2rem; letter-spacing: 2px; margin-bottom: 8px; }
-    .donate-modal p { font-size: 0.78rem; color: var(--text-2); margin-bottom: 20px; }
-    .donate-modal img { width: 100%; max-width: 200px; display: block; margin: 0 auto; border-radius: 8px; }
-    .donate-close {
-      position: absolute; top: 12px; right: 14px;
-      background: transparent; border: 1px solid rgba(255,255,255,0.1);
-      color: var(--text-2); font-size: 1rem; width: 28px; height: 28px;
-      border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center;
-      transition: all 0.2s; line-height: 1;
-    }
-    .donate-close:hover { border-color: var(--red); color: var(--red); }
-
-    /* ===================================
-       RESPONSIVE
-    =================================== */
-    @media (max-width: 900px) {
-      .landing-hero { flex-direction: column; text-align: center; padding: 40px 24px; gap: 40px; }
-      .hero-text { max-width: 100%; }
-      .hero-features-row { justify-content: center; }
-      .hero-cta { justify-content: center; }
-      .hero-visual { max-width: 280px; }
-      .robot-scene { width: 260px; height: 260px; }
-      .feat-grid { grid-template-columns: 1fr 1fr; }
-      .features-section { padding: 60px 24px; }
-      .landing-nav { padding: 0 16px; }
-    }
-    @media (max-width: 600px) {
-      .feat-grid { grid-template-columns: 1fr; }
-      .side-panel { width: 100%; min-width: 100%; position: absolute; top: 0; left: 0; z-index: 100; }
-    }
-  </style>
+  /* FPS indicator */
+  #fps-counter {
+    position: absolute; top: 16px; right: 16px;
+    background: rgba(5,8,16,0.9); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 6px 12px; font-family: var(--font-mono); font-size: 11px; color: var(--cyan);
+    pointer-events: none;
+  }
+</style>
 </head>
-
 <body>
+<div id="app">
+
+  <!-- TOP BAR -->
+  <div id="topbar">
+    <a href="./index.html" id="back-hub-btn" style="background:rgba(5,8,16,0.85);border:1px solid var(--border);color:var(--cyan);font-family:var(--font-display);font-size:10px;font-weight:700;letter-spacing:2px;padding:6px 13px;text-decoration:none;border-radius:4px;transition:all 0.2s;display:inline-flex;align-items:center;gap:5px;flex-shrink:0;margin-right:4px;" onmouseover="this.style.borderColor='var(--cyan)';this.style.boxShadow='var(--cyan-glow)'" onmouseout="this.style.borderColor='var(--border)';this.style.boxShadow='none'">← HUB</a>
+    <div class="logo">
+      <div class="logo-icon">🤖</div>
+      <div>
+        <div class="logo-text">SLAM Simulator</div>
+        <div class="logo-sub">Antigravity · Real-time Perception</div>
+      </div>
+    </div>
+    <div class="divider"></div>
+    <button class="btn primary" id="btnStartStop" onclick="toggleSimulation()">▶ Launch Sim</button>
+    <button class="btn" onclick="resetSim()">↺ Reset</button>
+    <button class="btn" onclick="generateNewMap()">🗺 New Map</button>
+    <button class="btn danger" onclick="clearMap()">✕ Clear Map</button>
+    <div class="spacer"></div>
+    <div class="status-badge stopped" id="statusBadge">
+      <div class="dot"></div>
+      <span id="statusText">Stopped</span>
+    </div>
+  </div>
+
+  <!-- MAIN -->
+  <div id="main">
+
+    <!-- LEFT PANEL -->
+    <div id="left-panel">
+
+      <!-- Map Presets -->
+      <div class="panel-section">
+        <div class="panel-title">Map Preset</div>
+        <div class="map-grid">
+          <button class="map-btn active" id="map-random" onclick="loadMap('random')">🎲 Random</button>
+          <button class="map-btn" id="map-maze" onclick="loadMap('maze')">🌀 Maze</button>
+          <button class="map-btn" id="map-warehouse" onclick="loadMap('warehouse')">🏭 Warehouse</button>
+          <button class="map-btn" id="map-office" onclick="loadMap('office')">🏢 Office</button>
+          <button class="map-btn" id="map-lshape" onclick="loadMap('lshape')">📐 L-Shape</button>
+          <button class="map-btn" id="map-open" onclick="loadMap('open')">⬜ Open</button>
+        </div>
+      </div>
+
+      <!-- Drive Model -->
+      <div class="panel-section">
+        <div class="panel-title">Drive Model</div>
+        <div class="select-row">
+          <button class="sel-btn active" id="dm-differential" onclick="setDriveModel('differential')">Differential</button>
+          <button class="sel-btn" id="dm-ackermann" onclick="setDriveModel('ackermann')">Ackermann</button>
+          <button class="sel-btn" id="dm-holonomic" onclick="setDriveModel('holonomic')">Holonomic</button>
+        </div>
+      </div>
+
+      <!-- Sensor Controls -->
+      <div class="panel-section">
+        <div class="panel-title">LiDAR Sensor</div>
+        <div class="control-row">
+          <div class="control-label"><span>Rays</span><span class="control-val" id="valRays">90</span></div>
+          <input type="range" id="slRays" min="20" max="360" value="90" oninput="updateLidar()"/>
+        </div>
+        <div class="control-row">
+          <div class="control-label"><span>Noise %</span><span class="control-val" id="valNoise">2</span></div>
+          <input type="range" id="slNoise" min="0" max="20" value="2" oninput="updateLidar()"/>
+        </div>
+      </div>
+
+      <!-- Odometry -->
+      <div class="panel-section">
+        <div class="panel-title">Odometry Drift</div>
+        <div class="control-row">
+          <div class="control-label"><span>Drift</span><span class="control-val" id="valDrift">0</span></div>
+          <input type="range" id="slDrift" min="0" max="100" value="0" oninput="updateDrift()"/>
+        </div>
+        <div class="control-row">
+          <div class="control-label"><span>Speed</span><span class="control-val" id="valSpeed">5</span></div>
+          <input type="range" id="slSpeed" min="1" max="15" value="5" oninput="updateSpeed()"/>
+        </div>
+      </div>
+
+      <!-- Layers -->
+      <div class="panel-section">
+        <div class="panel-title">Render Layers</div>
+        <div class="toggle-row">
+          <span class="toggle-label">Occupancy Map</span>
+          <label class="toggle"><input type="checkbox" id="chkMap" checked onchange="updateLayers()"/><span class="toggle-slider"></span></label>
+        </div>
+        <div class="toggle-row">
+          <span class="toggle-label">LiDAR Rays</span>
+          <label class="toggle"><input type="checkbox" id="chkLidar" checked onchange="updateLayers()"/><span class="toggle-slider"></span></label>
+        </div>
+        <div class="toggle-row">
+          <span class="toggle-label">Trajectory Trail</span>
+          <label class="toggle"><input type="checkbox" id="chkTrail" checked onchange="updateLayers()"/><span class="toggle-slider"></span></label>
+        </div>
+        <div class="toggle-row">
+          <span class="toggle-label">Particle Filter (MCL)</span>
+          <label class="toggle"><input type="checkbox" id="chkParticles" onchange="toggleParticles()"/><span class="toggle-slider"></span></label>
+        </div>
+        <div class="toggle-row">
+          <span class="toggle-label">Dynamic Obstacles</span>
+          <label class="toggle"><input type="checkbox" id="chkObstacles" onchange="toggleObstacles()"/><span class="toggle-slider"></span></label>
+        </div>
+        <div class="toggle-row">
+          <span class="toggle-label">Dynamic Humans</span>
+          <label class="toggle"><input type="checkbox" id="chkHumans" onchange="toggleHumans()"/><span class="toggle-slider"></span></label>
+        </div>
+        <div class="toggle-row">
+          <span class="toggle-label">Auto-Explore (Frontier)</span>
+          <label class="toggle"><input type="checkbox" id="chkFrontier" onchange="toggleFrontier()"/><span class="toggle-slider"></span></label>
+        </div>
+      </div>
+
+      <!-- Pathfinding -->
+      <div class="panel-section">
+        <div class="panel-title">Pathfinding</div>
+        <div class="select-row" style="margin-bottom:8px;">
+          <button class="sel-btn active" id="pf-astar" onclick="setPathfinder('astar')">A*</button>
+          <button class="sel-btn" id="pf-dijkstra" onclick="setPathfinder('dijkstra')">Dijkstra</button>
+        </div>
+        <p style="font-size:11px;color:var(--text-muted);">Click on canvas to set target waypoint.</p>
+      </div>
+
+      <!-- Stats -->
+      <div class="panel-section">
+        <div class="panel-title">Statistics</div>
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-label">Explored</div>
+            <div class="stat-val green" id="statExplored">0.0%</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Distance</div>
+            <div class="stat-val" id="statDistance">0.0m</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Collisions</div>
+            <div class="stat-val yellow" id="statCollisions">0</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Time</div>
+            <div class="stat-val" id="statTime">0:00</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Legend -->
+      <div class="panel-section">
+        <div class="panel-title">Legend</div>
+        <div class="legend-row"><div class="legend-dot" style="background:#3b82f6;box-shadow:0 0 6px #3b82f6;"></div><span class="legend-label">Robot (true pose)</span></div>
+        <div class="legend-row"><div class="legend-dot" style="background:#ffd166;"></div><span class="legend-label">Believed pose (odometry)</span></div>
+        <div class="legend-row"><div class="legend-dot" style="background:#ff4757;"></div><span class="legend-label">LiDAR hit point</span></div>
+        <div class="legend-row"><div class="legend-line" style="background:rgba(255,71,87,0.5);"></div><span class="legend-label">Occupied ray</span></div>
+        <div class="legend-row"><div class="legend-line" style="background:rgba(0,230,118,0.3);"></div><span class="legend-label">Free ray</span></div>
+        <div class="legend-row"><div class="legend-dot" style="background:rgba(59,130,246,0.5);border:1px solid #3b82f6;"></div><span class="legend-label">MCL particles</span></div>
+        <div class="legend-row"><div class="legend-dot" style="background:#ff6b35;"></div><span class="legend-label">Frontier target</span></div>
+      </div>
+    </div>
+
+    <!-- CANVAS -->
+    <div id="canvas-area">
+      <canvas id="simCanvas"></canvas>
+      <canvas id="overlayCanvas"></canvas>
+      <div id="canvas-info">🖱 Click to set waypoint · WASD to drive manually</div>
+      <div id="fps-counter">60 FPS</div>
+      <div id="click-hint">Simulation stopped — press Launch Sim to start</div>
+    </div>
+
+    <!-- RIGHT PANEL -->
+    <div id="right-panel">
+      <div class="panel-section">
+        <div class="panel-title">Active Algorithm</div>
+        <div class="algo-badge">
+          <div class="algo-icon">🧭</div>
+          <div>
+            <div class="algo-name" id="algoName">A* Pathfinding</div>
+            <div class="algo-desc" id="algoDesc">Heuristic grid search</div>
+          </div>
+        </div>
+        <div class="algo-badge" style="background:var(--blue-dim);border-color:rgba(59,130,246,0.3);">
+          <div class="algo-icon">🗺</div>
+          <div>
+            <div class="algo-name" style="color:var(--cyan);">Bayesian SLAM</div>
+            <div class="algo-desc">Log-odds occupancy grid</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel-section">
+        <div class="panel-title">Keyboard Controls</div>
+        <div class="key-label">Movement</div>
+        <div class="keys-grid">
+          <div></div>
+          <div class="key" id="keyW">W</div>
+          <div></div>
+          <div class="key" id="keyA">A</div>
+          <div class="key" id="keyS">S</div>
+          <div class="key" id="keyD">D</div>
+        </div>
+        <p style="font-size:10px;color:var(--text-muted);margin-top:4px;">Hold keys to drive. Click on map for autonomous navigation.</p>
+      </div>
+
+      <div class="panel-section">
+        <div class="panel-title">Robot State</div>
+        <div style="font-family:var(--font-mono);font-size:11px;color:var(--text-dim);line-height:1.8;">
+          <div>X: <span id="robX" style="color:var(--cyan);">–</span></div>
+          <div>Y: <span id="robY" style="color:var(--cyan);">–</span></div>
+          <div>θ: <span id="robTheta" style="color:var(--cyan);">–</span></div>
+          <div>v: <span id="robSpeed" style="color:var(--green);">–</span></div>
+        </div>
+      </div>
+
+      <div class="panel-section">
+        <div class="panel-title">Event Log</div>
+      </div>
+      <div id="log-panel"></div>
+
+      <div class="panel-section">
+        <div class="panel-title">Mini Map</div>
+      </div>
+      <div id="minimap-container">
+        <canvas id="minimapCanvas" height="120"></canvas>
+        <div id="minimap-label">OCC GRID</div>
+      </div>
+    </div>
+
+  </div><!-- /main -->
+</div><!-- /app -->
+
 <script>
-// ── ROBOAI AUTH GUARD ──
-(function(){
-  try {
-    var s = JSON.parse(localStorage.getItem('roboai_session'));
-    if (!s || !s.email || !s.id) { window.location.replace('index.html?r=slam'); }
-  } catch(e) { window.location.replace('index.html?r=slam'); }
-})();
-</script>
-
-  <!-- ===================================
-       LOADING SCREEN
-  =================================== -->
-  <div id="loader">
-    <div class="loader-logo">SLAM</div>
-    <div class="loader-sub">AUTONOMOUS MAPPING ENGINE</div>
-    <div class="loader-bar-wrap"><div class="loader-bar"></div></div>
-    <div class="loader-status">INITIALIZING LIDAR SUBSYSTEM</div>
-  </div>
-
-  <!-- ===================================
-       LANDING PAGE
-  =================================== -->
-  <div id="landingPage">
-    <div class="landing-grid-overlay"></div>
-    <div class="glow-orb primary"></div>
-    <div class="glow-orb secondary"></div>
-
-    <!-- Navbar -->
-    <nav class="landing-nav">
-      <div class="landing-nav-brand"><span class="n-blue">SLAM</span><span class="n-sep">//</span> ENGINE</div>
-      <div class="landing-nav-links">
-        <a href="#feat-section">FEATURES</a>
-        <a href="./index.html" class="hub-link-btn">← HUB</a>
-      </div>
-    </nav>
-
-    <!-- Hero -->
-    <section class="landing-hero">
-      <div class="hero-text">
-        <div class="hero-badge">v3.0 — ROBOTICS SIMULATION PLATFORM</div>
-        <h1 class="hero-title">Master<br/><span class="gradient-text">SLAM Algorithms</span></h1>
-        <p class="hero-sub">Experience autonomous navigation, real-time Bayesian mapping, and advanced pathfinding algorithms — all visualized in your browser.</p>
-        <div class="hero-features-row">
-          <span class="hero-feat-tag"><span class="fe">🧮</span> Bayesian Mapping</span>
-          <span class="hero-feat-tag"><span class="fe">🌐</span> 3D Point Cloud</span>
-          <span class="hero-feat-tag"><span class="fe">🔗</span> Loop Closure</span>
-          <span class="hero-feat-tag"><span class="fe">🎯</span> Particle Filter</span>
-        </div>
-        <div class="hero-cta">
-          <button id="btnGetStarted" class="btn-launch">LAUNCH SIMULATOR →</button>
-          <a href="#feat-section" class="btn-ghost">EXPLORE FEATURES ↓</a>
-        </div>
-      </div>
-
-      <!-- Robot Visual -->
-      <div class="hero-visual">
-        <div class="robot-scene">
-          <div class="orbit-ring ring-1"></div>
-          <div class="orbit-ring ring-2"></div>
-          <div class="scan-line"></div>
-          <div class="robot-body">
-            <svg class="robot-svg" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
-              <defs>
-                <linearGradient id="robotGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                  <stop offset="0%" stop-color="#3b82f6" />
-                  <stop offset="100%" stop-color="#8b5cf6" />
-                </linearGradient>
-                <filter id="glow"><feGaussianBlur stdDeviation="5" result="coloredBlur"/><feMerge><feMergeNode in="coloredBlur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
-              </defs>
-              <path d="M70 80 Q100 40 130 80" fill="none" stroke="#60a5fa" stroke-width="6" stroke-linecap="round"/>
-              <circle cx="100" cy="70" r="10" fill="#60a5fa" filter="url(#glow)">
-                <animate attributeName="opacity" values="0.5;1;0.5" dur="2s" repeatCount="indefinite"/>
-              </circle>
-              <rect x="50" y="80" width="100" height="70" rx="20" fill="url(#robotGrad)" filter="url(#glow)"/>
-              <rect x="40" y="100" width="20" height="40" rx="5" fill="#1e293b"/>
-              <rect x="140" y="100" width="20" height="40" rx="5" fill="#1e293b"/>
-              <line x1="80" y1="120" x2="120" y2="120" stroke="#0f172a" stroke-width="4"/>
-            </svg>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- Features -->
-    <section class="features-section" id="feat-section">
-      <div class="section-label">CAPABILITIES</div>
-      <div class="section-title">Everything You Need to <span class="gradient-text">Learn Robotics</span></div>
-      <div class="section-sub">A professional-grade simulator packed with real-world SLAM algorithms, interactive controls, and stunning visualizations.</div>
-
-      <div class="cat-label"><span class="cat-dot"></span> CORE SLAM</div>
-      <div class="feat-grid" id="fg1">
-        <div class="feat-card"><div class="feat-icon">📡</div><div class="feat-name">LiDAR SENSOR</div><div class="feat-desc">180° forward-facing LiDAR with adjustable ray density, sensor noise, and real-time distance measurements.</div></div>
-        <div class="feat-card"><div class="feat-icon">🧮</div><div class="feat-name">BAYESIAN GRID</div><div class="feat-desc">Professional-grade occupancy mapping using Bayesian probability with gradient confidence shading.</div></div>
-        <div class="feat-card"><div class="feat-icon">📈</div><div class="feat-name">ODOMETRY DRIFT</div><div class="feat-desc">Simulate real-world wheel encoder errors. The believed position diverges from ground truth.</div></div>
-        <div class="feat-card"><div class="feat-icon">🔗</div><div class="feat-name">LOOP CLOSURE</div><div class="feat-desc">Scan-matching keyframe system detects revisited areas and corrects accumulated drift.</div></div>
-      </div>
-
-      <div class="cat-label"><span class="cat-dot violet"></span> NAVIGATION & CONTROL</div>
-      <div class="feat-grid" id="fg2">
-        <div class="feat-card"><div class="feat-icon">⚡</div><div class="feat-name">A* PATHFINDING</div><div class="feat-desc">Heuristic shortest path through the occupancy grid with wall proximity penalties.</div></div>
-        <div class="feat-card"><div class="feat-icon">🔍</div><div class="feat-name">DIJKSTRA</div><div class="feat-desc">Guaranteed optimal path without heuristics. Compare with A* to understand the tradeoff.</div></div>
-        <div class="feat-card"><div class="feat-icon">🐛</div><div class="feat-name">BUG2 WALL-FOLLOW</div><div class="feat-desc">Reactive algorithm that follows walls to reach goals. Works without a map.</div></div>
-        <div class="feat-card"><div class="feat-icon">🧭</div><div class="feat-name">FRONTIER EXPLORE</div><div class="feat-desc">Autonomous exploration detecting boundaries between known and unknown space.</div></div>
-        <div class="feat-card"><div class="feat-icon">🚗</div><div class="feat-name">3 DRIVE MODELS</div><div class="feat-desc">Differential (tank), Ackermann (car-like), and Holonomic (omnidirectional) kinematics.</div></div>
-      </div>
-
-      <div class="cat-label"><span class="cat-dot green"></span> ADVANCED SYSTEMS</div>
-      <div class="feat-grid" id="fg3">
-        <div class="feat-card"><div class="feat-icon">🎯</div><div class="feat-name">PARTICLE FILTER</div><div class="feat-desc">Monte Carlo Localization with adjustable particle count. Watch hypotheses converge.</div></div>
-        <div class="feat-card"><div class="feat-icon">🔮</div><div class="feat-name">DYNAMIC OBSTACLES</div><div class="feat-desc">Moving walls, sliding doors, and orbiting objects that challenge the SLAM system.</div></div>
-        <div class="feat-card"><div class="feat-icon">🌫️</div><div class="feat-name">FOG OF WAR</div><div class="feat-desc">Unexplored areas remain hidden on the SLAM map, revealing only scanned regions.</div></div>
-      </div>
-
-      <div class="cat-label"><span class="cat-dot amber"></span> TOOLS & VISUALIZATION</div>
-      <div class="feat-grid" id="fg4">
-        <div class="feat-card"><div class="feat-icon">🌐</div><div class="feat-name">3D LIDAR CLOUD</div><div class="feat-desc">Interactive Three.js visualization with distance-colored points and orbit camera.</div></div>
-        <div class="feat-card"><div class="feat-icon">📊</div><div class="feat-name">LIVE CHARTS</div><div class="feat-desc">Real-time polar LiDAR chart plus Sensor HUD with pose, distances, and compass.</div></div>
-        <div class="feat-card"><div class="feat-icon">🏗️</div><div class="feat-name">MAP BUILDER</div><div class="feat-desc">Draw custom walls or load presets — Maze, Warehouse, Office, L-Shape, Open Field.</div></div>
-        <div class="feat-card"><div class="feat-icon">📖</div><div class="feat-name">TUTORIAL SYSTEM</div><div class="feat-desc">Guided 11-step walkthrough teaching every SLAM concept interactively.</div></div>
-      </div>
-
-      <div class="features-cta">
-        <button class="btn-launch" onclick="document.getElementById('btnGetStarted').click()">START EXPLORING NOW →</button>
-      </div>
-
-      <!-- Footer -->
-      <footer class="landing-footer">
-        <p>Created by <strong>Yash Surve</strong> — Automation & Robotics Engineering, MESWCOE</p>
-        <div class="footer-social">
-          <a href="mailto:yashusurve2005@gmail.com" class="footer-social-link">
-            <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="2" fill="none"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
-            EMAIL
-          </a>
-          <a href="https://github.com/Yashs2024" target="_blank" rel="noopener noreferrer" class="footer-social-link">
-            <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="2" fill="none"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/></svg>
-            GITHUB
-          </a>
-          <a href="https://www.linkedin.com/in/yash-surve-3b6a72253" target="_blank" rel="noopener noreferrer" class="footer-social-link">
-            <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="2" fill="none"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"/><rect x="2" y="9" width="4" height="12"/><circle cx="4" cy="4" r="2"/></svg>
-            LINKEDIN
-          </a>
-        </div>
-      </footer>
-    </section>
-  </div>
-
-  <!-- ===================================
-       SIMULATOR UI (hidden until launch)
-  =================================== -->
-
-  <!-- Top Navigation Bar -->
-  <nav id="sim-nav" style="display:none;">
-    <a href="./index.html" class="btn-hub">← HUB</a>
-    <div class="nav-brand"><span class="n-blue">SLAM</span><span class="n-sep">/</span><span class="n-sub">ENGINE v3.0</span></div>
-    <div class="nav-center">
-      <div class="view-tabs">
-        <button class="view-tab active" id="btnRealWorld">REAL WORLD</button>
-        <button class="view-tab" id="btnSlamMap">SLAM MAP</button>
-        <button class="view-tab" id="btn3DView">3D LiDAR</button>
-      </div>
-    </div>
-    <div class="nav-right">
-      <div class="nav-hint"><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> MOVE</div>
-      <span class="nav-status">● LIVE</span>
-    </div>
-  </nav>
-
-  <!-- Main Simulator -->
-  <div id="app" style="display: none;">
-    <!-- Sidebar Toggle -->
-    <button id="btnToggleSidebar" class="sidebar-toggle" title="Toggle Sidebar">
-      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
-    </button>
-
-    <!-- Mobile Toggle -->
-    <button id="btnToggleMobileUI" class="mobile-toggle-btn" title="Toggle Mobile UI">
-      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect><line x1="12" y1="18" x2="12.01" y2="18"></line></svg>
-    </button>
-
-    <!-- Left Control Panel -->
-    <aside class="side-panel sidebar">
-
-      <!-- ===== TAB BAR ===== -->
-      <div class="panel-tab-bar">
-        <button class="panel-tab active" id="tabBasic" onclick="switchPanelTab('basic')">
-          <span class="ptab-icon">⚡</span> BASIC
-        </button>
-        <button class="panel-tab" id="tabAdvanced" onclick="switchPanelTab('advanced')">
-          <span class="ptab-icon">🔬</span> ADVANCED
-        </button>
-        <div class="panel-tab-ink" id="panelTabInk"></div>
-      </div>
-
-      <!-- BASIC TAB -->
-      <div class="panel-tab-content" id="contentBasic">
-
-        <div class="ps">
-          <div class="ps-header"><span><span class="ps-icon">📡</span> SLAM ENGINE</span></div>
-          <button id="btnTutorial" class="btn-tutorial">📖 START TUTORIAL</button>
-        </div>
-
-        <div class="ps">
-          <div class="ps-header"><span><span class="ps-icon">📊</span> PERFORMANCE</span></div>
-          <div class="stats-grid">
-            <div class="stat-box"><div class="sv" id="statExplored">0%</div><div class="sl">EXPLORED</div></div>
-            <div class="stat-box"><div class="sv" id="statDistance">0m</div><div class="sl">DISTANCE</div></div>
-            <div class="stat-box"><div class="sv" id="statCollisions">0</div><div class="sl">COLLISIONS</div></div>
-            <div class="stat-box"><div class="sv" id="statTime">0:00</div><div class="sl">TIME</div></div>
-          </div>
-        </div>
-
-        <div class="ps" id="multiRobotDashboard" style="display:none;">
-          <div class="ps-header"><span><span class="ps-icon">🤖</span> FLEET STATUS</span></div>
-          <div class="mrd-combined">
-            <div><div class="mrd-combined-lbl">COMBINED AREA EXPLORED</div></div>
-            <div class="mrd-combined-val" id="mrdCombinedPct">0%</div>
-          </div>
-          <div class="mrd-progress-bar"><div class="mrd-progress-fill" id="mrdCombinedBar" style="width:0%"></div></div>
-          <div id="mrdRobotCards"></div>
-        </div>
-
-        <div class="ps">
-          <div class="ps-header"><span><span class="ps-icon">🎮</span> INTERACTION</span></div>
-          <div class="btn-group">
-            <button id="btnDriveMode" class="btn-grp active">DRIVE</button>
-            <button id="btnBuildMode" class="btn-grp">BUILD</button>
-          </div>
-          <button id="btnAutoExplore" class="btn-feat green">🧭 Auto Explore</button>
-        </div>
-
-        <div class="ps">
-          <div class="ps-header"><span><span class="ps-icon">🗺️</span> ENVIRONMENT</span></div>
-          <select id="presetSelect">
-            <option value="random">🎲 Random</option>
-            <option value="maze">🏗️ Maze</option>
-            <option value="warehouse">📦 Warehouse</option>
-            <option value="office">🏢 Office</option>
-            <option value="lshape">↰ L-Shape</option>
-            <option value="open">🏜️ Open Field</option>
-          </select>
-          <div style="display:flex; gap:4px; margin-top:6px;">
-            <button id="btnExportMap" class="btn-tool">📤 Export</button>
-            <button id="btnImportMap" class="btn-tool">📥 Import</button>
-            <input type="file" id="importFileInput" accept=".json" style="display:none;" />
-          </div>
-        </div>
-
-        <div class="ps" id="instructionsDrive">
-          <div class="ps-header"><span><span class="ps-icon">⌨️</span> CONTROLS</span></div>
-          <div class="kbd-row"><kbd>W</kbd> Move Forward</div>
-          <div class="kbd-row"><kbd>S</kbd> Move Backward</div>
-          <div class="kbd-row"><kbd>A</kbd> Rotate Left</div>
-          <div class="kbd-row"><kbd>D</kbd> Rotate Right</div>
-          <div class="kbd-row" style="margin-top:4px; color:var(--blue);">Click SLAM Map → Auto-Navigate</div>
-        </div>
-        <div class="ps hidden" id="instructionsBuild">
-          <div class="ps-header"><span><span class="ps-icon">🏗️</span> BUILD MODE</span></div>
-          <div class="kbd-row">Click + Drag to draw walls</div>
-        </div>
-
-        <div class="ps">
-          <div class="ps-header"><span><span class="ps-icon">🔊</span> AUDIO</span></div>
-          <div class="btn-group">
-            <button id="btnSoundOff" class="btn-grp active">🔇 OFF</button>
-            <button id="btnSoundOn" class="btn-grp">🔊 ON</button>
-          </div>
-          <div id="volumeGroup" style="display:none; margin-top:6px;">
-            <div class="ctrl-row"><span class="ctrl-lbl">Volume</span><span class="ctrl-val" id="volumeValue">30%</span></div>
-            <input type="range" id="volumeSlider" min="0" max="100" value="30" step="5">
-          </div>
-        </div>
-
-        <div class="ps" style="border-bottom:none;">
-          <button id="btnReset" class="btn-danger" style="margin-bottom:5px;">↺ Reset Map</button>
-          <button id="btnClearCustom" class="btn-danger">✕ Clear Custom Walls</button>
-        </div>
-
-      </div><!-- /contentBasic -->
-
-      <!-- ADVANCED TAB -->
-      <div class="panel-tab-content hidden" id="contentAdvanced">
-
-        <div class="ps">
-          <div class="ps-header"><span><span class="ps-icon">⚙️</span> SENSOR CONFIG</span></div>
-          <div class="ctrl-row"><span class="ctrl-lbl">LiDAR Noise</span><span class="ctrl-val" id="noiseValue">2%</span></div>
-          <input type="range" id="noiseSlider" min="0" max="20" value="2" step="1">
-          <div class="ctrl-row"><span class="ctrl-lbl">Robot Speed</span><span class="ctrl-val" id="speedValue">5x</span></div>
-          <input type="range" id="speedSlider" min="1" max="10" value="5" step="1">
-          <div class="ctrl-row"><span class="ctrl-lbl">Drive Model</span></div>
-          <select id="driveModelSelect">
-            <option value="differential">⚙️ Differential (Tank)</option>
-            <option value="ackermann">🚗 Ackermann (Car)</option>
-            <option value="holonomic">🔷 Holonomic (Omni)</option>
-          </select>
-          <div class="ctrl-row" style="margin-top:6px;"><span class="ctrl-lbl">Ray Density</span><span class="ctrl-val" id="rayDensityValue">90 Rays</span></div>
-          <input type="range" id="rayDensitySlider" min="30" max="360" value="90" step="10">
-          <div class="ctrl-row"><span class="ctrl-lbl">Odometry Drift</span><span class="ctrl-val" id="driftValue">Off</span></div>
-          <input type="range" id="driftSlider" min="0" max="10" value="0" step="1">
-        </div>
-
-        <div class="ps">
-          <div class="ps-header"><span><span class="ps-icon">🧭</span> PATHFINDING</span></div>
-          <select id="algorithmSelect">
-            <option value="astar">⚡ A* (Heuristic)</option>
-            <option value="dijkstra">🔍 Dijkstra (Optimal)</option>
-            <option value="bug2">🐛 Bug2 (Wall-Follow)</option>
-          </select>
-          <button id="btnAlgoCompare" class="btn-tool" style="margin-top:6px; width:100%;">Compare Algorithms</button>
-          <span id="pathComputeTime" style="font-size:0.6rem;color:var(--text-2);margin-top:4px;display:block;"></span>
-          <div id="algoComparePanel" style="display:none; margin-top:6px; font-size:0.62rem; color:var(--text-1);">
-            <div style="display:grid; grid-template-columns: 1fr auto auto; gap:6px; padding:6px; border:1px solid var(--border); border-radius: var(--r); background: rgba(59,130,246,0.04);">
-              <div style="color:var(--text-2);">Algorithm</div>
-              <div style="color:var(--text-2); text-align:right;">Time</div>
-              <div style="color:var(--text-2); text-align:right;">Length</div>
-              <div id="cmpRowAStar">A*</div>
-              <div id="cmpTimeAStar" style="text-align:right;">-</div>
-              <div id="cmpLenAStar" style="text-align:right;">-</div>
-              <div id="cmpRowDijkstra">Dijkstra</div>
-              <div id="cmpTimeDijkstra" style="text-align:right;">-</div>
-              <div id="cmpLenDijkstra" style="text-align:right;">-</div>
-              <div id="cmpRowBug2">Bug2</div>
-              <div id="cmpTimeBug2" style="text-align:right;">-</div>
-              <div id="cmpLenBug2" style="text-align:right;">-</div>
-            </div>
-            <div style="margin-top:6px; color:var(--text-2);">
-              Click on the SLAM map to compute all 3 paths. The selected algorithm will be executed; all paths are shown on the SLAM view.
-            </div>
-          </div>
-        </div>
-
-        <div class="ps">
-          <div class="ps-header"><span><span class="ps-icon">🔬</span> ADVANCED FEATURES</span></div>
-          <button id="btnDynamicObs" class="btn-feat amber">🔮 Dynamic Obstacles</button>
-          <button id="btnDynamicHumans" class="btn-feat amber">👷 Moving Workers</button>
-          <button id="btnParticleFilter" class="btn-feat violet">🎯 Particle Filter</button>
-          <button id="btnLoopClosure" class="btn-feat violet">🔗 Loop Closure</button>
-          <div id="particleCountGroup" style="display:none; margin-top:6px;">
-            <div class="ctrl-row"><span class="ctrl-lbl">Particles</span><span class="ctrl-val" id="particleCountValue">200</span></div>
-            <input type="range" id="particleCountSlider" min="50" max="500" value="200" step="25">
-          </div>
-        </div>
-
-        <div class="ps">
-          <div class="ps-header"><span><span class="ps-icon">🤖</span> MULTI-ROBOT SLAM</span></div>
-          <div class="ctrl-row"><span class="ctrl-lbl">Fleet Size</span></div>
-          <select id="multiRobotSelect" style="width:100%; margin-top:4px;">
-            <option value="1">1 robot (solo)</option>
-            <option value="2">2 robots — shared grid</option>
-            <option value="3">3 robots — shared grid</option>
-            <option value="4">4 robots — shared grid</option>
-          </select>
-          <label style="display:flex; align-items:center; gap:6px; margin-top:6px; font-size:0.62rem; color:var(--text-2); cursor:pointer;">
-            <input type="checkbox" id="chkPartnerLidar" checked /> Partner LiDAR cones
-          </label>
-          <label style="display:flex; align-items:center; gap:6px; margin-top:4px; font-size:0.62rem; color:var(--text-2); cursor:pointer;">
-            <input type="checkbox" id="chkPartnerAutoExplore" checked /> Auto-explore (each robot independent)
-          </label>
-        </div>
-
-        <div class="ps">
-          <div class="ps-header"><span><span class="ps-icon">📈</span> LIVE SENSOR DATA</span></div>
-          <div class="chart-wrap"><canvas id="lidarChart"></canvas></div>
-        </div>
-        <div class="ps">
-          <div class="ps-header"><span><span class="ps-icon">📉</span> ROBOT DYNAMICS</span></div>
-          <div class="chart-wrap"><canvas id="dynamicsChart"></canvas></div>
-        </div>
-
-      </div><!-- /contentAdvanced -->
-
-    </aside>
-
-
-
-    <!-- Main Canvas Area -->
-    <main class="canvas-area">
-      <div class="viewport-badge" id="viewportBadge">REAL WORLD VIEW</div>
-      <canvas id="realWorldCanvas"></canvas>
-      <canvas id="slamCanvas" class="hidden"></canvas>
-      <div id="pointCloudContainer" class="hidden"></div>
-
-      <!-- Virtual Joystick Zones -->
-      <div id="joystickLeft" class="joystick-zone left-zone"></div>
-      <div id="joystickRight" class="joystick-zone right-zone"></div>
-    </main>
-  </div>
-
-  <!-- Donation Modal -->
-  <div id="donateModal" class="donate-overlay" style="display: none;">
-    <div class="donate-modal">
-      <button class="donate-close" id="btnDonateClose">&times;</button>
-      <h2>Support the Project</h2>
-      <p>If you find this simulator helpful, consider supporting its development!</p>
-      <img src="./donate.jpeg" alt="Donate QR Code" />
-    </div>
-  </div>
-
-  <script>
-    /** Switch between Basic and Advanced sidebar tabs */
-    function switchPanelTab(tab) {
-      const basic    = document.getElementById('contentBasic');
-      const advanced = document.getElementById('contentAdvanced');
-      const tabB     = document.getElementById('tabBasic');
-      const tabA     = document.getElementById('tabAdvanced');
-      const ink      = document.getElementById('panelTabInk');
-      if (!basic || !advanced) return;
-      if (tab === 'basic') {
-        basic.classList.remove('hidden');
-        advanced.classList.add('hidden');
-        tabB.classList.add('active');
-        tabA.classList.remove('active');
-        ink.classList.remove('advanced');
-      } else {
-        basic.classList.add('hidden');
-        advanced.classList.remove('hidden');
-        tabA.classList.add('active');
-        tabB.classList.remove('active');
-        ink.classList.add('advanced');
+// ═══════════════════════════════════════════════════
+//  ENVIRONMENT CLASS
+// ═══════════════════════════════════════════════════
+class Environment {
+  constructor(width, height) {
+    this.width = width; this.height = height;
+    this.baseWalls = []; this.customWalls = []; this.dynamicWalls = [];
+    this.generateRandomMap();
+  }
+  setDynamicWalls(walls) { this.dynamicWalls = walls; }
+  resize(w, h) { this.width = w; this.height = h; this.generateRandomMap(); }
+  generateRandomMap() {
+    this.baseWalls = [];
+    const inset = 50;
+    this._addBoundary(inset);
+    for (let i = 0; i < 8; i++) {
+      const x1 = inset + Math.random() * (this.width - 2*inset);
+      const y1 = inset + Math.random() * (this.height - 2*inset);
+      const angle = Math.random() * Math.PI * 2;
+      const length = 100 + Math.random() * 200;
+      const x2 = x1 + Math.cos(angle)*length, y2 = y1 + Math.sin(angle)*length;
+      if (x2>inset && x2<this.width-inset && y2>inset && y2<this.height-inset)
+        this.baseWalls.push({start:{x:x1,y:y1}, end:{x:x2,y:y2}});
+    }
+  }
+  loadPreset(name) {
+    this.baseWalls = []; this.customWalls = [];
+    const inset = 50;
+    this._addBoundary(inset);
+    if (name==='maze') this._buildMaze(inset);
+    else if (name==='warehouse') this._buildWarehouse(inset);
+    else if (name==='office') this._buildOffice(inset);
+    else if (name==='lshape') this._buildLShape(inset);
+    else if (name==='open') { /* just boundary */ }
+    else this.generateRandomMap();
+  }
+  _addBoundary(inset) {
+    const w=this.width, h=this.height;
+    this.baseWalls.push({start:{x:inset,y:inset},end:{x:w-inset,y:inset}});
+    this.baseWalls.push({start:{x:w-inset,y:inset},end:{x:w-inset,y:h-inset}});
+    this.baseWalls.push({start:{x:w-inset,y:h-inset},end:{x:inset,y:h-inset}});
+    this.baseWalls.push({start:{x:inset,y:h-inset},end:{x:inset,y:inset}});
+  }
+  _buildMaze(inset) {
+    const w=this.width-2*inset, h=this.height-2*inset, ox=inset, oy=inset;
+    const rows=5, rowSpacing=h/(rows+1);
+    for (let r=1;r<=rows;r++) {
+      const y=oy+r*rowSpacing;
+      const gs=(r%2===0)?0.1:0.6, ge=gs+0.2;
+      this.baseWalls.push({start:{x:ox,y},end:{x:ox+w*gs,y}});
+      this.baseWalls.push({start:{x:ox+w*ge,y},end:{x:ox+w,y}});
+    }
+    this.baseWalls.push({start:{x:ox+w*0.4,y:oy},end:{x:ox+w*0.4,y:oy+h*0.35}});
+    this.baseWalls.push({start:{x:ox+w*0.7,y:oy+h*0.5},end:{x:ox+w*0.7,y:oy+h}});
+  }
+  _buildWarehouse(inset) {
+    const w=this.width-2*inset, h=this.height-2*inset, ox=inset, oy=inset;
+    const shelfRows=6, spacing=h/(shelfRows+1), sw=w*0.55;
+    for (let r=1;r<=shelfRows;r++) {
+      const y=oy+r*spacing, xs=(r%2===0)?ox+w*0.1:ox+w*0.35;
+      this.baseWalls.push({start:{x:xs,y},end:{x:xs+sw,y}});
+    }
+    this.baseWalls.push({start:{x:ox+w*0.5,y:oy+h*0.15},end:{x:ox+w*0.5,y:oy+h*0.85}});
+  }
+  _buildOffice(inset) {
+    const w=this.width-2*inset, h=this.height-2*inset, ox=inset, oy=inset;
+    this.baseWalls.push({start:{x:ox,y:oy+h*0.45},end:{x:ox+w,y:oy+h*0.45}});
+    this.baseWalls.push({start:{x:ox,y:oy+h*0.55},end:{x:ox+w,y:oy+h*0.55}});
+    this.baseWalls.push({start:{x:ox+w*0.33,y:oy},end:{x:ox+w*0.33,y:oy+h*0.35}});
+    this.baseWalls.push({start:{x:ox+w*0.66,y:oy},end:{x:ox+w*0.66,y:oy+h*0.35}});
+    this.baseWalls.push({start:{x:ox+w*0.5,y:oy+h*0.65},end:{x:ox+w*0.5,y:oy+h}});
+  }
+  _buildLShape(inset) {
+    const w=this.width-2*inset, h=this.height-2*inset, ox=inset, oy=inset;
+    this.baseWalls.push({start:{x:ox+w*0.45,y:oy+h*0.45},end:{x:ox+w,y:oy+h*0.45}});
+    this.baseWalls.push({start:{x:ox+w*0.45,y:oy},end:{x:ox+w*0.45,y:oy+h*0.45}});
+    this.baseWalls.push({start:{x:ox,y:oy+h*0.7},end:{x:ox+w*0.3,y:oy+h*0.7}});
+    this.baseWalls.push({start:{x:ox+w*0.7,y:oy+h*0.6},end:{x:ox+w*0.7,y:oy+h}});
+    this.baseWalls.push({start:{x:ox+w*0.2,y:oy+h*0.2},end:{x:ox+w*0.2,y:oy+h*0.4}});
+  }
+  addCustomWall(start, end) { this.customWalls.push({start,end}); }
+  clearCustomWalls() { this.customWalls = []; }
+  getWalls() { return this.baseWalls.concat(this.customWalls, this.dynamicWalls); }
+  findSafeSpawn(robotRadius=20) {
+    const walls=this.getWalls(), cx=this.width/2, cy=this.height/2;
+    const isColliding=(px,py)=>walls.some(w=>this._circleLineIntersect(px,py,robotRadius+5,w.start,w.end));
+    if (!isColliding(cx,cy)) return {x:cx,y:cy};
+    const inset=50+robotRadius;
+    for (let radius=30; radius<Math.max(this.width,this.height)/2; radius+=20) {
+      const steps=Math.max(8,Math.floor(radius/10));
+      for (let i=0;i<steps;i++) {
+        const angle=(i/steps)*Math.PI*2;
+        const px=cx+Math.cos(angle)*radius, py=cy+Math.sin(angle)*radius;
+        if (px<inset||px>this.width-inset||py<inset||py>this.height-inset) continue;
+        if (!isColliding(px,py)) return {x:px,y:py};
       }
     }
-  </script>
+    return {x:inset,y:inset};
+  }
+  _circleLineIntersect(cx,cy,r,p1,p2) {
+    const dx=p2.x-p1.x, dy=p2.y-p1.y, lenSq=dx*dx+dy*dy;
+    let t=0;
+    if (lenSq!==0) t=Math.max(0,Math.min(1,((cx-p1.x)*dx+(cy-p1.y)*dy)/lenSq));
+    const ex=p1.x+t*dx-cx, ey=p1.y+t*dy-cy;
+    return ex*ex+ey*ey < r*r;
+  }
+}
 
-  <!-- Feature card scroll animation -->
-  <script>
-    document.addEventListener('DOMContentLoaded', () => {
-      // Feature card animations
-      const observer = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-          if (entry.isIntersecting) {
-            const cards = entry.target.querySelectorAll('.feat-card');
-            cards.forEach((card, i) => {
-              setTimeout(() => card.classList.add('visible'), i * 100);
-            });
-            observer.unobserve(entry.target);
-          }
+// ═══════════════════════════════════════════════════
+//  LIDAR CLASS
+// ═══════════════════════════════════════════════════
+class Lidar {
+  constructor() { this.numRays=90; this.maxRange=600; this.noisePercent=2; }
+  setParameters(numRays, noisePercent) { this.numRays=numRays; this.noisePercent=noisePercent; }
+  scan(robot, environment, dynamicHumans=null) {
+    const hits=[], fov=Math.PI*2, angleStep=fov/this.numRays;
+    const startAngle=robot.theta - fov/2;
+    for (let i=0;i<this.numRays;i++) {
+      const rayAngle=startAngle+i*angleStep;
+      const p1={x:robot.x,y:robot.y};
+      const p2={x:robot.x+Math.cos(rayAngle)*this.maxRange, y:robot.y+Math.sin(rayAngle)*this.maxRange};
+      let closest=null, minDist=this.maxRange;
+      environment.getWalls().forEach(wall=>{
+        const ix=this._lineIntersect(p1,p2,wall.start,wall.end);
+        if (ix) { const d=this._dist(p1,ix); if(d<minDist){minDist=d;closest={...ix,distance:d,angle:rayAngle,hit:true,type:'wall'};}}
+      });
+      if (dynamicHumans) {
+        dynamicHumans.getHumans().forEach(h=>{
+          const ixs=this._lineCircleIntersections(p1,p2,h.x,h.y,h.radius);
+          if (ixs) ixs.forEach(ix=>{const d=this._dist(p1,ix);if(d<minDist){minDist=d;closest={...ix,distance:d,angle:rayAngle,hit:true,type:'human'};}});
         });
-      }, { threshold: 0.15 });
-      document.querySelectorAll('.feat-grid').forEach(grid => observer.observe(grid));
+      }
+      if (!closest) {
+        closest={x:p2.x,y:p2.y,distance:this.maxRange,angle:rayAngle,hit:false};
+      } else if (this.noisePercent>0) {
+        const err=(Math.random()*2-1)*(this.noisePercent/100)*this.maxRange;
+        closest.distance+=err;
+        closest.x=p1.x+Math.cos(rayAngle)*closest.distance;
+        closest.y=p1.y+Math.sin(rayAngle)*closest.distance;
+      }
+      hits.push(closest);
+    }
+    return hits;
+  }
+  _lineIntersect(p1,p2,p3,p4) {
+    const denom=(p1.x-p2.x)*(p3.y-p4.y)-(p1.y-p2.y)*(p3.x-p4.x);
+    if (denom===0) return null;
+    const t=((p1.x-p3.x)*(p3.y-p4.y)-(p1.y-p3.y)*(p3.x-p4.x))/denom;
+    const u=-((p1.x-p2.x)*(p1.y-p3.y)-(p1.y-p2.y)*(p1.x-p3.x))/denom;
+    if (t>=0&&t<=1&&u>=0&&u<=1) return {x:p1.x+t*(p2.x-p1.x),y:p1.y+t*(p2.y-p1.y)};
+    return null;
+  }
+  _lineCircleIntersections(p1,p2,cx,cy,r) {
+    const dx=p2.x-p1.x, dy=p2.y-p1.y;
+    const A=dx*dx+dy*dy, B=2*(dx*(p1.x-cx)+dy*(p1.y-cy));
+    const C=(p1.x-cx)**2+(p1.y-cy)**2-r*r, det=B*B-4*A*C;
+    if (A<=1e-7||det<0) return null;
+    const ixs=[];
+    const t1=(-B+Math.sqrt(det))/(2*A), t2=(-B-Math.sqrt(det))/(2*A);
+    if (t1>=0&&t1<=1) ixs.push({x:p1.x+t1*dx,y:p1.y+t1*dy});
+    if (t2>=0&&t2<=1) ixs.push({x:p1.x+t2*dx,y:p1.y+t2*dy});
+    return ixs.length>0?ixs:null;
+  }
+  _dist(a,b){return Math.sqrt((a.x-b.x)**2+(a.y-b.y)**2);}
+}
 
-      // Loading screen
-      const loader = document.getElementById('loader');
-      const statusEl = loader.querySelector('.loader-status');
-      const messages = ['CALIBRATING SENSORS', 'LOADING ALGORITHMS', 'MAPPING ENVIRONMENT', 'SYSTEM READY'];
-      let mi = 0;
-      const msgInterval = setInterval(() => {
-        mi++;
-        if (mi < messages.length) { statusEl.textContent = messages[mi]; }
-        else { clearInterval(msgInterval); }
-      }, 350);
-      setTimeout(() => {
-        loader.classList.add('fade');
-        setTimeout(() => loader.remove(), 800);
-      }, 1500);
-
-      // Viewport badge update
-      const btnRW = document.getElementById('btnRealWorld');
-      const btnSM = document.getElementById('btnSlamMap');
-      const btn3D = document.getElementById('btn3DView');
-      const badge = document.getElementById('viewportBadge');
-      if (btnRW) btnRW.addEventListener('click', () => { if (badge) badge.textContent = 'REAL WORLD VIEW'; });
-      if (btnSM) btnSM.addEventListener('click', () => { if (badge) badge.textContent = 'SLAM OCCUPANCY MAP'; });
-      if (btn3D) btn3D.addEventListener('click', () => { if (badge) badge.textContent = '3D LiDAR POINT CLOUD'; });
+// ═══════════════════════════════════════════════════
+//  MAPPER (Bayesian Log-Odds Occupancy Grid)
+// ═══════════════════════════════════════════════════
+class Mapper {
+  constructor(canvasWidth, canvasHeight, cellSize=10) {
+    this.cellSize=cellSize;
+    this.cols=Math.ceil(canvasWidth/cellSize); this.rows=Math.ceil(canvasHeight/cellSize);
+    this.grid=new Float32Array(this.cols*this.rows);
+    this.L_OCC=0.85; this.L_FREE=-0.4; this.L_MAX=5.0; this.L_MIN=-5.0;
+    this._colorLUT=this._buildColorLUT();
+  }
+  _buildColorLUT() {
+    const lut=new Array(256);
+    for(let i=0;i<256;i++){const b=255-i;lut[i]=`rgb(${b},${b},${b})`;}
+    return lut;
+  }
+  clear(){this.grid.fill(0);}
+  resize(w,h){this.cols=Math.ceil(w/this.cellSize);this.rows=Math.ceil(h/this.cellSize);this.grid=new Float32Array(this.cols*this.rows);}
+  _logOddsToProbability(l){return 1-1/(1+Math.exp(l));}
+  getProbability(col,row){
+    if(col<0||col>=this.cols||row<0||row>=this.rows) return 0.5;
+    return this._logOddsToProbability(this.grid[col+row*this.cols]);
+  }
+  isKnown(col,row){
+    if(col<0||col>=this.cols||row<0||row>=this.rows) return false;
+    return this.grid[col+row*this.cols]!==0;
+  }
+  isBlocked(col,row){
+    if(col<0||col>=this.cols||row<0||row>=this.rows) return true;
+    return this.grid[col+row*this.cols]>0;
+  }
+  updateMap(robot, scanHits) {
+    scanHits.forEach(hit=>{
+      const dx=hit.x-robot.x, dy=hit.y-robot.y;
+      const steps=Math.max(Math.abs(dx),Math.abs(dy))/(this.cellSize/2);
+      if(steps===0) return;
+      const xi=dx/steps, yi=dy/steps;
+      let cx=robot.x, cy=robot.y;
+      for(let i=0;i<steps;i++){
+        if(hit.hit&&i>steps-2) break;
+        this._updateCell(cx,cy,this.L_FREE);
+        cx+=xi; cy+=yi;
+      }
+      if(hit.hit&&hit.distance>20) this._updateCell(hit.x,hit.y,this.L_OCC);
     });
-  </script>
+  }
+  _updateCell(x,y,delta){
+    const col=Math.floor(x/this.cellSize), row=Math.floor(y/this.cellSize);
+    if(col>=0&&col<this.cols&&row>=0&&row<this.rows){
+      const idx=col+row*this.cols;
+      this.grid[idx]=Math.max(this.L_MIN,Math.min(this.L_MAX,this.grid[idx]+delta));
+    }
+  }
+  getCellState(col,row){
+    if(col<0||col>=this.cols||row<0||row>=this.rows) return 0;
+    const l=this.grid[col+row*this.cols];
+    if(l===0) return 0;
+    return l<0?1:-1;
+  }
+  drawMap(ctx){
+    ctx.save();
+    for(let r=0;r<this.rows;r++){
+      for(let c=0;c<this.cols;c++){
+        const l=this.grid[c+r*this.cols];
+        if(l===0) continue;
+        const prob=this._logOddsToProbability(l);
+        const ci=Math.round(prob*255);
+        ctx.fillStyle=this._colorLUT[ci];
+        ctx.fillRect(c*this.cellSize,r*this.cellSize,this.cellSize,this.cellSize);
+      }
+    }
+    ctx.restore();
+  }
+}
 
-  <script type="module" src="./src/main.js"></script>
+// ═══════════════════════════════════════════════════
+//  ROBOT CLASS
+// ═══════════════════════════════════════════════════
+class Robot {
+  constructor(x,y) {
+    this.x=x; this.y=y; this.theta=0;
+    this.believedX=x; this.believedY=y; this.believedTheta=0;
+    this.radius=20;
+    this.forwardSpeed=0; this.turnSpeed=0; this.strafeSpeed=0;
+    this.maxSpeed=5; this.maxTurn=0.05;
+    this.driveModel='differential'; this.steeringAngle=0; this.wheelbase=30; this.maxSteeringAngle=Math.PI/5;
+    this.path=null; this.pathIndex=0; this.driftAmount=0;
+    this.trueTrail=[]; this.believedTrail=[]; this.maxTrailLength=800; this._trailCounter=0;
+  }
+  setDrift(a){this.driftAmount=a;}
+  setDriveModel(m){this.driveModel=m;this.forwardSpeed=0;this.turnSpeed=0;this.strafeSpeed=0;this.steeringAngle=0;}
+  resetTrails(){this.trueTrail=[];this.believedTrail=[];}
+  setPath(p){this.path=p;this.pathIndex=0;}
+  autonomousDrive(dynamicHumans=null) {
+    if(!this.path||this.pathIndex>=this.path.length){this.path=null;return;}
+    const target=this.path[this.pathIndex];
+    const dx=target.x-this.x, dy=target.y-this.y;
+    const distance=Math.sqrt(dx*dx+dy*dy);
+    if(distance<15){this.pathIndex++;if(this.pathIndex>=this.path.length){this.path=null;this.forwardSpeed=0;this.turnSpeed=0;return;}}
+    let targetTheta=Math.atan2(dy,dx), speedMult=1.0;
+    if(dynamicHumans) {
+      for(const h of dynamicHumans.getHumans()){
+        const hx=h.x-this.x, hy=h.y-this.y, hDist=Math.sqrt(hx*hx+hy*hy);
+        if(hDist<this.radius*3){
+          const hAngle=Math.atan2(hy,hx);
+          let adiff=hAngle-targetTheta;
+          while(adiff>Math.PI)adiff-=Math.PI*2;while(adiff<-Math.PI)adiff+=Math.PI*2;
+          if(Math.abs(adiff)<Math.PI/1.5){
+            if(hDist<this.radius*1.5){speedMult=0;break;}
+            else{targetTheta+=Math.sign(-adiff||1)*((this.radius*3-hDist)/(this.radius*3))*1.5;speedMult=0.5;}
+          }
+        }
+      }
+    }
+    let angleDiff=targetTheta-this.theta;
+    while(angleDiff>Math.PI)angleDiff-=Math.PI*2;while(angleDiff<-Math.PI)angleDiff+=Math.PI*2;
+    if (this.driveModel === 'ackermann') {
+      this.steeringAngle = Math.max(-this.maxSteeringAngle, Math.min(this.maxSteeringAngle, angleDiff * 1.5));
+      this.turnSpeed = 0;
+      this.forwardSpeed = this.maxSpeed * 0.6 * speedMult;
+    } else {
+      this.turnSpeed = Math.max(-this.maxTurn, Math.min(this.maxTurn, angleDiff * 0.1));
+      this.forwardSpeed = Math.abs(angleDiff) > 0.5 ? 0 : this.maxSpeed * 0.8 * speedMult;
+    }
+  }
+  update(environment, dynamicHumans=null) {
+    if(this.path) this.autonomousDrive(dynamicHumans);
+    let nextX, nextY;
+    switch(this.driveModel){
+      case 'ackermann':
+        if(Math.abs(this.forwardSpeed)>0.01){
+          const tr=this.wheelbase/Math.tan(Math.abs(this.steeringAngle)+0.001);
+          this.theta+=this.forwardSpeed/tr*Math.sign(this.steeringAngle);
+        }
+        nextX=this.x+Math.cos(this.theta)*this.forwardSpeed;
+        nextY=this.y+Math.sin(this.theta)*this.forwardSpeed;
+        break;
+      case 'holonomic':
+        this.theta+=this.turnSpeed;
+        nextX=this.x+Math.cos(this.theta)*this.forwardSpeed+Math.cos(this.theta+Math.PI/2)*this.strafeSpeed;
+        nextY=this.y+Math.sin(this.theta)*this.forwardSpeed+Math.sin(this.theta+Math.PI/2)*this.strafeSpeed;
+        break;
+      default:
+        this.theta+=this.turnSpeed;
+        nextX=this.x+Math.cos(this.theta)*this.forwardSpeed;
+        nextY=this.y+Math.sin(this.theta)*this.forwardSpeed;
+    }
+    let hitWall=false;
+    if(environment){
+      for(const wall of environment.getWalls()){
+        if(this._circleLineIntersect(nextX,nextY,this.radius,wall.start,wall.end)){hitWall=true;break;}
+      }
+    }
+    if(!hitWall){this.x=nextX;this.y=nextY;}
+    this._updateBelievedPose(hitWall);
+    this._trailCounter++;
+    if(this._trailCounter%3===0){
+      this.trueTrail.push({x:this.x,y:this.y});
+      this.believedTrail.push({x:this.believedX,y:this.believedY});
+      if(this.trueTrail.length>this.maxTrailLength){this.trueTrail.shift();this.believedTrail.shift();}
+    }
+    return hitWall;
+  }
+  _updateBelievedPose(hitWall){
+    if(this.driftAmount===0){this.believedX=this.x;this.believedY=this.y;this.believedTheta=this.theta;return;}
+    const ds=this.driftAmount*0.002;
+    const tn=(Math.random()-0.5)*ds*2;
+    this.believedTheta+=this.turnSpeed+tn;
+    const sn=(Math.random()-0.5)*ds*this.forwardSpeed*3;
+    const an=(Math.random()-0.5)*ds*0.5;
+    if(!hitWall){
+      this.believedX+=Math.cos(this.believedTheta+an)*(this.forwardSpeed+sn);
+      this.believedY+=Math.sin(this.believedTheta+an)*(this.forwardSpeed+sn);
+    }
+  }
+  _circleLineIntersect(cx,cy,r,p1,p2){
+    const dx=p2.x-p1.x, dy=p2.y-p1.y, lenSq=dx*dx+dy*dy;
+    let t=0;
+    if(lenSq!==0) t=Math.max(0,Math.min(1,((cx-p1.x)*dx+(cy-p1.y)*dy)/lenSq));
+    const ex=p1.x+t*dx-cx, ey=p1.y+t*dy-cy;
+    return ex*ex+ey*ey<r*r;
+  }
+  applyInput(keys){
+    const isManual=keys['w']||keys['s']||keys['a']||keys['d'];
+    if(isManual) this.path=null;
+    if(isManual||!this.path){
+      switch(this.driveModel){
+        case 'ackermann':
+          this.forwardSpeed=0;this.steeringAngle*=0.9;
+          if(keys['w'])this.forwardSpeed=this.maxSpeed;
+          if(keys['s'])this.forwardSpeed=-this.maxSpeed*0.5;
+          if(keys['a'])this.steeringAngle=Math.max(-this.maxSteeringAngle,this.steeringAngle-0.03);
+          if(keys['d'])this.steeringAngle=Math.min(this.maxSteeringAngle,this.steeringAngle+0.03);
+          this.turnSpeed=0;break;
+        case 'holonomic':
+          this.forwardSpeed=0;this.strafeSpeed=0;this.turnSpeed=0;
+          if(keys['w'])this.forwardSpeed=this.maxSpeed;
+          if(keys['s'])this.forwardSpeed=-this.maxSpeed;
+          if(keys['a'])this.strafeSpeed=-this.maxSpeed;
+          if(keys['d'])this.strafeSpeed=this.maxSpeed;
+          break;
+        default:
+          this.forwardSpeed=0;this.turnSpeed=0;
+          if(keys['w'])this.forwardSpeed=this.maxSpeed;
+          if(keys['s'])this.forwardSpeed=-this.maxSpeed;
+          if(keys['a'])this.turnSpeed=-this.maxTurn;
+          if(keys['d'])this.turnSpeed=this.maxTurn;
+      }
+    }
+  }
+}
+
+// ═══════════════════════════════════════════════════
+//  A* PATHFINDING
+// ═══════════════════════════════════════════════════
+class AStar {
+  constructor(mapper){this.mapper=mapper;this.name='A*';}
+  heuristic(n,g){const dx=n.col-g.col,dy=n.row-g.row;return Math.sqrt(dx*dx+dy*dy);}
+  findPath(sx,sy,ex,ey){
+    const sc=Math.floor(sx/this.mapper.cellSize), sr=Math.floor(sy/this.mapper.cellSize);
+    const gc=Math.floor(ex/this.mapper.cellSize), gr=Math.floor(ey/this.mapper.cellSize);
+    if(gc<0||gc>=this.mapper.cols||gr<0||gr>=this.mapper.rows) return [];
+    if(this.mapper.isBlocked(gc,gr)) return [];
+    const N=this.mapper.cols*this.mapper.rows;
+    const gScores=new Float32Array(N).fill(Infinity);
+    const closed=new Uint8Array(N);
+    const inOpen=new Uint8Array(N);
+    const cameFrom=new Array(N);
+    const si=sc+sr*this.mapper.cols;
+    gScores[si]=0;
+    const openSet=[{col:sc,row:sr,gScore:0,fScore:this.heuristic({col:sc,row:sr},{col:gc,row:gr})}];
+    inOpen[si]=1;
+    const dirs=[{c:0,r:-1},{c:0,r:1},{c:-1,r:0},{c:1,r:0},{c:-1,r:-1},{c:1,r:-1},{c:-1,r:1},{c:1,r:1}];
+    while(openSet.length>0){
+      let li=0;
+      for(let i=1;i<openSet.length;i++) if(openSet[i].fScore<openSet[li].fScore) li=i;
+      const cur=openSet[li];
+      if(cur.col===gc&&cur.row===gr){
+        const path=[];let c=cur;
+        let safety=0;
+        while(c && safety < 5000){
+          path.push({x:c.col*this.mapper.cellSize+this.mapper.cellSize/2,y:c.row*this.mapper.cellSize+this.mapper.cellSize/2});
+          c=cameFrom[c.col+c.row*this.mapper.cols];
+          safety++;
+        }
+        return path.reverse();
+      }
+      openSet.splice(li,1);
+      const ci=cur.col+cur.row*this.mapper.cols;
+      inOpen[ci]=0;closed[ci]=1;
+      for(const d of dirs){
+        const nc=cur.col+d.c, nr=cur.row+d.r;
+        if(nc<0||nc>=this.mapper.cols||nr<0||nr>=this.mapper.rows) continue;
+        const ni=nc+nr*this.mapper.cols;
+        if(closed[ni]||this.mapper.isBlocked(nc,nr)) continue;
+        const diag=Math.abs(d.c)===1&&Math.abs(d.r)===1;
+        if(diag&&(this.mapper.isBlocked(cur.col+d.c,cur.row)||this.mapper.isBlocked(cur.col,cur.row+d.r))) continue;
+        const cost=diag?Math.SQRT2:1;
+        const tg=gScores[ci]+cost;
+        if(tg<gScores[ni]){
+          cameFrom[ni]={col:cur.col,row:cur.row};
+          gScores[ni]=tg;
+          const fs=tg+this.heuristic({col:nc,row:nr},{col:gc,row:gr});
+          if(!inOpen[ni]){openSet.push({col:nc,row:nr,gScore:tg,fScore:fs});inOpen[ni]=1;}
+        }
+      }
+    }
+    return [];
+  }
+}
+
+// ═══════════════════════════════════════════════════
+//  DIJKSTRA PATHFINDING
+// ═══════════════════════════════════════════════════
+class Dijkstra {
+  constructor(mapper){this.mapper=mapper;this.name='Dijkstra';}
+  findPath(sx,sy,ex,ey){
+    const sc=Math.floor(sx/this.mapper.cellSize),sr=Math.floor(sy/this.mapper.cellSize);
+    const gc=Math.floor(ex/this.mapper.cellSize),gr=Math.floor(ey/this.mapper.cellSize);
+    if(gc<0||gc>=this.mapper.cols||gr<0||gr>=this.mapper.rows) return [];
+    if(this.mapper.isBlocked(gc,gr)) return [];
+    const N=this.mapper.cols*this.mapper.rows;
+    const dist=new Float32Array(N).fill(Infinity);
+    const visited=new Uint8Array(N);
+    const cameFrom=new Array(N);
+    const si=sc+sr*this.mapper.cols;
+    dist[si]=0;
+    const openSet=[{col:sc,row:sr,d:0}];
+    const dirs=[{c:0,r:-1},{c:0,r:1},{c:-1,r:0},{c:1,r:0},{c:-1,r:-1},{c:1,r:-1},{c:-1,r:1},{c:1,r:1}];
+    while(openSet.length>0){
+      let li=0;
+      for(let i=1;i<openSet.length;i++) if(openSet[i].d<openSet[li].d) li=i;
+      const cur=openSet[li]; openSet.splice(li,1);
+      const ci=cur.col+cur.row*this.mapper.cols;
+      if(visited[ci]) continue; visited[ci]=1;
+      if(cur.col===gc&&cur.row===gr){
+        const path=[];let c=cur;
+        let safety=0;
+        while(c && safety < 5000){
+          path.push({x:c.col*this.mapper.cellSize+this.mapper.cellSize/2,y:c.row*this.mapper.cellSize+this.mapper.cellSize/2});
+          c=cameFrom[c.col+c.row*this.mapper.cols];
+          safety++;
+        }
+        return path.reverse();
+      }
+      for(const d of dirs){
+        const nc=cur.col+d.c,nr=cur.row+d.r;
+        if(nc<0||nc>=this.mapper.cols||nr<0||nr>=this.mapper.rows) continue;
+        const ni=nc+nr*this.mapper.cols;
+        if(visited[ni]||this.mapper.isBlocked(nc,nr)) continue;
+        const cost=(Math.abs(d.c)===1&&Math.abs(d.r)===1)?Math.SQRT2:1;
+        if(dist[ci]+cost<dist[ni]){
+          dist[ni]=dist[ci]+cost;
+          cameFrom[ni]={col:cur.col,row:cur.row};
+          openSet.push({col:nc,row:nr,d:dist[ni]});
+        }
+      }
+    }
+    return [];
+  }
+}
+
+// ═══════════════════════════════════════════════════
+//  FRONTIER EXPLORER
+// ═══════════════════════════════════════════════════
+class FrontierExplorer {
+  constructor(mapper){this.mapper=mapper;}
+  findBestFrontier(rx,ry,blacklist=[]){
+    const fronts=this._detectFrontiers();
+    if(fronts.length===0) return null;
+    const clusters=this._clusterFrontiers(fronts);
+    if(clusters.length===0) return null;
+    const rc=Math.floor(rx/this.mapper.cellSize),rr=Math.floor(ry/this.mapper.cellSize);
+    let bestScore=-Infinity, bestTarget=null;
+    for(const cluster of clusters){
+      let cx=0,cy=0;
+      for(const cell of cluster){cx+=cell.col;cy+=cell.row;}
+      cx/=cluster.length;cy/=cluster.length;
+      
+      const tx=cx*this.mapper.cellSize+this.mapper.cellSize/2;
+      const ty=cy*this.mapper.cellSize+this.mapper.cellSize/2;
+      
+      // Check blacklist
+      const isBlacklisted = blacklist.some(b => {
+        const dx = b.x - tx, dy = b.y - ty;
+        return Math.sqrt(dx*dx + dy*dy) < 40;
+      });
+      if (isBlacklisted) continue;
+      
+      const dist=Math.sqrt((cx-rc)**2+(cy-rr)**2);
+      const score=cluster.length/(1+dist*0.1);
+      if(score>bestScore){bestScore=score;bestTarget={x:tx,y:ty};}
+    }
+    return bestTarget;
+  }
+  _detectFrontiers(){
+    const {grid,cols,rows}=this.mapper;
+    const fronts=[];
+    for(let r=1;r<rows-1;r++){
+      for(let c=1;c<cols-1;c++){
+        const idx=c+r*cols;
+        if(grid[idx]>=0) continue;
+        if(grid[(c-1)+r*cols]===0||grid[(c+1)+r*cols]===0||grid[c+(r-1)*cols]===0||grid[c+(r+1)*cols]===0)
+          fronts.push({col:c,row:r});
+      }
+    }
+    return fronts;
+  }
+  _clusterFrontiers(cells){
+    const set=new Set();
+    for(const f of cells) set.add(`${f.col},${f.row}`);
+    const visited=new Set(), clusters=[];
+    for(const f of cells){
+      const key=`${f.col},${f.row}`;
+      if(visited.has(key)) continue;
+      const cluster=[],queue=[f];visited.add(key);
+      while(queue.length>0){
+        const cell=queue.shift();cluster.push(cell);
+        for(const n of [{col:cell.col-1,row:cell.row},{col:cell.col+1,row:cell.row},{col:cell.col,row:cell.row-1},{col:cell.col,row:cell.row+1}]){
+          const nk=`${n.col},${n.row}`;
+          if(set.has(nk)&&!visited.has(nk)){visited.add(nk);queue.push(n);}
+        }
+      }
+      if(cluster.length>=3) clusters.push(cluster);
+    }
+    return clusters;
+  }
+}
+
+// ═══════════════════════════════════════════════════
+//  PARTICLE FILTER (MCL)
+// ═══════════════════════════════════════════════════
+class ParticleFilter {
+  constructor(numParticles=200){this.numParticles=numParticles;this.particles=[];this.enabled=false;this.raySampleCount=8;}
+  init(x,y,theta=0,spread=60){
+    this.particles=[];
+    for(let i=0;i<this.numParticles;i++){
+      this.particles.push({x:x+(Math.random()-0.5)*spread*2,y:y+(Math.random()-0.5)*spread*2,theta:theta+(Math.random()-0.5)*Math.PI*0.5,weight:1/this.numParticles});
+    }
+  }
+  setEnabled(e){this.enabled=e;}
+  predict(fwd,turn){
+    const mn=0.15,tn=0.08;
+    for(const p of this.particles){
+      const ns=fwd+(Math.random()-0.5)*mn*Math.abs(fwd)*2;
+      const nt=turn+(Math.random()-0.5)*tn*2;
+      p.theta+=nt; p.x+=Math.cos(p.theta)*ns; p.y+=Math.sin(p.theta)*ns;
+      p.x+=(Math.random()-0.5)*0.5; p.y+=(Math.random()-0.5)*0.5; p.theta+=(Math.random()-0.5)*0.01;
+    }
+  }
+  update(scanHits, environment){
+    if(scanHits.length===0) return;
+    const stride=Math.max(1,Math.floor(scanHits.length/this.raySampleCount));
+    const sampled=[];
+    for(let i=0;i<scanHits.length;i+=stride) sampled.push({hit:scanHits[i],idx:i});
+    const walls=environment.getWalls();
+    let totalW=0;
+    for(const p of this.particles){
+      let ll=0;
+      for(const s of sampled){
+        const relAngle=(s.idx/scanHits.length)*Math.PI*2-Math.PI;
+        const absAngle=p.theta+relAngle;
+        const expected=this._rayCast(p.x,p.y,absAngle,walls,600);
+        const diff=expected-s.hit.distance;
+        ll-=(diff*diff)/(2*30*30);
+      }
+      p.weight=Math.exp(ll);totalW+=p.weight;
+    }
+    if(totalW>0) for(const p of this.particles) p.weight/=totalW;
+  }
+  resample(){
+    const N=this.particles.length;if(!N) return;
+    const newP=[],step=1/N;
+    let r=Math.random()*step, cum=this.particles[0].weight, j=0;
+    for(let i=0;i<N;i++){
+      const target=r+i*step;
+      while(cum<target&&j<N-1){j++;cum+=this.particles[j].weight;}
+      newP.push({x:this.particles[j].x+(Math.random()-0.5)*2,y:this.particles[j].y+(Math.random()-0.5)*2,theta:this.particles[j].theta+(Math.random()-0.5)*0.02,weight:1/N});
+    }
+    this.particles=newP;
+  }
+  getEstimate(){
+    let sx=0,sy=0,ssin=0,scos=0,sw=0;
+    for(const p of this.particles){sx+=p.x*p.weight;sy+=p.y*p.weight;scos+=Math.cos(p.theta)*p.weight;ssin+=Math.sin(p.theta)*p.weight;sw+=p.weight;}
+    if(sw===0) return{x:0,y:0,theta:0};
+    return{x:sx/sw,y:sy/sw,theta:Math.atan2(ssin/sw,scos/sw)};
+  }
+  getParticles(){return this.particles;}
+  _rayCast(x,y,angle,walls,maxRange){
+    const ex=x+Math.cos(angle)*maxRange,ey=y+Math.sin(angle)*maxRange;
+    let minDist=maxRange;
+    for(const wall of walls){
+      const ix=this._lineIntersect(x,y,ex,ey,wall.start.x,wall.start.y,wall.end.x,wall.end.y);
+      if(ix!==null){const dx=ix.x-x,dy=ix.y-y,d=Math.sqrt(dx*dx+dy*dy);if(d<minDist)minDist=d;}
+    }
+    return minDist;
+  }
+  _lineIntersect(x1,y1,x2,y2,x3,y3,x4,y4){
+    const denom=(x1-x2)*(y3-y4)-(y1-y2)*(x3-x4);
+    if(denom===0) return null;
+    const t=((x1-x3)*(y3-y4)-(y1-y3)*(x3-x4))/denom;
+    const u=-((x1-x2)*(y1-y3)-(y1-y2)*(x1-x3))/denom;
+    if(t>=0&&t<=1&&u>=0&&u<=1) return{x:x1+t*(x2-x1),y:y1+t*(y2-y1)};
+    return null;
+  }
+}
+
+// ═══════════════════════════════════════════════════
+//  DYNAMIC OBSTACLES
+// ═══════════════════════════════════════════════════
+class DynamicObstacles {
+  constructor(width,height){this.width=width;this.height=height;this.obstacles=[];this.enabled=false;}
+  setEnabled(e){this.enabled=e;if(!e)this.obstacles=[];}
+  resize(w,h){this.width=w;this.height=h;}
+  generate(){
+    this.obstacles=[];if(!this.enabled)return;
+    const inset=80,w=this.width-2*inset,h=this.height-2*inset;
+    this.obstacles.push({type:'slider',startX:inset+w*0.2,endX:inset+w*0.5,y:inset+h*0.3,wallLength:80,speed:0.8,progress:0,direction:1});
+    this.obstacles.push({type:'patrol',x:inset+w*0.7,startY:inset+h*0.2,endY:inset+h*0.7,wallLength:60,speed:0.6,progress:0,direction:1});
+    this.obstacles.push({type:'orbit',centerX:inset+w*0.5,centerY:inset+h*0.65,orbitRadius:80,wallLength:50,angle:0,angularSpeed:0.012});
+  }
+  update(){
+    if(!this.enabled)return;
+    for(const obs of this.obstacles){
+      if(obs.type==='slider'||obs.type==='patrol'){
+        obs.progress+=obs.speed*obs.direction*0.005;
+        if(obs.progress>=1){obs.progress=1;obs.direction=-1;}
+        if(obs.progress<=0){obs.progress=0;obs.direction=1;}
+      } else if(obs.type==='orbit'){
+        obs.angle+=obs.angularSpeed;
+        if(obs.angle>Math.PI*2) obs.angle-=Math.PI*2;
+      }
+    }
+  }
+  getWalls(){
+    if(!this.enabled) return [];
+    return this.obstacles.map(obs=>{
+      if(obs.type==='slider'){const cx=obs.startX+(obs.endX-obs.startX)*obs.progress;return{start:{x:cx,y:obs.y},end:{x:cx+obs.wallLength,y:obs.y}};}
+      if(obs.type==='patrol'){const cy=obs.startY+(obs.endY-obs.startY)*obs.progress;return{start:{x:obs.x,y:cy},end:{x:obs.x,y:cy+obs.wallLength}};}
+      if(obs.type==='orbit'){const cx=obs.centerX+Math.cos(obs.angle)*obs.orbitRadius,cy=obs.centerY+Math.sin(obs.angle)*obs.orbitRadius,pa=obs.angle+Math.PI/2,hl=obs.wallLength/2;return{start:{x:cx-Math.cos(pa)*hl,y:cy-Math.sin(pa)*hl},end:{x:cx+Math.cos(pa)*hl,y:cy+Math.sin(pa)*hl}};}
+      return null;
+    }).filter(Boolean);
+  }
+}
+
+// ═══════════════════════════════════════════════════
+//  DYNAMIC HUMANS
+// ═══════════════════════════════════════════════════
+class DynamicHumans {
+  constructor(width,height){this.width=width;this.height=height;this.humans=[];this.enabled=false;this.numHumans=5;}
+  setEnabled(e){this.enabled=e;if(!e)this.humans=[];else this.generate();}
+  resize(w,h){this.width=w;this.height=h;if(this.enabled)this.generate();}
+  generate(){
+    this.humans=[];if(!this.enabled)return;
+    for(let i=0;i<this.numHumans;i++){
+      const inset=100;
+      this.humans.push({id:`w${i}`,x:inset+Math.random()*(this.width-2*inset),y:inset+Math.random()*(this.height-2*inset),radius:12,theta:Math.random()*Math.PI*2,speed:0.5+Math.random()*0.5,turnTimer:0,colorIndex:Math.floor(Math.random()*3)});
+    }
+  }
+  update(environment){
+    if(!this.enabled)return;
+    for(const h of this.humans){
+      h.turnTimer--;
+      if(h.turnTimer<=0){h.targetTurn=(Math.random()-0.5)*1.0;h.turnTimer=30+Math.random()*60;}
+      if(h.targetTurn) h.theta+=h.targetTurn*0.05;
+      const nx=h.x+Math.cos(h.theta)*h.speed, ny=h.y+Math.sin(h.theta)*h.speed;
+      let hitWall=false;
+      if(environment) for(const w of environment.getWalls()){if(this._cli(nx,ny,h.radius,w.start,w.end)){hitWall=true;break;}}
+      if(nx-h.radius<0||nx+h.radius>this.width||ny-h.radius<0||ny+h.radius>this.height) hitWall=true;
+      if(hitWall){h.theta+=Math.PI+(Math.random()-0.5);h.turnTimer=0;}
+      else{h.x=nx;h.y=ny;}
+    }
+  }
+  getHumans(){return this.enabled?this.humans:[];}
+  _cli(cx,cy,r,p1,p2){
+    const dx=p2.x-p1.x,dy=p2.y-p1.y,lenSq=dx*dx+dy*dy;
+    let t=0;if(lenSq!==0)t=Math.max(0,Math.min(1,((cx-p1.x)*dx+(cy-p1.y)*dy)/lenSq));
+    const ex=p1.x+t*dx-cx,ey=p1.y+t*dy-cy;return ex*ex+ey*ey<r*r;
+  }
+}
+
+// ═══════════════════════════════════════════════════
+//  STATS TRACKER
+// ═══════════════════════════════════════════════════
+class StatsTracker {
+  constructor(){this.totalDistance=0;this.collisions=0;this.wasHitting=false;this.startTime=performance.now();this.lastX=null;this.lastY=null;this.lastDomUpdate=0;}
+  update(robot,mapper,hitWall){
+    if(this.lastX!==null){const dx=robot.x-this.lastX,dy=robot.y-this.lastY,step=Math.sqrt(dx*dx+dy*dy);if(step>0.1)this.totalDistance+=step;}
+    this.lastX=robot.x;this.lastY=robot.y;
+    if(hitWall&&!this.wasHitting)this.collisions++;
+    this.wasHitting=hitWall;
+    const now=performance.now();
+    if(now-this.lastDomUpdate<200)return;
+    this.lastDomUpdate=now;
+    const total=mapper.grid.length;let known=0;
+    for(let i=0;i<total;i++)if(mapper.grid[i]!==0)known++;
+    document.getElementById('statExplored').textContent=((known/total)*100).toFixed(1)+'%';
+    document.getElementById('statDistance').textContent=(this.totalDistance/100).toFixed(1)+'m';
+    document.getElementById('statCollisions').textContent=this.collisions;
+    const e=(now-this.startTime)/1000,m=Math.floor(e/60),s=Math.floor(e%60);
+    document.getElementById('statTime').textContent=`${m}:${s.toString().padStart(2,'0')}`;
+  }
+  reset(){this.totalDistance=0;this.collisions=0;this.wasHitting=false;this.startTime=performance.now();this.lastX=null;this.lastY=null;}
+}
+
+// ═══════════════════════════════════════════════════
+//  SIMULATION STATE & MAIN LOOP
+// ═══════════════════════════════════════════════════
+let simCanvas, overlayCanvas, minimapCanvas;
+let simCtx, overlayCtx, minimapCtx;
+let environment, mapper, robot, lidar, particleFilter, dynamicObstacles, dynamicHumans, statsTracker;
+let pathfinder;
+let running = false, animId = null;
+let keys = {};
+let frontierEnabled = false, frontierTimer = 0;
+let currentPath = null, frontierTarget = null;
+let layers = { map: true, lidar: true, trail: true };
+let canvasW, canvasH;
+let frameCount = 0, lastFpsTime = performance.now(), fps = 60;
+let logLines = [];
+let pfAlgo = 'astar';
+let unreachableFrontiers = [];
+
+function log(msg, type='info') {
+  const time = new Date().toLocaleTimeString('en',{hour12:false,hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  logLines.push({t:time,msg,type});
+  if (logLines.length > 50) logLines.shift();
+  const el = document.getElementById('log-panel');
+  el.innerHTML = logLines.map(l=>`<div class="log-entry ${l.type}">[${l.t}] ${l.msg}</div>`).join('');
+  el.scrollTop = el.scrollHeight;
+}
+
+function initCanvas() {
+  simCanvas = document.getElementById('simCanvas');
+  overlayCanvas = document.getElementById('overlayCanvas');
+  minimapCanvas = document.getElementById('minimapCanvas');
+  simCtx = simCanvas.getContext('2d');
+  overlayCtx = overlayCanvas.getContext('2d');
+  minimapCtx = minimapCanvas.getContext('2d');
+  resizeCanvases();
+  window.addEventListener('resize', resizeCanvases);
+}
+
+function resizeCanvases() {
+  const area = document.getElementById('canvas-area');
+  canvasW = area.clientWidth;
+  canvasH = area.clientHeight;
+  simCanvas.width = canvasW; simCanvas.height = canvasH;
+  overlayCanvas.width = canvasW; overlayCanvas.height = canvasH;
+  minimapCanvas.width = minimapCanvas.parentElement.clientWidth;
+  if (environment) {
+    environment.resize(canvasW, canvasH);
+    mapper.resize(canvasW, canvasH);
+    dynamicObstacles.resize(canvasW, canvasH);
+    dynamicHumans.resize(canvasW, canvasH);
+  }
+}
+
+function initSim() {
+  environment = new Environment(canvasW, canvasH);
+  mapper = new Mapper(canvasW, canvasH, 10);
+  const spawn = environment.findSafeSpawn(20);
+  robot = new Robot(spawn.x, spawn.y);
+  lidar = new Lidar();
+  particleFilter = new ParticleFilter(200);
+  dynamicObstacles = new DynamicObstacles(canvasW, canvasH);
+  dynamicHumans = new DynamicHumans(canvasW, canvasH);
+  statsTracker = new StatsTracker();
+  pathfinder = new AStar(mapper);
+  currentPath = null; frontierTarget = null; frontierTimer = 0;
+  frontierEnabled = false;
+  const chk = document.getElementById('chkFrontier');
+  if (chk) chk.checked = false;
+  unreachableFrontiers = [];
+  log('Simulation initialized', 'success');
+  log(`Spawn: (${Math.round(spawn.x)}, ${Math.round(spawn.y)})`, 'info');
+}
+
+function gameLoop(timestamp) {
+  if (!running) return;
+  animId = requestAnimationFrame(gameLoop);
+
+  // FPS tracking
+  frameCount++;
+  if (timestamp - lastFpsTime >= 1000) {
+    fps = Math.round(frameCount * 1000 / (timestamp - lastFpsTime));
+    frameCount = 0; lastFpsTime = timestamp;
+    document.getElementById('fps-counter').textContent = fps + ' FPS';
+  }
+
+  // Input
+  robot.applyInput(keys);
+  updateKeyUI();
+
+  // Dynamic systems
+  dynamicObstacles.update();
+  dynamicHumans.update(environment);
+  environment.setDynamicWalls(dynamicObstacles.getWalls());
+
+  // Robot update
+  const hitWall = robot.update(environment, dynamicHumans);
+
+  // LiDAR scan
+  const scanHits = lidar.scan(robot, environment, dynamicHumans);
+
+  // Map update
+  mapper.updateMap(robot, scanHits);
+
+  // Particle filter
+  if (particleFilter.enabled) {
+    particleFilter.predict(robot.forwardSpeed, robot.turnSpeed);
+    particleFilter.update(scanHits, environment);
+    particleFilter.resample();
+  }
+
+  // Frontier exploration
+  if (frontierEnabled) {
+    frontierTimer--;
+    if (frontierTimer <= 0) {
+      frontierTimer = 60; // check once per second
+      if (!robot.path) {
+        frontierTarget = new FrontierExplorer(mapper).findBestFrontier(robot.x, robot.y, unreachableFrontiers);
+        if (frontierTarget) {
+          const path = pathfinder.findPath(robot.x, robot.y, frontierTarget.x, frontierTarget.y);
+          if (path.length > 0) {
+            robot.setPath(path);
+            currentPath = path;
+            log('→ New frontier target', 'info');
+          } else {
+            unreachableFrontiers.push({x: frontierTarget.x, y: frontierTarget.y});
+            if (unreachableFrontiers.length > 20) unreachableFrontiers.shift();
+            log('Frontier target unreachable, blacklisting', 'warn');
+          }
+        } else {
+          log('Map fully explored or all frontiers unreachable!', 'success');
+          frontierEnabled = false;
+          const chk = document.getElementById('chkFrontier');
+          if (chk) chk.checked = false;
+        }
+      }
+    }
+  }
+
+  // Stats
+  statsTracker.update(robot, mapper, hitWall);
+  updateRobotState();
+
+  // Render
+  render(scanHits);
+  renderMinimap();
+}
+
+function render(scanHits) {
+  // Clear simulation canvas
+  simCtx.clearRect(0, 0, canvasW, canvasH);
+
+  // ── Background grid ──
+  simCtx.save();
+  simCtx.strokeStyle = 'rgba(255,255,255,0.025)';
+  simCtx.lineWidth = 0.5;
+  for (let x=0; x<canvasW; x+=40) { simCtx.beginPath(); simCtx.moveTo(x,0); simCtx.lineTo(x,canvasH); simCtx.stroke(); }
+  for (let y=0; y<canvasH; y+=40) { simCtx.beginPath(); simCtx.moveTo(0,y); simCtx.lineTo(canvasW,y); simCtx.stroke(); }
+  simCtx.restore();
+
+  // ── Occupancy map ──
+  if (layers.map) {
+    mapper.drawMap(simCtx);
+    // Dim the map slightly for aesthetics
+    simCtx.save();
+    simCtx.globalAlpha = 0.15;
+    simCtx.fillStyle = '#080c14';
+    simCtx.fillRect(0,0,canvasW,canvasH);
+    simCtx.restore();
+  }
+
+  // ── Walls (environment) ──
+  simCtx.save();
+  simCtx.strokeStyle = 'rgba(148,163,184,0.9)';
+  simCtx.lineWidth = 2;
+  simCtx.lineCap = 'round';
+  for (const wall of environment.getWalls()) {
+    simCtx.beginPath();
+    simCtx.moveTo(wall.start.x, wall.start.y);
+    simCtx.lineTo(wall.end.x, wall.end.y);
+    simCtx.stroke();
+  }
+  simCtx.restore();
+
+  // ── Dynamic obstacle walls (highlight) ──
+  if (dynamicObstacles.enabled) {
+    simCtx.save();
+    simCtx.strokeStyle = 'rgba(245,158,11,0.9)';
+    simCtx.lineWidth = 3;
+    simCtx.shadowBlur = 8; simCtx.shadowColor = '#f59e0b';
+    for (const wall of dynamicObstacles.getWalls()) {
+      simCtx.beginPath(); simCtx.moveTo(wall.start.x,wall.start.y); simCtx.lineTo(wall.end.x,wall.end.y); simCtx.stroke();
+    }
+    simCtx.restore();
+  }
+
+  // ── Dynamic humans ──
+  if (dynamicHumans.enabled) {
+    const shirtColors = ['#3b82f6','#10b981','#f59e0b'];
+    for (const h of dynamicHumans.getHumans()) {
+      simCtx.save();
+      simCtx.shadowBlur = 10; simCtx.shadowColor = shirtColors[h.colorIndex];
+      simCtx.fillStyle = shirtColors[h.colorIndex];
+      simCtx.beginPath(); simCtx.arc(h.x, h.y, h.radius, 0, Math.PI*2); simCtx.fill();
+      // Head
+      simCtx.fillStyle = '#fde68a';
+      simCtx.beginPath(); simCtx.arc(h.x+Math.cos(h.theta)*h.radius*0.8, h.y+Math.sin(h.theta)*h.radius*0.8, h.radius*0.4, 0, Math.PI*2); simCtx.fill();
+      simCtx.restore();
+    }
+  }
+
+  // ── LiDAR rays ──
+  if (layers.lidar) {
+    simCtx.save();
+    simCtx.lineWidth = 0.8;
+    for (const hit of scanHits) {
+      simCtx.beginPath();
+      simCtx.moveTo(robot.x, robot.y);
+      simCtx.lineTo(hit.x, hit.y);
+      simCtx.strokeStyle = hit.hit ? 'rgba(239,68,68,0.35)' : 'rgba(16,185,129,0.15)';
+      simCtx.stroke();
+      if (hit.hit) {
+        simCtx.beginPath();
+        simCtx.arc(hit.x, hit.y, 2.5, 0, Math.PI*2);
+        simCtx.fillStyle = hit.type==='human' ? '#f59e0b' : '#ef4444';
+        simCtx.shadowBlur = 6; simCtx.shadowColor = simCtx.fillStyle;
+        simCtx.fill();
+      }
+    }
+    simCtx.restore();
+  }
+
+  // ── Trail ──
+  if (layers.trail) {
+    // True trail
+    if (robot.trueTrail.length > 1) {
+      simCtx.save();
+      simCtx.beginPath();
+      simCtx.moveTo(robot.trueTrail[0].x, robot.trueTrail[0].y);
+      for (const p of robot.trueTrail) simCtx.lineTo(p.x, p.y);
+      simCtx.strokeStyle = 'rgba(99,102,241,0.5)'; simCtx.lineWidth = 1.5; simCtx.stroke();
+      simCtx.restore();
+    }
+    // Believed trail (odometry)
+    if (robot.driftAmount > 0 && robot.believedTrail.length > 1) {
+      simCtx.save();
+      simCtx.beginPath();
+      simCtx.moveTo(robot.believedTrail[0].x, robot.believedTrail[0].y);
+      for (const p of robot.believedTrail) simCtx.lineTo(p.x, p.y);
+      simCtx.strokeStyle = 'rgba(245,158,11,0.4)'; simCtx.lineWidth = 1; simCtx.setLineDash([4,4]); simCtx.stroke();
+      simCtx.restore();
+    }
+  }
+
+  // ── Particle filter ──
+  if (particleFilter.enabled && particleFilter.particles.length > 0) {
+    simCtx.save();
+    for (const p of particleFilter.particles) {
+      simCtx.beginPath();
+      simCtx.arc(p.x, p.y, 2, 0, Math.PI*2);
+      simCtx.fillStyle = `rgba(59,130,246,${Math.min(1, p.weight*particleFilter.particles.length*0.5)})`;
+      simCtx.fill();
+    }
+    simCtx.restore();
+    // Estimate marker
+    const est = particleFilter.getEstimate();
+    simCtx.save();
+    simCtx.strokeStyle = 'var(--violet)'; simCtx.lineWidth = 2;
+    simCtx.beginPath(); simCtx.arc(est.x, est.y, 10, 0, Math.PI*2); simCtx.stroke();
+    simCtx.restore();
+  }
+
+  // ── Current path ──
+  if (currentPath && currentPath.length > 1) {
+    simCtx.save();
+    simCtx.beginPath();
+    simCtx.moveTo(currentPath[0].x, currentPath[0].y);
+    for (const p of currentPath) simCtx.lineTo(p.x, p.y);
+    simCtx.strokeStyle = 'rgba(16,185,129,0.7)'; simCtx.lineWidth = 2; simCtx.setLineDash([6,4]); simCtx.stroke();
+    // Waypoint dots
+    for (const p of currentPath) {
+      simCtx.beginPath(); simCtx.arc(p.x, p.y, 3, 0, Math.PI*2);
+      simCtx.fillStyle = 'rgba(16,185,129,0.5)'; simCtx.fill();
+    }
+    simCtx.restore();
+  }
+
+  // ── Frontier target ──
+  if (frontierTarget) {
+    simCtx.save();
+    const t = performance.now() / 500;
+    const pulse = 8 + Math.sin(t) * 4;
+    simCtx.strokeStyle = '#f97316'; simCtx.lineWidth = 2;
+    simCtx.shadowBlur = 12; simCtx.shadowColor = '#f97316';
+    simCtx.beginPath(); simCtx.arc(frontierTarget.x, frontierTarget.y, pulse, 0, Math.PI*2); simCtx.stroke();
+    simCtx.restore();
+  }
+
+  // ── Believed pose ──
+  if (robot.driftAmount > 0) {
+    simCtx.save();
+    simCtx.fillStyle = 'rgba(245,158,11,0.3)';
+    simCtx.strokeStyle = '#f59e0b';
+    simCtx.lineWidth = 1.5;
+    simCtx.beginPath(); simCtx.arc(robot.believedX, robot.believedY, robot.radius, 0, Math.PI*2);
+    simCtx.fill(); simCtx.stroke();
+    // Heading line
+    simCtx.beginPath();
+    simCtx.moveTo(robot.believedX, robot.believedY);
+    simCtx.lineTo(robot.believedX+Math.cos(robot.believedTheta)*robot.radius*1.5, robot.believedY+Math.sin(robot.believedTheta)*robot.radius*1.5);
+    simCtx.strokeStyle = '#f59e0b'; simCtx.lineWidth = 1.5; simCtx.stroke();
+    simCtx.restore();
+  }
+
+  // ── Robot body ──
+  simCtx.save();
+  // Glow
+  simCtx.shadowBlur = 20; simCtx.shadowColor = 'var(--blue)';
+  // Body
+  const grad = simCtx.createRadialGradient(robot.x, robot.y, 0, robot.x, robot.y, robot.radius);
+  grad.addColorStop(0, 'rgba(59,130,246,1)');
+  grad.addColorStop(1, 'rgba(0,245,255,0.8)');
+  simCtx.fillStyle = grad;
+  simCtx.beginPath(); simCtx.arc(robot.x, robot.y, robot.radius, 0, Math.PI*2); simCtx.fill();
+  // Outline
+  simCtx.strokeStyle = 'var(--cyan)'; simCtx.lineWidth = 2;
+  simCtx.beginPath(); simCtx.arc(robot.x, robot.y, robot.radius, 0, Math.PI*2); simCtx.stroke();
+  simCtx.restore();
+  // Heading arrow
+  simCtx.save();
+  simCtx.strokeStyle = '#fff'; simCtx.lineWidth = 2.5;
+  simCtx.shadowBlur = 8; simCtx.shadowColor = '#fff';
+  simCtx.beginPath();
+  simCtx.moveTo(robot.x, robot.y);
+  const hx = robot.x + Math.cos(robot.theta) * (robot.radius + 10);
+  const hy = robot.y + Math.sin(robot.theta) * (robot.radius + 10);
+  simCtx.lineTo(hx, hy);
+  simCtx.stroke();
+  // Arrowhead
+  const arrowAngle = robot.theta;
+  simCtx.beginPath();
+  simCtx.moveTo(hx, hy);
+  simCtx.lineTo(hx-Math.cos(arrowAngle-0.4)*8, hy-Math.sin(arrowAngle-0.4)*8);
+  simCtx.lineTo(hx-Math.cos(arrowAngle+0.4)*8, hy-Math.sin(arrowAngle+0.4)*8);
+  simCtx.closePath();
+  simCtx.fillStyle = '#fff'; simCtx.fill();
+  simCtx.restore();
+}
+
+function renderMinimap() {
+  const mw = minimapCanvas.width, mh = minimapCanvas.height;
+  minimapCtx.clearRect(0, 0, mw, mh);
+  const sx = mw / canvasW, sy = mh / canvasH;
+  // Background
+  minimapCtx.fillStyle = '#0d1117';
+  minimapCtx.fillRect(0, 0, mw, mh);
+  // Map cells
+  for (let r=0; r<mapper.rows; r++) {
+    for (let c=0; c<mapper.cols; c++) {
+      const l=mapper.grid[c+r*mapper.cols];
+      if(l===0) continue;
+      const prob=1-1/(1+Math.exp(l));
+      const bright=Math.round((1-prob)*200);
+      minimapCtx.fillStyle=`rgb(${bright},${bright},${bright})`;
+      minimapCtx.fillRect(c*mapper.cellSize*sx, r*mapper.cellSize*sy, mapper.cellSize*sx+1, mapper.cellSize*sy+1);
+    }
+  }
+  // Walls
+  minimapCtx.strokeStyle='rgba(148,163,184,0.7)';minimapCtx.lineWidth=1;
+  for(const w of environment.getWalls()){
+    minimapCtx.beginPath();minimapCtx.moveTo(w.start.x*sx,w.start.y*sy);minimapCtx.lineTo(w.end.x*sx,w.end.y*sy);minimapCtx.stroke();
+  }
+  // Robot
+  minimapCtx.fillStyle='var(--blue)';
+  minimapCtx.beginPath();minimapCtx.arc(robot.x*sx, robot.y*sy, 4, 0, Math.PI*2);minimapCtx.fill();
+  // Path
+  if (currentPath && currentPath.length>1) {
+    minimapCtx.strokeStyle='rgba(16,185,129,0.7)';minimapCtx.lineWidth=1;minimapCtx.setLineDash([2,2]);
+    minimapCtx.beginPath();minimapCtx.moveTo(currentPath[0].x*sx,currentPath[0].y*sy);
+    for(const p of currentPath)minimapCtx.lineTo(p.x*sx,p.y*sy);minimapCtx.stroke();minimapCtx.setLineDash([]);
+  }
+}
+
+function updateKeyUI() {
+  document.getElementById('keyW').classList.toggle('active', !!keys['w']);
+  document.getElementById('keyA').classList.toggle('active', !!keys['a']);
+  document.getElementById('keyS').classList.toggle('active', !!keys['s']);
+  document.getElementById('keyD').classList.toggle('active', !!keys['d']);
+}
+
+function updateRobotState() {
+  const now = performance.now();
+  if (now % 100 < 16) { // ~10fps
+    document.getElementById('robX').textContent = Math.round(robot.x);
+    document.getElementById('robY').textContent = Math.round(robot.y);
+    document.getElementById('robTheta').textContent = (robot.theta * 180 / Math.PI).toFixed(1) + '°';
+    document.getElementById('robSpeed').textContent = Math.abs(robot.forwardSpeed).toFixed(2);
+  }
+}
+
+// ── UI HANDLERS ──
+function toggleSimulation() {
+  if (!environment) initSim();
+  running = !running;
+  const btn = document.getElementById('btnStartStop');
+  const badge = document.getElementById('statusBadge');
+  const statusText = document.getElementById('statusText');
+  const hint = document.getElementById('click-hint');
+  if (running) {
+    btn.textContent = '⏹ Stop Sim';
+    badge.classList.remove('stopped');
+    statusText.textContent = 'Running';
+    hint.style.opacity = '0';
+    log('Simulation started', 'success');
+    animId = requestAnimationFrame(gameLoop);
+  } else {
+    btn.innerHTML = '▶ Launch Sim';
+    badge.classList.add('stopped');
+    statusText.textContent = 'Stopped';
+    hint.style.opacity = '1';
+    hint.textContent = 'Paused — press Launch Sim to continue';
+    if (animId) cancelAnimationFrame(animId);
+    log('Simulation paused', 'warn');
+  }
+}
+
+function resetSim() {
+  if (animId) cancelAnimationFrame(animId);
+  running = false;
+  const btn = document.getElementById('btnStartStop');
+  btn.innerHTML = '▶ Launch Sim';
+  document.getElementById('statusBadge').classList.add('stopped');
+  document.getElementById('statusText').textContent = 'Stopped';
+  document.getElementById('click-hint').style.opacity = '1';
+  document.getElementById('click-hint').textContent = 'Simulation stopped — press Launch Sim to start';
+  initSim();
+  simCtx.clearRect(0, 0, canvasW, canvasH);
+  overlayCtx.clearRect(0, 0, canvasW, canvasH);
+  // Draw initial walls
+  drawStaticScene();
+  log('Simulation reset', 'warn');
+}
+
+function drawStaticScene() {
+  simCtx.clearRect(0,0,canvasW,canvasH);
+  simCtx.save();
+  simCtx.strokeStyle='rgba(148,163,184,0.9)';simCtx.lineWidth=2;simCtx.lineCap='round';
+  for(const w of environment.getWalls()){simCtx.beginPath();simCtx.moveTo(w.start.x,w.start.y);simCtx.lineTo(w.end.x,w.end.y);simCtx.stroke();}
+  simCtx.restore();
+  // Draw robot
+  simCtx.save();
+  simCtx.shadowBlur=20;simCtx.shadowColor='var(--blue)';
+  simCtx.fillStyle='var(--blue)';
+  simCtx.beginPath();simCtx.arc(robot.x,robot.y,robot.radius,0,Math.PI*2);simCtx.fill();
+  simCtx.restore();
+}
+
+function generateNewMap() {
+  const wasRunning = running;
+  if (running) { running=false; if(animId)cancelAnimationFrame(animId); }
+  environment.generateRandomMap();
+  mapper.clear();
+  const spawn = environment.findSafeSpawn(20);
+  robot.x=spawn.x; robot.y=spawn.y; robot.theta=0;
+  robot.believedX=spawn.x; robot.believedY=spawn.y; robot.believedTheta=0;
+  robot.resetTrails();
+  statsTracker.reset();
+  currentPath=null;frontierTarget=null;
+  dynamicObstacles.generate();
+  drawStaticScene();
+  log('New map generated', 'success');
+  if (wasRunning) { running=true; animId=requestAnimationFrame(gameLoop); }
+}
+
+function clearMap() {
+  mapper.clear();
+  log('Occupancy map cleared', 'warn');
+}
+
+function loadMap(name) {
+  const wasRunning = running;
+  if (running) { running=false; if(animId)cancelAnimationFrame(animId); }
+  document.querySelectorAll('.map-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById(`map-${name}`)?.classList.add('active');
+  environment.loadPreset(name);
+  mapper.clear();
+  const spawn = environment.findSafeSpawn(20);
+  robot.x=spawn.x; robot.y=spawn.y; robot.theta=0;
+  robot.believedX=spawn.x; robot.believedY=spawn.y; robot.believedTheta=0;
+  robot.resetTrails();
+  statsTracker.reset();
+  currentPath=null;frontierTarget=null;
+  dynamicObstacles.generate();
+  drawStaticScene();
+  log(`Map loaded: ${name}`, 'success');
+  if (wasRunning) { running=true; animId=requestAnimationFrame(gameLoop); }
+}
+
+function setDriveModel(model) {
+  document.querySelectorAll('[id^="dm-"]').forEach(b=>b.classList.remove('active'));
+  document.getElementById(`dm-${model}`)?.classList.add('active');
+  robot.setDriveModel(model);
+  log(`Drive model: ${model}`, 'info');
+}
+
+function setPathfinder(algo) {
+  pfAlgo = algo;
+  document.querySelectorAll('[id^="pf-"]').forEach(b=>b.classList.remove('active'));
+  document.getElementById(`pf-${algo}`)?.classList.add('active');
+  pathfinder = algo==='astar' ? new AStar(mapper) : new Dijkstra(mapper);
+  document.getElementById('algoName').textContent = algo==='astar' ? 'A* Pathfinding' : 'Dijkstra';
+  document.getElementById('algoDesc').textContent = algo==='astar' ? 'Heuristic grid search' : 'Uniform cost search';
+  log(`Pathfinder: ${algo}`, 'info');
+}
+
+function updateLidar() {
+  const rays = parseInt(document.getElementById('slRays').value);
+  const noise = parseInt(document.getElementById('slNoise').value);
+  document.getElementById('valRays').textContent = rays;
+  document.getElementById('valNoise').textContent = noise;
+  if (lidar) lidar.setParameters(rays, noise);
+}
+
+function updateDrift() {
+  const drift = parseInt(document.getElementById('slDrift').value);
+  document.getElementById('valDrift').textContent = drift;
+  if (robot) robot.setDrift(drift);
+}
+
+function updateSpeed() {
+  const spd = parseInt(document.getElementById('slSpeed').value);
+  document.getElementById('valSpeed').textContent = spd;
+  if (robot) robot.maxSpeed = spd;
+}
+
+function updateLayers() {
+  layers.map = document.getElementById('chkMap').checked;
+  layers.lidar = document.getElementById('chkLidar').checked;
+  layers.trail = document.getElementById('chkTrail').checked;
+}
+
+function toggleParticles() {
+  const enabled = document.getElementById('chkParticles').checked;
+  if (particleFilter) {
+    particleFilter.setEnabled(enabled);
+    if (enabled && robot) particleFilter.init(robot.x, robot.y, robot.theta, 60);
+    log(`Particle filter (MCL): ${enabled?'ON':'OFF'}`, 'info');
+  }
+}
+
+function toggleObstacles() {
+  const enabled = document.getElementById('chkObstacles').checked;
+  if (dynamicObstacles) {
+    dynamicObstacles.setEnabled(enabled);
+    if (enabled) dynamicObstacles.generate();
+    log(`Dynamic obstacles: ${enabled?'ON':'OFF'}`, 'info');
+  }
+}
+
+function toggleHumans() {
+  const enabled = document.getElementById('chkHumans').checked;
+  if (dynamicHumans) {
+    dynamicHumans.setEnabled(enabled);
+    log(`Dynamic humans: ${enabled?'ON':'OFF'}`, 'info');
+  }
+}
+
+function toggleFrontier() {
+  frontierEnabled = document.getElementById('chkFrontier').checked;
+  if (frontierEnabled) {
+    frontierTimer = 0;
+    unreachableFrontiers = [];
+    log('Frontier exploration: ON', 'success');
+  } else {
+    robot.path = null; currentPath = null; frontierTarget = null;
+    log('Frontier exploration: OFF', 'warn');
+  }
+}
+
+// Canvas click → set waypoint
+document.addEventListener('DOMContentLoaded', () => {
+  initCanvas();
+  initSim();
+  drawStaticScene();
+
+  document.getElementById('simCanvas').addEventListener('click', (e) => {
+    const rect = simCanvas.getBoundingClientRect();
+    const mx = e.clientX - rect.left, my = e.clientY - rect.top;
+    const path = pathfinder.findPath(robot.x, robot.y, mx, my);
+    if (path.length > 0) {
+      robot.setPath(path);
+      currentPath = path;
+      frontierEnabled = false;
+      unreachableFrontiers = [];
+      const chk = document.getElementById('chkFrontier');
+      if (chk) chk.checked = false;
+      log(`Path set → (${Math.round(mx)}, ${Math.round(my)}), ${path.length} waypoints`, 'success');
+    } else {
+      log('No path found to target', 'warn');
+    }
+  });
+
+  // Keyboard
+  window.addEventListener('keydown', e => {
+    const k = e.key.toLowerCase();
+    keys[k] = true;
+    if (['w','a','s','d',' '].includes(k)) e.preventDefault();
+  });
+  window.addEventListener('keyup', e => { keys[e.key.toLowerCase()] = false; });
+
+  log('SLAM Simulator ready', 'success');
+  log('Click canvas to set waypoint', 'info');
+  log('Press Launch Sim to start', 'info');
+});
+</script>
 </body>
 </html>

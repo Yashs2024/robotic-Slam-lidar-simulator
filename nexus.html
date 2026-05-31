@@ -4,12 +4,18 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>NEXUS — Robotics Simulation Engine</title>
-    <meta name="description" content="Professional browser-based robotics simulation: 6-DOF kinematics, DH parameters, teach mode, and swarm intelligence.">
+    <meta name="description" content="Professional browser-based robotics simulation: 6-DOF kinematics and teach mode.">
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=JetBrains+Mono:wght@300;400;700&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+        const SUPABASE_URL = "https://lusiusuhfttnrppxbbbp.supabase.co";
+        const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx1c2l1c3VoZnR0bnJwcHhiYmJwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAwNjM1NDQsImV4cCI6MjA5NTYzOTU0NH0.YPXzZL6zGktOc2dpHd5jKZs7UyLm97hVhZ0hkQj3koY";
+        window.supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    </script>
 
     <style>
         /* ===================================
@@ -45,10 +51,80 @@
             --r-lg:  8px;
         }
 
+        /* ===================================
+           LIGHT MODE OVERRIDES
+        =================================== */
+        body.light-theme {
+            --bg-0:   #f4f6fa;
+            --bg-1:   #e9ecf3;
+            --bg-2:   #e0e4ee;
+            --bg-3:   #d2d8e6;
+            --panel:  rgba(230, 235, 245, 0.92);
+            --glass:  rgba(155, 93, 229, 0.05);
+            --border: rgba(155, 93, 229, 0.22);
+            --border-h: rgba(155, 93, 229, 0.45);
+            --cyan:   #6b3ab5; /* Deep violet as primary text for contrast */
+            --cyan-d: #502790;
+            --text-0: #1a2130;
+            --text-1: #3b4c66;
+            --text-2: #5c6f8a;
+        }
+        body.light-theme nav {
+            background: rgba(235, 240, 250, 0.95);
+        }
+        body.light-theme #status-bar {
+            background: rgba(230, 235, 245, 0.96);
+        }
+        body.light-theme input[type="number"],
+        body.light-theme select {
+            background: rgba(255, 255, 255, 0.8);
+            color: var(--text-0);
+            border-color: rgba(0, 0, 0, 0.15);
+        }
+        body.light-theme input[type="number"]:focus,
+        body.light-theme select:focus {
+            border-color: var(--cyan);
+            box-shadow: 0 0 8px rgba(107, 58, 181, 0.25);
+        }
+        body.light-theme input[type="range"] {
+            background: rgba(0, 0, 0, 0.08);
+        }
+        body.light-theme input[type="range"]::-webkit-slider-thumb {
+            box-shadow: 0 0 8px rgba(107, 58, 181, 0.5);
+        }
+        body.light-theme .databox {
+            background: rgba(255, 255, 255, 0.7);
+            color: var(--text-0);
+        }
+        body.light-theme .hud {
+            background: rgba(255, 255, 255, 0.85);
+            color: var(--text-0);
+        }
+        body.light-theme .sidebar-tabs {
+            background: rgba(0, 0, 0, 0.04);
+        }
+        body.light-theme .sidebar-tab.active {
+            text-shadow: 0 0 8px rgba(107, 58, 181, 0.35);
+            background: rgba(107, 58, 181, 0.06);
+        }
+        body.light-theme .btn:hover {
+            box-shadow: 0 0 18px rgba(107, 58, 181, 0.35);
+        }
+        body.light-theme #btn-toggle-theme {
+            background: rgba(107, 58, 181, 0.12);
+            border-color: rgba(107, 58, 181, 0.35);
+            color: var(--cyan);
+        }
+        body.light-theme #btn-toggle-theme:hover {
+            background: var(--cyan);
+            color: #fff;
+            box-shadow: 0 0 12px rgba(107, 58, 181, 0.4);
+        }
+
         * { box-sizing: border-box; margin: 0; padding: 0; }
-        ::-webkit-scrollbar { width: 5px; height: 5px; }
-        ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+        
+        
+        
         ::-webkit-scrollbar-thumb:hover { background: var(--cyan-d); }
 
         body {
@@ -243,12 +319,14 @@
             width: 100%; height: calc(100vh - var(--nav-h) - 24px);
             display: flex;
             overflow: hidden;
+            background: var(--bg-0);
         }
 
         /* ===================================
            PANELS (shared)
-        =================================== */
+           =================================== */
         .side-panel {
+            width: var(--lp-w);
             height: 100%;
             background: var(--panel);
             border-right: 1px solid var(--border);
@@ -256,20 +334,100 @@
             display: flex;
             flex-direction: column;
             gap: 0;
+            transition: margin-left 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+            z-index: 200;
+            flex-shrink: 0;
+            position: relative;
+        }
+        .side-panel.collapsed {
+            margin-left: calc(-1 * var(--lp-w));
+        }
+
+        /* Sidebar Toggle Handle */
+        #btn-sidebar-toggle {
+            position: absolute;
+            top: 50%;
+            right: -16px;
+            transform: translateY(-50%);
+            width: 16px;
+            height: 52px;
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-left: none;
+            color: var(--cyan);
+            font-size: 0.65rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 100;
+            border-radius: 0 4px 4px 0;
+            transition: all 0.2s;
+        }
+        #btn-sidebar-toggle:hover {
+            color: #fff;
+            background: var(--bg-3);
+            box-shadow: 0 0 12px rgba(0, 245, 255, 0.25);
+        }
+
+        /* Sidebar Tab System */
+        .sidebar-tabs {
+            display: flex;
+            border-bottom: 1px solid var(--border);
+            background: rgba(0,0,0,0.3);
+            flex-shrink: 0;
+        }
+        .sidebar-tab {
+            flex: 1;
+            background: none;
+            border: none;
+            color: var(--text-2);
+            font-family: var(--font-d);
+            font-size: 0.58rem;
+            font-weight: 700;
+            letter-spacing: 1.5px;
+            padding: 12px 0;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: center;
+            border-bottom: 2px solid transparent;
+            outline: none;
+        }
+        .sidebar-tab:hover {
+            color: var(--text-0);
+            background: rgba(255,255,255,0.02);
+        }
+        .sidebar-tab.active {
+            color: var(--cyan);
+            border-bottom-color: var(--cyan);
+            text-shadow: 0 0 8px rgba(0,245,255,0.4);
+            background: rgba(0,245,255,0.03);
+        }
+        .sidebar-tab.active.violet-tab {
+            color: var(--violet);
+            border-bottom-color: var(--violet);
+            text-shadow: 0 0 8px rgba(155,93,229,0.4);
+            background: rgba(155,93,229,0.03);
+        }
+        .sidebar-tab.active.orange-tab {
+            color: var(--orange);
+            border-bottom-color: var(--orange);
+            text-shadow: 0 0 8px rgba(255,107,53,0.4);
+            background: rgba(255,107,53,0.03);
+        }
+
+        .sidebar-tab-curriculum:hover {
+            background: rgba(255,107,53,0.08);
+        }
+
+        .tab-content {
+            flex: 1;
             overflow-y: auto;
-            overflow-x: hidden;
-            transition: transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1),
-                        opacity 0.35s ease;
-            z-index: 50;
-            flex-shrink: 0;
+            display: none;
         }
-        .side-panel.right {
-            border-right: none;
-            border-left: 1px solid var(--border);
-            flex-shrink: 0;
+        .tab-content.active {
+            display: block;
         }
-        .side-panel.hidden-l { transform: translateX(-100%); }
-        .side-panel.hidden-r { transform: translateX(100%); }
 
         /* Panel Section */
         .ps {
@@ -529,6 +687,12 @@
             display: flex;
             border-top: 1px solid var(--border);
             background: var(--bg-1);
+            transition: height 0.3s cubic-bezier(0.16, 1, 0.3, 1), border-top-color 0.3s ease;
+            overflow: hidden;
+        }
+        #kine-bottom.collapsed {
+            height: 0 !important;
+            border-top-color: transparent !important;
         }
         .chart-cell {
             flex: 1;
@@ -555,15 +719,35 @@
             border-radius: var(--r);
             backdrop-filter: blur(10px);
             pointer-events: none;
+            z-index: 100;
         }
 
         #hud-safety {
-            top: 12px; right: 12px;
+            top: 12px; right: 254px;
             width: 200px;
             padding: 10px;
             border-color: rgba(255,71,87,0.35);
             opacity: 0;
             transition: opacity 0.3s;
+        }
+        #hud-readout {
+            top: 12px; right: 12px;
+            width: 230px;
+            padding: 12px;
+            border-color: var(--border);
+            color: var(--cyan);
+            font-family: var(--font-m);
+            font-size: 0.65rem;
+            line-height: 1.5;
+        }
+        #hud-readout .h-title {
+            font-family: var(--font-d);
+            font-size: 0.6rem;
+            color: var(--violet);
+            letter-spacing: 2px;
+            border-bottom: 1px solid rgba(155,93,229,0.25);
+            padding-bottom: 5px;
+            margin-bottom: 6px;
         }
         #hud-safety .h-title {
             font-family: var(--font-d);
@@ -618,175 +802,9 @@
             opacity: 0.7;
         }
 
-        /* Swarm module */
-        #mod-swarm {
-            flex-direction: row;
-        }
-        #swarmCanvas { width: 100%; height: 100%; display: block; outline: none; }
-        .swarm-main { flex: 1; position: relative; overflow: hidden; }
 
-        /* DH Config module */
-        #mod-dh {
-            flex-direction: column;
-            overflow-y: auto;
-            padding: 28px 32px;
-            gap: 24px;
-        }
 
-        /* ===================================
-           DH CONFIG MODULE
-        =================================== */
-        .dh-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            gap: 20px;
-        }
-        .dh-title {
-            font-family: var(--font-d);
-            font-size: 1.4rem;
-            font-weight: 900;
-            color: var(--violet);
-            letter-spacing: 5px;
-            text-shadow: 0 0 30px rgba(155,93,229,0.4);
-        }
-        .dh-subtitle {
-            font-size: 0.72rem;
-            color: var(--text-2);
-            margin-top: 4px;
-            letter-spacing: 1px;
-        }
-        .dh-diagram {
-            background: var(--bg-3);
-            border: 1px solid var(--border);
-            border-radius: var(--r-lg);
-            padding: 16px 20px;
-            font-size: 0.65rem;
-            color: var(--text-1);
-            flex-shrink: 0;
-            line-height: 1.7;
-        }
-        .dh-diagram .dh-formula {
-            font-family: var(--font-m);
-            color: var(--violet);
-            font-size: 0.7rem;
-        }
 
-        .dh-controls {
-            display: flex;
-            gap: 12px;
-            align-items: center;
-            flex-wrap: wrap;
-        }
-        .dh-controls select { width: auto; min-width: 200px; }
-
-        .dh-table-wrap {
-            overflow-x: auto;
-            border: 1px solid var(--border);
-            border-radius: var(--r-lg);
-            background: var(--bg-2);
-        }
-        table.dh-table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 0.72rem;
-        }
-        .dh-table thead tr {
-            background: rgba(155,93,229,0.12);
-            border-bottom: 2px solid rgba(155,93,229,0.3);
-        }
-        .dh-table thead th {
-            font-family: var(--font-d);
-            font-size: 0.6rem;
-            letter-spacing: 2px;
-            color: var(--violet);
-            padding: 10px 16px;
-            text-align: center;
-            white-space: nowrap;
-        }
-        .dh-table thead th.label-col { text-align: left; }
-        .dh-table tbody tr {
-            border-bottom: 1px solid var(--border);
-            transition: background 0.2s;
-        }
-        .dh-table tbody tr:hover { background: rgba(0,245,255,0.03); }
-        .dh-table tbody tr:last-child { border-bottom: none; }
-        .dh-table td {
-            padding: 8px 10px;
-            text-align: center;
-            color: var(--text-1);
-        }
-        .dh-table td.joint-label {
-            font-family: var(--font-d);
-            font-size: 0.62rem;
-            color: var(--cyan);
-            letter-spacing: 1px;
-            text-align: left;
-            padding-left: 16px;
-            width: 80px;
-        }
-        .dh-table input[type="number"] {
-            width: 88px;
-            text-align: center;
-            font-size: 0.68rem;
-        }
-        .dh-table .unit {
-            font-size: 0.58rem;
-            color: var(--text-2);
-            margin-left: 3px;
-        }
-
-        .dh-param-legend {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 10px;
-        }
-        .dh-param-card {
-            background: var(--bg-3);
-            border: 1px solid var(--border);
-            border-radius: var(--r);
-            padding: 10px 12px;
-        }
-        .dh-param-card .pc-key {
-            font-family: var(--font-d);
-            font-size: 0.68rem;
-            color: var(--violet);
-            margin-bottom: 4px;
-        }
-        .dh-param-card .pc-desc {
-            font-size: 0.62rem;
-            color: var(--text-2);
-            line-height: 1.4;
-        }
-
-        .dh-btn-row {
-            display: flex;
-            gap: 10px;
-        }
-        .dh-btn-row .btn {
-            width: auto;
-            flex: 1;
-            max-width: 200px;
-        }
-        .dh-apply-status {
-            font-size: 0.68rem;
-            color: var(--green);
-            letter-spacing: 1px;
-            padding: 8px 12px;
-            border: 1px solid rgba(0,255,178,0.2);
-            border-radius: var(--r);
-            background: rgba(0,255,178,0.05);
-            opacity: 0;
-            transition: opacity 0.4s;
-        }
-        .dh-apply-status.vis { opacity: 1; }
-        .dh-link-scale-info {
-            font-size: 0.62rem;
-            color: var(--text-2);
-            border-top: 1px solid var(--border);
-            padding-top: 10px;
-            line-height: 1.5;
-        }
 
         /* ps-body exposed for collapse */
         .ps-body { display: block; }
@@ -947,7 +965,37 @@
             backdrop-filter: blur(8px);
             z-index: 10;
         }
+        /* Style for DH table inputs */
+        .dh-input {
+            width: 32px;
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(0, 245, 255, 0.12);
+            color: var(--text-0);
+            font-family: var(--font-m);
+            font-size: 0.62rem;
+            text-align: center;
+            padding: 3px 0;
+            border-radius: 3px;
+            outline: none;
+            transition: all 0.2s;
+        }
+        .dh-input:focus {
+            border-color: var(--cyan);
+            background: rgba(0, 245, 255, 0.08);
+            box-shadow: 0 0 6px rgba(0, 245, 255, 0.2);
+        }
+        body.light-theme .dh-input {
+            background: rgba(255, 255, 255, 0.8);
+            color: var(--text-0);
+            border-color: rgba(0, 0, 0, 0.15);
+        }
+        body.light-theme .dh-input:focus {
+            border-color: var(--violet);
+            background: rgba(155, 93, 229, 0.05);
+            box-shadow: 0 0 6px rgba(155, 93, 229, 0.2);
+        }
     </style>
+  <link rel="stylesheet" href="./src/theme.css">
 </head>
 <body>
 <script>
@@ -973,14 +1021,10 @@
 
     <!-- NAV -->
     <nav>
-        <div class="nav-brand">
-            <span class="n-cx">NEXUS</span><span class="n-sep">//</span><span class="n-sub">ENGINE</span>
-        </div>
-
-        <div class="nav-tabs">
-            <button class="tab-btn active" data-target="mod-kine">⚙ KINEMATICS</button>
-            <button class="tab-btn" data-target="mod-swarm">🐝 SWARM</button>
-            <button class="tab-btn dh-tab" data-target="mod-dh">📋 DH CONFIG</button>
+        <div class="nav-brand" style="display:flex;align-items:center;gap:15px;">
+            <div><span class="n-cx">NEXUS</span><span class="n-sep">//</span><span class="n-sub">ENGINE</span></div>
+            <button class="btn-ss" id="btn-toggle-charts" style="background:rgba(155,93,229,0.15);border-color:rgba(155,93,229,0.4);color:var(--violet);font-weight:700;">📊 ANALYTICS</button>
+            <button class="btn-ss" id="btn-toggle-curriculum" style="background:rgba(255,107,53,0.15);border-color:rgba(255,107,53,0.4);color:var(--orange);font-weight:700;">🎓 CURRICULUM</button>
         </div>
 
         <div class="nav-right">
@@ -988,6 +1032,7 @@
                 <kbd>SPACE</kbd><kbd>R</kbd><kbd>H</kbd><kbd>P</kbd><kbd>T</kbd>
             </div>
             <span id="fps-counter">-- FPS</span>
+            <button class="btn-ss" id="btn-toggle-theme" style="background:rgba(0,245,255,0.15);color:var(--cyan);font-weight:700;">☀️ DAY</button>
             <button class="btn-ss" id="btn-screenshot">📷 SNAP</button>
             <div class="nav-status">● ONLINE</div>
         </div>
@@ -999,88 +1044,300 @@
         <!-- ===================== MODULE 1: KINEMATICS ===================== -->
         <div id="mod-kine" class="module active">
 
-            <!-- LEFT PANEL -->
-            <div class="side-panel" id="kp-left" style="width:var(--lp-w);overflow-y:auto;">
+            <!-- SINGLE TABBED SIDE PANEL -->
+            <div class="side-panel" id="sidebar-panel">
+                <button id="btn-sidebar-toggle" title="Toggle Sidebar">◀</button>
 
-                <!-- Forward Kinematics -->
-                <div class="ps">
-                    <div class="ps-header" onclick="togglePS(this)">
-                        <span><span class="ps-icon">🦾</span>FORWARD KINEMATICS</span>
-                        <span class="ps-info" data-info="fk">?</span>
-                    </div>
-                    <div id="fk-sliders" class="ps-body" style="padding-top:4px;"></div>
+                <!-- Tabs headers -->
+                <div class="sidebar-tabs">
+                    <button class="sidebar-tab active" id="tab-btn-kine">🦾 KINE</button>
+                    <button class="sidebar-tab" id="tab-btn-traj">📍 PATH</button>
+                    <button class="sidebar-tab" id="tab-btn-dyn">⚡ DYN</button>
                 </div>
 
-                <!-- Inverse Kinematics -->
-                <div class="ps">
-                    <div class="ps-header violet" onclick="togglePS(this)">
-                        <span><span class="ps-icon">🎯</span>INVERSE KINEMATICS</span>
-                        <span class="ps-info" data-info="ik">?</span>
+                <!-- Tab 1: KINEMATICS -->
+                <div id="tab-kine" class="tab-content active">
+                    <!-- Sub-tabs for KINE -->
+                    <div style="display: flex; background: rgba(0,0,0,0.2); border-bottom: 1px solid var(--border); padding: 6px; gap: 6px; flex-shrink: 0;">
+                        <button class="btn sm" id="subtab-btn-jog" style="flex: 1; margin: 0; background: rgba(0,245,255,0.12); border-color: var(--cyan); color: var(--cyan);">🎮 JOG</button>
+                        <button class="btn sm" id="subtab-btn-dhedit" style="flex: 1; margin: 0; background: transparent; border-color: transparent; color: var(--text-2);">📐 DH EDIT</button>
                     </div>
-                    <div class="ps-body">
-                        <div class="ctrl-row"><span class="ctrl-lbl">Target X</span><input type="number" id="ik-x" step="0.5" value="12.0" style="width:70px;"></div>
-                        <div class="ctrl-row" style="margin-top:4px;"><span class="ctrl-lbl">Target Y</span><input type="number" id="ik-y" step="0.5" value="8.0" style="width:70px;"></div>
-                        <div class="ctrl-row" style="margin-top:4px;margin-bottom:8px;"><span class="ctrl-lbl">Target Z</span><input type="number" id="ik-z" step="0.5" value="0.0" style="width:70px;"></div>
-                        <button class="btn" style="background:rgba(155,93,229,0.15);border-color:rgba(155,93,229,0.5);color:var(--violet);" id="btn-solve-ik">SOLVE IK</button>
-                        <div style="text-align:center;font-size:0.65rem;color:var(--text-2);margin-top:5px;" id="ik-status">IK Solver Ready</div>
+
+                    <!-- SUB-TAB 1: JOG -->
+                    <div id="subtab-content-jog">
+                        <!-- Forward Kinematics -->
+                        <div class="ps">
+                            <div class="ps-header">
+                                <span><span class="ps-icon">🦾</span>FORWARD KINEMATICS</span>
+                                <button class="btn sm" id="btn-home-joints" style="width:auto;margin:0;padding:2px 8px;font-size:0.58rem;display:inline-block;">HOME</button>
+                            </div>
+                            <div id="fk-sliders" class="ps-body" style="padding-top:4px;"></div>
+                        </div>
+
+                        <!-- Preset Poses -->
+                        <div class="ps">
+                            <div class="ps-header">
+                                <span><span class="ps-icon">⚡</span>PRESET POSES</span>
+                            </div>
+                            <div class="ps-body">
+                                <select id="preset-select" style="margin-bottom:7px;">
+                                    <option value="">— SELECT POSE —</option>
+                                    <option value="home">🏠 Home (Zero)</option>
+                                    <option value="ready">✅ Ready</option>
+                                    <option value="pick">📦 Pick & Place</option>
+                                    <option value="carry">🤲 Carry</option>
+                                    <option value="stretch">↗ Full Stretch</option>
+                                </select>
+                                <div class="btn-row">
+                                    <button class="btn sm" id="btn-load-preset">LOAD POSE</button>
+                                    <button class="btn red sm" id="btn-clear-trail">CLEAR TRAIL</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Inverse Kinematics -->
+                        <div class="ps">
+                            <div class="ps-header violet" onclick="togglePS(this)" tabindex="0" onkeydown="if(event.key==='Enter'||event.key===' ')this.click()" role="button" aria-expanded="true">
+                                <span><span class="ps-icon">🎯</span>INVERSE KINEMATICS</span>
+                                <span class="ps-info" data-info="ik">?</span>
+                            </div>
+                            <div class="ps-body">
+                                <div class="ctrl-row"><span class="ctrl-lbl">Target X</span><input type="number" id="ik-x" step="0.5" value="12.0" style="width:70px;"></div>
+                                <div class="ctrl-row" style="margin-top:4px;"><span class="ctrl-lbl">Target Y</span><input type="number" id="ik-y" step="0.5" value="8.0" style="width:70px;"></div>
+                                <div class="ctrl-row" style="margin-top:4px;margin-bottom:8px;"><span class="ctrl-lbl">Target Z</span><input type="number" id="ik-z" step="0.5" value="0.0" style="width:70px;"></div>
+                                <button class="btn" style="background:rgba(155,93,229,0.15);border-color:rgba(155,93,229,0.5);color:var(--violet);" id="btn-solve-ik">SOLVE IK</button>
+                                <div style="text-align:center;font-size:0.65rem;color:var(--text-2);margin-top:5px;" id="ik-status">IK Solver Ready</div>
+                            </div>
+                        </div>
+                    </div> <!-- end subtab-content-jog -->
+
+                    <!-- SUB-TAB 2: DH EDIT -->
+                    <div id="subtab-content-dhedit" style="display: none;">
+                        <!-- DH Presets Selector -->
+                        <div class="ps">
+                            <div class="ps-header" style="color:var(--violet); border-bottom-color: rgba(155,93,229,0.25);">
+                                <span><span class="ps-icon">🤖</span>ROBOT CONFIG PRESETS</span>
+                            </div>
+                            <div class="ps-body">
+                                <div class="ctrl-row" style="margin-bottom:8px;">
+                                    <span class="ctrl-lbl">Select Preset</span>
+                                    <select id="dh-preset-select" style="width: 130px; border-color: rgba(155,93,229,0.3);">
+                                        <option value="custom">Custom 6-DOF</option>
+                                        <option value="ur5">UR5 (Universal)</option>
+                                        <option value="ur10">UR10 (Universal)</option>
+                                        <option value="kuka_kr6">KUKA KR6 R700</option>
+                                        <option value="abb_irb1200">ABB IRB 1200</option>
+                                        <option value="fanuc_m10">Fanuc M-10iA</option>
+                                    </select>
+                                </div>
+                                <button class="btn violet sm" id="btn-load-dh-preset">APPLY PRESET</button>
+                            </div>
+                        </div>
+
+                        <!-- DH Table Editor -->
+                        <div class="ps">
+                            <div class="ps-header" style="color:var(--cyan); border-bottom-color: rgba(0,245,255,0.25);">
+                                <span><span class="ps-icon">📐</span>DH TABLE PARAMETERS</span>
+                            </div>
+                            <div class="ps-body" style="padding: 0; overflow-x: auto;">
+                                <table id="dh-editor-table" style="width: 100%; border-collapse: collapse; font-size: 0.6rem; text-align: center; color: var(--text-1); min-width: 250px;">
+                                    <thead>
+                                        <tr style="border-bottom: 1px solid var(--border); height: 26px;">
+                                            <th style="font-weight: 700; color: var(--cyan); padding: 2px;">J</th>
+                                            <th style="font-weight: 700; color: var(--cyan); padding: 2px;" title="Theta Offset (degrees)">θ_off</th>
+                                            <th style="font-weight: 700; color: var(--cyan); padding: 2px;" title="d offset (mm)">d</th>
+                                            <th style="font-weight: 700; color: var(--cyan); padding: 2px;" title="a length (mm)">a</th>
+                                            <th style="font-weight: 700; color: var(--cyan); padding: 2px;" title="Alpha twist (degrees)">α</th>
+                                            <th style="font-weight: 700; color: var(--cyan); padding: 2px;" title="Limit Min (degrees)">min</th>
+                                            <th style="font-weight: 700; color: var(--cyan); padding: 2px;" title="Limit Max (degrees)">max</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="dh-editor-tbody">
+                                        <!-- Dynamic rows -->
+                                    </tbody>
+                                </table>
+                                <div style="font-size: 0.58rem; color: var(--text-2); padding: 8px 6px 0; line-height: 1.4; text-align: center;">
+                                    *Model rebuilds instantly on input change.
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Save / Load Custom DH Configs -->
+                        <div class="ps">
+                            <div class="ps-header orange" style="color:var(--orange); border-bottom-color: rgba(255,107,53,0.25);">
+                                <span><span class="ps-icon">💾</span>USER CONFIGURATIONS</span>
+                            </div>
+                            <div class="ps-body">
+                                <div class="ctrl-row" style="margin-bottom:8px;">
+                                    <span class="ctrl-lbl">Name</span>
+                                    <input type="text" id="dh-custom-name" placeholder="my_robot_config" style="width: 130px; background: rgba(0,0,0,0.5); border: 1px solid var(--border); color: var(--orange); font-family: var(--font-m); font-size: 0.65rem; padding: 4px 6px; border-radius: var(--r); outline: none;">
+                                </div>
+                                <div class="btn-row" style="margin-bottom:8px;">
+                                    <button class="btn orange sm" id="btn-save-dh-custom">SAVE</button>
+                                    <button class="btn red sm" id="btn-delete-dh-custom">DELETE</button>
+                                </div>
+                                <div class="ctrl-row" style="margin-bottom:8px;">
+                                    <span class="ctrl-lbl">Saved Configs</span>
+                                    <select id="dh-custom-select" style="width: 130px; border-color: rgba(255,107,53,0.3);">
+                                        <option value="">— NO SAVED CONFIGS —</option>
+                                    </select>
+                                </div>
+                                <button class="btn sm" style="background: rgba(255,107,53,0.12); border-color: rgba(255,107,53,0.4); color: var(--orange);" id="btn-load-dh-custom">LOAD CONFIG</button>
+                            </div>
+                        </div>
+                    </div> <!-- end subtab-content-dhedit -->
+                </div>
+
+                <!-- Tab 2: PATHS -->
+                <div id="tab-traj" class="tab-content">
+                    <!-- Trajectory -->
+                    <div class="ps">
+                        <div class="ps-header" onclick="togglePS(this)" tabindex="0" onkeydown="if(event.key==='Enter'||event.key===' ')this.click()" role="button" aria-expanded="true">
+                            <span><span class="ps-icon">📍</span>TRAJECTORY ENGINE</span>
+                        </div>
+                        <div class="ps-body">
+                            <div style="display:flex;gap:14px;margin-bottom:8px;">
+                                <label style="font-size:0.68rem;color:var(--text-1);"><input type="radio" name="traj_t" value="joint" checked> LSPB Joint</label>
+                                <label style="font-size:0.68rem;color:var(--text-1);"><input type="radio" name="traj_t" value="cartesian"> Cartesian</label>
+                            </div>
+                            <div class="ctrl-row"><span class="ctrl-lbl">Waypoints</span><span class="ctrl-val" id="traj-wp-count">0</span></div>
+                            <div class="ctrl-row" style="margin-top:5px;">
+                                <span class="ctrl-lbl">Duration</span><span class="ctrl-val" id="val-traj-dur">2.0s</span>
+                            </div>
+                            <input type="range" id="slider-traj-dur" min="0.5" max="5" step="0.5" value="2">
+                            <div class="btn-row" style="margin-bottom:7px;">
+                                <button class="btn violet" id="btn-traj-run">▶ RUN PATH</button>
+                                <button class="btn red sm" id="btn-traj-clear" style="width:auto;">CLR</button>
+                            </div>
+                            <div style="display:flex;align-items:center;gap:7px;">
+                                <input type="checkbox" id="chk-safety" checked>
+                                <label for="chk-safety" style="font-size:0.68rem;color:var(--red);font-weight:700;">HARD SAFETY STOP</label>
+                            </div>
+                            <div style="font-size:0.6rem;color:var(--text-2);margin-top:5px;">*Double-click viewport to place waypoints</div>
+                        </div>
+                    </div>
+
+                    <!-- Teach Mode -->
+                    <div class="ps">
+                        <div class="ps-header orange" onclick="togglePS(this)" tabindex="0" onkeydown="if(event.key==='Enter'||event.key===' ')this.click()" role="button" aria-expanded="true">
+                            <span><span class="ps-icon">🎓</span>TEACH MODE</span>
+                        </div>
+                        <div class="ps-body">
+                            <button class="btn orange" id="btn-teach-mode" style="margin-bottom:8px;">TEACH MODE: OFF</button>
+                            <div style="font-size:0.62rem;color:var(--text-2);line-height:1.5;margin-bottom:8px;">Drag end-effector in viewport to teach robot positions. Click to record waypoint.</div>
+                            <div class="ctrl-row" style="margin-bottom:6px;">
+                                <span class="ctrl-lbl">Waypoints Taught</span>
+                                <span class="ctrl-val orange" id="teach-wp-count">0</span>
+                            </div>
+                            <div class="wp-list" id="teach-wp-list"></div>
+                            <div class="btn-row" style="margin-top:7px;">
+                                <button class="btn orange sm" id="btn-commit-teach" title="Send to trajectory engine">COMMIT PATH</button>
+                                <button class="btn red sm" id="btn-clear-teach">CLEAR</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Pick & Place Task -->
+                    <div class="ps">
+                        <div class="ps-header orange" style="color:var(--cyan);border-bottom-color:rgba(0,245,255,0.2);" onclick="togglePS(this)" tabindex="0" onkeydown="if(event.key==='Enter'||event.key===' ')this.click()" role="button" aria-expanded="true">
+                            <span><span class="ps-icon">🤖</span>PICK & PLACE TASK</span>
+                        </div>
+                        <div class="ps-body">
+                            <div style="font-size:0.62rem;color:var(--text-2);line-height:1.5;margin-bottom:8px;">Choose an object to execute an autonomous pick-and-place sequence using Cartesian IK path planning.</div>
+                            <div class="ctrl-row" style="margin-bottom:8px;">
+                                <span class="ctrl-lbl">Select Object</span>
+                                <select id="pick-object-select" style="width: 130px;">
+                                    <option value="box">📦 Heavy Cargo Box</option>
+                                    <option value="gear">⚙ Industrial Gear</option>
+                                    <option value="canister">🛢 Fuel Canister</option>
+                                </select>
+                            </div>
+                            <button class="btn" style="background:rgba(0,245,255,0.12);border-color:var(--cyan);color:var(--cyan);" id="btn-execute-task">EXECUTE PICK & PLACE</button>
+                            <button class="btn red sm" id="btn-reset-objects" style="margin-top:6px;">RESET OBJECTS</button>
+                            <div style="text-align:center;font-size:0.65rem;color:var(--text-2);margin-top:6px;" id="task-status">Task Engine Idle</div>
+                        </div>
+                    </div>
+                    <!-- Code Generator -->
+                    <div class="ps">
+                        <div class="ps-header" style="color:var(--violet);border-bottom-color:rgba(155,93,229,0.25);" onclick="togglePS(this)" tabindex="0" onkeydown="if(event.key==='Enter'||event.key===' ')this.click()" role="button" aria-expanded="true">
+                            <span><span class="ps-icon">💻</span>CODE GENERATOR</span>
+                        </div>
+                        <div class="ps-body">
+                            <div style="font-size:0.62rem;color:var(--text-2);line-height:1.5;margin-bottom:8px;">Export the active trajectory path as industrial robot commands.</div>
+                            <div class="ctrl-row" style="margin-bottom:8px;">
+                                <span class="ctrl-lbl">Export Format</span>
+                                <select id="export-format-select" style="width: 130px; border-color: rgba(155,93,229,0.3);">
+                                    <option value="gcode">G-code (.gcode)</option>
+                                    <option value="urscript">URScript (.script)</option>
+                                    <option value="moveit">ROS2 MoveIt (.py)</option>
+                                </select>
+                            </div>
+                            <button class="btn" style="background:rgba(155,93,229,0.12);border-color:rgba(155,93,229,0.4);color:var(--violet);" id="btn-generate-code">GENERATE CODE</button>
+                        </div>
                     </div>
                 </div>
 
-                <!-- Trajectory -->
-                <div class="ps">
-                    <div class="ps-header" onclick="togglePS(this)">
-                        <span><span class="ps-icon">📍</span>TRAJECTORY ENGINE</span>
+                <!-- Tab 3: DYNAMICS -->
+                <div id="tab-dyn" class="tab-content">
+                    <!-- DOF Selector -->
+                    <div class="ps">
+                        <div class="ps-header" style="background:rgba(0,245,255,0.06);border-color:rgba(0,245,255,0.2);">
+                            <span><span class="ps-icon">🔢</span>DEGREES OF FREEDOM</span>
+                        </div>
+                        <div class="ps-body" style="padding:10px 0 6px;">
+                            <div style="font-size:0.62rem;color:var(--text-2);margin-bottom:8px;">Select robot joint count. Robot rebuilds instantly.</div>
+                            <div id="dof-btn-group" style="display:flex;gap:6px;justify-content:center;">
+                                <button class="dof-btn" data-dof="2">2</button>
+                                <button class="dof-btn" data-dof="3">3</button>
+                                <button class="dof-btn" data-dof="4">4</button>
+                                <button class="dof-btn" data-dof="5">5</button>
+                                <button class="dof-btn active" data-dof="6">6</button>
+                            </div>
+                            <div style="text-align:center;margin-top:8px;font-family:var(--font-m);font-size:0.65rem;color:var(--cyan);" id="dof-label">6-DOF CONFIGURATION</div>
+                        </div>
                     </div>
-                    <div class="ps-body">
-                        <div style="display:flex;gap:14px;margin-bottom:8px;">
-                            <label style="font-size:0.68rem;color:var(--text-1);"><input type="radio" name="traj_t" value="joint" checked> LSPB Joint</label>
-                            <label style="font-size:0.68rem;color:var(--text-1);"><input type="radio" name="traj_t" value="cartesian"> Cartesian</label>
+
+                    <!-- Dynamics -->
+                    <div class="ps">
+                        <div class="ps-header" onclick="togglePS(this)" tabindex="0" onkeydown="if(event.key==='Enter'||event.key===' ')this.click()" role="button" aria-expanded="true">
+                            <span><span class="ps-icon">⚡</span>DYNAMICS</span>
+                            <span class="ps-info" data-info="dyn">?</span>
                         </div>
-                        <div class="ctrl-row"><span class="ctrl-lbl">Waypoints</span><span class="ctrl-val" id="traj-wp-count">0</span></div>
-                        <div class="ctrl-row" style="margin-top:5px;">
-                            <span class="ctrl-lbl">Duration</span><span class="ctrl-val" id="val-traj-dur">2.0s</span>
+                        <div class="ps-body">
+                            <div class="ctrl-row" style="margin-bottom:8px;">
+                                <span class="ctrl-lbl">Gravity Vector</span>
+                                <button class="btn sm" id="btn-gravity" style="width:auto;">Y: -9.81</button>
+                            </div>
+                            <div style="width:100%;height:120px;background:rgba(0,0,0,0.3);border:1px solid var(--border);border-radius:var(--r);padding:5px;">
+                                <canvas id="torqueChart"></canvas>
+                            </div>
                         </div>
-                        <input type="range" id="slider-traj-dur" min="0.5" max="5" step="0.5" value="2">
-                        <div class="btn-row" style="margin-bottom:7px;">
-                            <button class="btn violet" id="btn-traj-run">▶ RUN PATH</button>
-                            <button class="btn red sm" id="btn-traj-clear" style="width:auto;">CLR</button>
+                    </div>
+
+                    <!-- Workspace -->
+                    <div class="ps">
+                        <div class="ps-header" onclick="togglePS(this)" tabindex="0" onkeydown="if(event.key==='Enter'||event.key===' ')this.click()" role="button" aria-expanded="true">
+                            <span><span class="ps-icon">🔭</span>WORKSPACE</span>
                         </div>
-                        <div style="display:flex;align-items:center;gap:7px;">
-                            <input type="checkbox" id="chk-safety" checked>
-                            <label for="chk-safety" style="font-size:0.68rem;color:var(--red);font-weight:700;">HARD SAFETY STOP</label>
+                        <div class="ps-body">
+                            <button class="btn" id="btn-toggle-ws" style="margin-bottom:7px;">TOGGLE REACHABILITY</button>
+                            <div style="font-size:0.62rem;color:var(--text-2);">Spherical workspace envelope based on DH link parameters.</div>
                         </div>
-                        <div style="font-size:0.6rem;color:var(--text-2);margin-top:5px;">*Double-click viewport to place waypoints</div>
+                    </div>
+
+                    <!-- Active Robot Info -->
+                    <div class="ps">
+                        <div class="ps-header violet"><span><span class="ps-icon">🤖</span>ACTIVE ROBOT</span></div>
+                        <div class="ps-body">
+                            <div class="databox" id="robot-info-box">ROBOT: Custom 6-DOF
+DOF: 6
+MAX REACH: ~22 units
+SOLVER: CCD IK</div>
+                        </div>
                     </div>
                 </div>
 
-                <!-- Presets -->
-                <div class="ps">
-                    <div class="ps-header" onclick="togglePS(this)">
-                        <span><span class="ps-icon">⚡</span>PRESET POSES</span>
-                    </div>
-                    <div class="ps-body">
-                        <select id="preset-select" style="margin-bottom:7px;">
-                            <option value="">— SELECT POSE —</option>
-                            <option value="home">🏠 Home (Zero)</option>
-                            <option value="ready">✅ Ready</option>
-                            <option value="pick">📦 Pick & Place</option>
-                            <option value="carry">🤲 Carry</option>
-                            <option value="stretch">↗ Full Stretch</option>
-                        </select>
-                        <div class="btn-row">
-                            <button class="btn sm" id="btn-load-preset">LOAD</button>
-                            <button class="btn red sm" id="btn-clear-trail">Trail ✕</button>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Data Readout -->
-                <div class="ps" style="margin-top:auto;">
-                    <div class="ps-header"><span>📊 READOUT</span></div>
-                    <div class="databox" id="data-readout">SYS_READY...</div>
-                </div>
-
-            </div><!-- end kp-left -->
+            </div><!-- end sidebar-panel -->
 
             <!-- CENTER -->
             <div class="kine-center">
@@ -1094,6 +1351,12 @@
                     <div class="hud" id="hud-safety">
                         <div class="h-title">⚠ SAFETY MONITOR</div>
                         <div id="safety-list">NO COLLISION DETECTED</div>
+                    </div>
+
+                    <!-- HUD: Telemetry Readout -->
+                    <div class="hud" id="hud-readout">
+                        <div class="h-title">📊 TELEMETRY READOUT</div>
+                        <div id="data-readout">SYS_READY...</div>
                     </div>
 
                     <!-- HUD: IK notify -->
@@ -1115,294 +1378,7 @@
                     <div class="chart-cell"><div class="chart-label violet">ACCELERATION PROFILE (J1–J3)</div><canvas id="trajAccChart"></canvas></div>
                 </div>
             </div><!-- end kine-center -->
-
-            <!-- RIGHT PANEL -->
-            <div class="side-panel right" id="kp-right" style="width:var(--rp-w);">
-
-                <!-- DOF Selector -->
-                <div class="ps">
-                    <div class="ps-header" style="background:rgba(0,245,255,0.06);border-color:rgba(0,245,255,0.2);">
-                        <span><span class="ps-icon">🔢</span>DEGREES OF FREEDOM</span>
-                    </div>
-                    <div class="ps-body" style="padding:10px 0 6px;">
-                        <div style="font-size:0.62rem;color:var(--text-2);margin-bottom:8px;">Select robot joint count. Robot rebuilds instantly.</div>
-                        <div id="dof-btn-group" style="display:flex;gap:6px;justify-content:center;">
-                            <button class="dof-btn" data-dof="2">2</button>
-                            <button class="dof-btn" data-dof="3">3</button>
-                            <button class="dof-btn" data-dof="4">4</button>
-                            <button class="dof-btn" data-dof="5">5</button>
-                            <button class="dof-btn active" data-dof="6">6</button>
-                        </div>
-                        <div style="text-align:center;margin-top:8px;font-family:var(--font-m);font-size:0.65rem;color:var(--cyan);" id="dof-label">6-DOF CONFIGURATION</div>
-                    </div>
-                </div>
-
-                <!-- Teach Mode -->
-                <div class="ps">
-                    <div class="ps-header orange"><span><span class="ps-icon">🎓</span>TEACH MODE</span></div>
-                    <div class="ps-body">
-                        <button class="btn orange" id="btn-teach-mode" style="margin-bottom:8px;">TEACH MODE: OFF</button>
-                        <div style="font-size:0.62rem;color:var(--text-2);line-height:1.5;margin-bottom:8px;">Drag end-effector in viewport to teach robot positions. Click to record waypoint.</div>
-                        <div class="ctrl-row" style="margin-bottom:6px;">
-                            <span class="ctrl-lbl">Waypoints Taught</span>
-                            <span class="ctrl-val orange" id="teach-wp-count">0</span>
-                        </div>
-                        <div class="wp-list" id="teach-wp-list"></div>
-                        <div class="btn-row" style="margin-top:7px;">
-                            <button class="btn orange sm" id="btn-commit-teach" title="Send to trajectory engine">COMMIT PATH</button>
-                            <button class="btn red sm" id="btn-clear-teach">CLEAR</button>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Dynamics -->
-                <div class="ps">
-                    <div class="ps-header" onclick="togglePS(this)">
-                        <span><span class="ps-icon">⚡</span>DYNAMICS</span>
-                        <span class="ps-info" data-info="dyn">?</span>
-                    </div>
-                    <div class="ps-body">
-                        <div class="ctrl-row" style="margin-bottom:8px;">
-                            <span class="ctrl-lbl">Gravity Vector</span>
-                            <button class="btn sm" id="btn-gravity" style="width:auto;">Y: -9.81</button>
-                        </div>
-                        <div style="width:100%;height:140px;background:rgba(0,0,0,0.3);border:1px solid var(--border);border-radius:var(--r);padding:5px;">
-                            <canvas id="torqueChart"></canvas>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Workspace -->
-                <div class="ps">
-                    <div class="ps-header" onclick="togglePS(this)">
-                        <span><span class="ps-icon">🔭</span>WORKSPACE</span>
-                    </div>
-                    <div class="ps-body">
-                        <button class="btn" id="btn-toggle-ws" style="margin-bottom:7px;">TOGGLE REACHABILITY</button>
-                        <div style="font-size:0.62rem;color:var(--text-2);">Spherical workspace envelope based on DH link parameters.</div>
-                    </div>
-                </div>
-
-                <!-- Active Robot Info -->
-                <div class="ps">
-                    <div class="ps-header violet"><span><span class="ps-icon">🤖</span>ACTIVE ROBOT</span></div>
-                    <div class="ps-body">
-                        <div class="databox" id="robot-info-box">ROBOT: Custom 6-DOF
-DOF: 6
-MAX REACH: ~22 units
-SOLVER: CCD IK</div>
-                    </div>
-                </div>
-
-            </div><!-- end kp-right -->
-
         </div><!-- end #mod-kine -->
-
-        <!-- ===================== MODULE 2: SWARM ===================== -->
-        <div id="mod-swarm" class="module">
-
-            <!-- LEFT PANEL -->
-            <div class="side-panel" style="width:var(--lp-w);">
-
-                <div class="ps">
-                    <div class="ps-header">
-                        <span><span class="ps-icon">🐝</span>BOIDS ENGINE</span>
-                        <span class="ps-info" data-info="boids">?</span>
-                    </div>
-                    <div class="ps-body">
-                        <div class="ctrl-row"><span class="ctrl-lbl">Agent Count</span><span class="ctrl-val" id="val-agents">50</span></div>
-                        <input type="range" id="param-agents" min="10" max="200" value="50">
-                        <div class="ctrl-row"><span class="ctrl-lbl">Separation</span><span class="ctrl-val" id="val-sep">1.5</span></div>
-                        <input type="range" id="param-sep" min="0" max="5" step="0.1" value="1.5">
-                        <div class="ctrl-row"><span class="ctrl-lbl">Alignment</span><span class="ctrl-val" id="val-ali">1.0</span></div>
-                        <input type="range" id="param-ali" min="0" max="5" step="0.1" value="1.0">
-                        <div class="ctrl-row"><span class="ctrl-lbl">Cohesion</span><span class="ctrl-val" id="val-coh">1.0</span></div>
-                        <input type="range" id="param-coh" min="0" max="5" step="0.1" value="1.0">
-                        <div class="ctrl-row"><span class="ctrl-lbl">Max Speed</span><span class="ctrl-val" id="val-speed">2.0</span></div>
-                        <input type="range" id="param-speed" min="0.5" max="6" step="0.1" value="2.0">
-                        <div class="ctrl-row"><span class="ctrl-lbl">Visibility</span><span class="ctrl-val" id="val-radius">50</span></div>
-                        <input type="range" id="param-radius" min="20" max="150" step="5" value="50">
-                    </div>
-                </div>
-
-                <div class="ps">
-                    <div class="ps-header violet"><span><span class="ps-icon">🎯</span>SWARM TASKS</span></div>
-                    <div class="ps-body">
-                        <div class="ctrl-row" style="margin-bottom:8px;">
-                            <span class="ctrl-lbl">Active Task</span>
-                            <select id="swarm-task-select" style="width:130px;">
-                                <option value="none">None (Flock)</option>
-                                <option value="search">Search & Rescue</option>
-                                <option value="formation">Formation</option>
-                            </select>
-                        </div>
-                        <div id="formation-controls" style="display:none;margin-bottom:6px;">
-                            <div class="ctrl-row">
-                                <span class="ctrl-lbl">Shape</span>
-                                <select id="formation-shape-select" style="width:110px;">
-                                    <option value="circle">Circle</option>
-                                    <option value="grid">Grid</option>
-                                    <option value="vshape">V-Shape</option>
-                                    <option value="arrow">Arrow</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div id="search-stats" style="display:none;">
-                            <div class="ctrl-row"><span class="ctrl-lbl">Targets Found</span><span class="ctrl-val" id="search-found">0 / 5</span></div>
-                            <div class="ctrl-row"><span class="ctrl-lbl">Time Elapsed</span><span class="ctrl-val" id="search-time">0.0s</span></div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="ps">
-                    <div class="ps-header"><span><span class="ps-icon">▶</span>SIMULATION</span></div>
-                    <div class="ps-body">
-                        <div class="btn-row" style="margin-bottom:7px;">
-                            <button class="btn" id="btn-swarm-play">PAUSE</button>
-                            <button class="btn" id="btn-swarm-reset">RESET</button>
-                        </div>
-                        <button class="btn violet" id="btn-swarm-export" style="margin-bottom:7px;">EXPORT JSON</button>
-                    </div>
-                </div>
-
-                <div class="ps">
-                    <div class="ps-header orange"><span><span class="ps-icon">🏗</span>ENVIRONMENT</span></div>
-                    <div class="ps-body">
-                        <button class="btn violet" id="btn-add-obstacle" style="margin-bottom:6px;">ADD OBSTACLE</button>
-                        <button class="btn violet" id="btn-set-goal" style="margin-bottom:6px;">SET TARGET</button>
-                        <button class="btn red" id="btn-clear-env">CLEAR ENVIRONMENT</button>
-                    </div>
-                </div>
-
-            </div>
-
-            <!-- SWARM CANVAS -->
-            <div class="swarm-main">
-                <canvas id="swarmCanvas"></canvas>
-            </div>
-
-            <!-- RIGHT PANEL -->
-            <div class="side-panel right" style="width:var(--rp-w);">
-
-                <div class="ps">
-                    <div class="ps-header"><span><span class="ps-icon">📈</span>ANALYTICS</span></div>
-                    <div class="ps-body">
-                        <div style="height:180px;border:1px solid var(--border);border-radius:var(--r);background:rgba(0,0,0,0.3);padding:5px;margin-bottom:10px;">
-                            <canvas id="coverageChart"></canvas>
-                        </div>
-                        <div style="height:160px;border:1px solid var(--border);border-radius:var(--r);background:rgba(0,0,0,0.3);padding:5px;">
-                            <canvas id="stateChart"></canvas>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="ps">
-                    <div class="ps-header violet"><span><span class="ps-icon">📊</span>STATS</span></div>
-                    <div class="ps-body">
-                        <div class="ctrl-row"><span class="ctrl-lbl">Avg Speed</span><span class="ctrl-val violet" id="stat-vel">0.0</span></div>
-                        <div class="ctrl-row"><span class="ctrl-lbl">Clusters</span><span class="ctrl-val" id="stat-cluster">1</span></div>
-                        <div class="ctrl-row"><span class="ctrl-lbl">Collisions</span><span class="ctrl-val red" id="stat-col">0</span></div>
-                        <div class="ctrl-row"><span class="ctrl-lbl">Coverage</span><span class="ctrl-val" id="stat-cov">0%</span></div>
-                    </div>
-                </div>
-
-                <div class="ps">
-                    <div class="ps-header"><span><span class="ps-icon">🕐</span>SESSION HISTORY</span></div>
-                    <div class="ps-body">
-                        <div id="session-history-list" style="font-size:0.62rem;color:var(--text-2);">
-                            <div style="padding:5px;">NO PREVIOUS SESSIONS</div>
-                        </div>
-                    </div>
-                </div>
-
-            </div>
-
-        </div><!-- end #mod-swarm -->
-
-        <!-- ===================== MODULE 3: DH CONFIG ===================== -->
-        <div id="mod-dh" class="module">
-
-            <div class="dh-header">
-                <div>
-                    <div class="dh-title">DH PARAMETERS</div>
-                    <div class="dh-subtitle">Denavit–Hartenberg Convention — Configure robot kinematics from specifications</div>
-                </div>
-                <div class="dh-diagram">
-                    <div class="dh-formula">T_i = R_z(θᵢ+θ_off) · T_z(dᵢ) · T_x(aᵢ) · R_x(αᵢ)</div>
-                    <div style="margin-top:6px;">Each homogeneous transform encodes:<br>• <strong style="color:var(--cyan);">θ_off</strong> — joint angle offset (deg)<br>• <strong style="color:var(--cyan);">d</strong> — link offset along z (units)<br>• <strong style="color:var(--cyan);">a</strong> — link length along x (units)<br>• <strong style="color:var(--cyan);">α</strong> — twist about x (deg)</div>
-                </div>
-            </div>
-
-            <div class="dh-controls">
-                <div style="display:flex;flex-direction:column;gap:6px;">
-                    <div style="font-size:0.65rem;color:var(--text-2);letter-spacing:1px;">ROBOT PRESET</div>
-                    <select id="dh-preset-select" style="width:220px;">
-                        <option value="custom">Custom</option>
-                        <option value="ur5">Universal Robots UR5</option>
-                        <option value="ur10">Universal Robots UR10</option>
-                        <option value="kuka_kr6">KUKA KR6 R700</option>
-                        <option value="abb_irb1200">ABB IRB 1200-5/0.9</option>
-                        <option value="fanuc_m10">Fanuc M-10iA/12</option>
-                    </select>
-                </div>
-                <div style="display:flex;flex-direction:column;gap:6px;">
-                    <div style="font-size:0.65rem;color:var(--text-2);letter-spacing:1px;">SCALE FACTOR</div>
-                    <div style="display:flex;gap:6px;align-items:center;">
-                        <input type="number" id="dh-scale" value="0.03" step="0.005" min="0.001" style="width:80px;">
-                        <span style="font-size:0.65rem;color:var(--text-2);">units/mm</span>
-                    </div>
-                </div>
-            </div>
-
-            <div class="dh-table-wrap">
-                <table class="dh-table">
-                    <thead>
-                        <tr>
-                            <th class="label-col">JOINT</th>
-                            <th>θ_OFFSET <span style="font-weight:300;">(deg)</span></th>
-                            <th>d <span style="font-weight:300;">(mm)</span></th>
-                            <th>a <span style="font-weight:300;">(mm)</span></th>
-                            <th>α <span style="font-weight:300;">(deg)</span></th>
-                            <th>LIMIT MIN <span style="font-weight:300;">(deg)</span></th>
-                            <th>LIMIT MAX <span style="font-weight:300;">(deg)</span></th>
-                        </tr>
-                    </thead>
-                    <tbody id="dh-tbody">
-                        <!-- Populated by JS -->
-                    </tbody>
-                </table>
-            </div>
-
-            <div class="dh-param-legend">
-                <div class="dh-param-card">
-                    <div class="pc-key">θ OFFSET</div>
-                    <div class="pc-desc">Home position angle offset. Accounts for mechanical zero vs encoder zero.</div>
-                </div>
-                <div class="dh-param-card">
-                    <div class="pc-key">d — LINK OFFSET</div>
-                    <div class="pc-desc">Distance along previous z-axis to common normal. Prismatic joints vary this.</div>
-                </div>
-                <div class="dh-param-card">
-                    <div class="pc-key">a — LINK LENGTH</div>
-                    <div class="pc-desc">Distance along common normal from old z-axis to new z-axis.</div>
-                </div>
-                <div class="dh-param-card">
-                    <div class="pc-key">α — LINK TWIST</div>
-                    <div class="pc-desc">Angle about common normal from old z-axis to new z-axis. Creates 3D structure.</div>
-                </div>
-            </div>
-
-            <div class="dh-btn-row">
-                <button class="btn violet" id="btn-dh-apply" style="font-size:0.72rem;padding:10px;">⚙ APPLY TO ROBOT</button>
-                <button class="btn sm" id="btn-dh-export" style="font-size:0.7rem;padding:10px;flex:0.5;">EXPORT JSON</button>
-                <div class="dh-apply-status" id="dh-apply-status">✓ DH PARAMETERS APPLIED</div>
-            </div>
-
-            <div class="dh-link-scale-info">
-                <strong style="color:var(--cyan);">Scale Factor:</strong> DH parameters are typically in millimetres. The scale factor converts mm → simulation units (e.g. 0.03 means 1mm = 0.03 units). Adjust to match your robot's physical scale in the viewport.
-            </div>
-
-        </div><!-- end #mod-dh -->
 
     </div><!-- end #app -->
 
@@ -1429,6 +1405,92 @@ SOLVER: CCD IK</div>
         </div>
     </div>
 
+    <!-- CURRICULUM MODAL -->
+    <div class="modal-overlay" id="modal-curriculum">
+        <div class="modal-box" id="modal-curriculum-box" style="width: 780px; max-width: 90vw; height: 500px; padding: 0; display: flex; flex-direction: column; overflow: hidden; border-color: var(--orange); box-shadow: 0 0 60px rgba(255,107,53,0.12);">
+            <button class="modal-close" id="modal-curriculum-close" style="top: 12px; right: 16px;">×</button>
+            
+            <div class="modal-title" style="padding: 16px 20px; border-bottom: 1px solid var(--border); color: var(--orange); text-shadow: 0 0 8px rgba(255,107,53,0.3); font-size: 1.1rem; display: flex; align-items: center; gap: 10px; margin-bottom: 0;">
+                <span>🎓 ROBOTICS CURRICULUM</span>
+                <span style="font-size: 0.6rem; color: var(--text-2); font-family: var(--font-m); font-weight: normal; letter-spacing: 1px; margin-left: auto; margin-right: 24px;" id="curriculum-overall-progress">PROGRESS: 0/5 COMPLETED</span>
+            </div>
+            
+            <div style="flex: 1; display: flex; overflow: hidden;">
+                <!-- Sidebar: Challenges list -->
+                <div style="width: 220px; border-right: 1px solid var(--border); background: rgba(0,0,0,0.25); display: flex; flex-direction: column; overflow-y: auto;" id="curriculum-sidebar">
+                    <!-- Challenges will be dynamically populated here -->
+                </div>
+                
+                <!-- Main detail panel -->
+                <div style="flex: 1; display: flex; flex-direction: column; padding: 20px; overflow-y: auto; background: rgba(8,13,26,0.3);" id="curriculum-details">
+                    <div id="challenge-placeholder" style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; color: var(--text-2); gap: 10px;">
+                        <span style="font-size: 2.5rem;">🎓</span>
+                        <span style="font-family: var(--font-d); font-size: 0.8rem; letter-spacing: 2px;">SELECT A CHALLENGE TO BEGIN</span>
+                    </div>
+                    
+                    <div id="challenge-content" style="display: none; flex-direction: column; height: 100%;">
+                        <div style="font-family: var(--font-d); font-size: 1.05rem; color: var(--text-0); margin-bottom: 6px; font-weight: 700; letter-spacing: 1px;" id="curr-title">CHALLENGE 1</div>
+                        <div style="font-size: 0.72rem; color: var(--text-1); line-height: 1.6; margin-bottom: 14px;" id="curr-desc">Description...</div>
+                        
+                        <div style="background: rgba(0,0,0,0.3); border: 1px solid var(--border); border-radius: var(--r); padding: 12px; margin-bottom: 14px;">
+                            <div style="font-family: var(--font-d); font-size: 0.65rem; color: var(--orange); letter-spacing: 1.5px; margin-bottom: 8px; font-weight: 700;">🎯 VERIFICATION CRITERIA</div>
+                            <div id="curr-criteria-list" style="display: flex; flex-direction: column; gap: 6px;">
+                                <!-- Criteria checks -->
+                            </div>
+                        </div>
+
+                        <div style="background: rgba(255,107,53,0.05); border: 1px solid rgba(255,107,53,0.25); border-radius: var(--r); padding: 10px; margin-bottom: 16px; font-size: 0.65rem; line-height: 1.5; color: var(--text-1); display: flex; flex-direction: column; gap: 4px;" id="curr-const-box">
+                            <span style="color: var(--orange); font-weight: 700;">⚠ ACTIVE CONSTRAINTS:</span>
+                            <span id="curr-constraints">Constraints...</span>
+                        </div>
+                        
+                        <div style="margin-top: auto; display: flex; gap: 10px; align-items: center;">
+                            <button class="btn orange" id="btn-curr-start" style="width: auto; flex: 1;">START CHALLENGE</button>
+                            <button class="btn red sm" id="btn-curr-reset" style="width: auto; padding: 7px 18px; display: none;">RESET</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- CODE EXPORT MODAL -->
+    <div class="modal-overlay" id="modal-code-export">
+        <div class="modal-box violet-modal" id="modal-code-export-box" style="width: 680px; max-width: 90vw; display: flex; flex-direction: column; max-height: 85vh; padding: 24px;">
+            <button class="modal-close" id="modal-code-export-close" style="top: 14px; right: 18px;">×</button>
+            <div class="modal-title" style="color: var(--violet); text-shadow: 0 0 8px rgba(155,93,229,0.3); font-size: 1.15rem; display: flex; align-items: center; gap: 10px; margin-bottom: 8px; font-family: var(--font-d);">
+                <span>💻 EXPORTED ROBOT CODE</span>
+                <span id="export-badge" style="font-size: 0.58rem; font-family: var(--font-m); background: rgba(155,93,229,0.15); border: 1px solid rgba(155,93,229,0.3); color: var(--violet); padding: 2px 8px; border-radius: 4px; letter-spacing: 1px; font-weight: normal;">G-CODE</span>
+            </div>
+            <div style="font-size: 0.72rem; color: var(--text-1); margin-bottom: 12px; font-family: var(--font-m);" id="export-summary">Generated code for active 6-DOF trajectory path.</div>
+            
+            <!-- Code terminal window -->
+            <div style="flex: 1; min-height: 300px; background: #030712; border: 1px solid rgba(155,93,229,0.25); border-radius: 6px; display: flex; flex-direction: column; overflow: hidden; margin-bottom: 16px;">
+                <!-- Terminal Header Bar -->
+                <div style="background: rgba(155,93,229,0.06); border-bottom: 1px solid rgba(155,93,229,0.15); padding: 8px 12px; display: flex; align-items: center; justify-content: space-between;">
+                    <div style="display: flex; gap: 6px;">
+                        <span style="width: 10px; height: 10px; border-radius: 50%; background: #ff5f56; display: inline-block;"></span>
+                        <span style="width: 10px; height: 10px; border-radius: 50%; background: #ffbd2e; display: inline-block;"></span>
+                        <span style="width: 10px; height: 10px; border-radius: 50%; background: #27c93f; display: inline-block;"></span>
+                    </div>
+                    <div style="font-family: var(--font-m); font-size: 0.65rem; color: var(--text-2);" id="terminal-filename">robot_trajectory.gcode</div>
+                    <div style="width: 36px;"></div> <!-- spacer to balance -->
+                </div>
+                <!-- Code text content -->
+                <textarea id="exported-code-area" readonly style="flex: 1; width: 100%; border: none; background: transparent; color: #a9ffaf; font-family: var(--font-m); font-size: 0.75rem; padding: 14px; resize: none; outline: none; line-height: 1.6; overflow-y: auto; tab-size: 4; -moz-tab-size: 4;"></textarea>
+            </div>
+            
+            <!-- Actions Footer -->
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <span id="copy-status" style="font-size: 0.68rem; color: var(--green); opacity: 0; transition: opacity 0.3s; font-family: var(--font-m); font-weight: bold;">✓ COPIED TO CLIPBOARD!</span>
+                <div style="display: flex; gap: 10px;">
+                    <button class="btn violet" id="btn-copy-code" style="width: auto; padding: 8px 16px; font-size: 0.68rem; margin: 0;">📋 COPY CODE</button>
+                    <button class="btn" style="width: auto; padding: 8px 16px; font-size: 0.68rem; background: rgba(0, 245, 255, 0.1); border-color: rgba(0, 245, 255, 0.3); color: var(--cyan); margin: 0;" id="btn-download-code">💾 DOWNLOAD</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- ABOUT MODAL trigger handled by js -->
 
     <script>
@@ -1448,8 +1510,7 @@ SOLVER: CCD IK</div>
         fk: { title: 'FORWARD KINEMATICS', body: `Computes the 3D position and orientation of the end-effector given joint angles θ₁…θ₆.<br><br><strong>T₀₆ = T₀₁ · T₁₂ · T₂₃ · T₃₄ · T₄₅ · T₅₆</strong><br><br>Each homogeneous 4×4 matrix encodes rotation + translation. The product chain places the end-effector in world space.` },
         ik:  { title: 'INVERSE KINEMATICS (CCD)', body: `Given a target position, find joint angles θ₁…θ₆ that reach it.<br><br><strong>Algorithm:</strong> Cyclic Coordinate Descent (CCD) — iterates from end-effector to base, rotating each joint to minimize end-effector distance to target.<br><br><strong>θᵢ = θᵢ + Δθ</strong> (damped step each iteration)` },
         dyn: { title: 'DYNAMIC TORQUE ESTIMATION', body: `Approximates joint torques from gravitational loading.<br><br><strong>τᵢ = Jᵀ(q) · Fext + G(q)</strong><br><br>Inertial and Coriolis terms are excluded in this real-time approximation. Enabling Zero-G sets all torques to zero.` },
-        boids: { title: 'REYNOLDS BOIDS ALGORITHM', body: `Each agent follows three steering rules within its visibility radius:<br><br><strong>Separation</strong>: Repel from crowded neighbors<br><strong>Alignment</strong>: Match average heading<br><strong>Cohesion</strong>: Move toward average position<br><strong>Obstacle Avoidance</strong>: Ray-cast repulsion from obstacles` },
-        about: { title: 'NEXUS ENGINE v2.0', body: `<strong>Module 1 — Kinematics Engine</strong><br>6-DOF robot arm with FK, CCD IK, LSPB trajectory planning, collision detection, DH parameter configuration, and Teach Mode.<br><br><strong>Module 2 — Swarm Intelligence</strong><br>Multi-agent particle simulation using Reynolds Boids with formation control, search & rescue, and live analytics.<br><br><strong>Module 3 — DH Config</strong><br>Denavit-Hartenberg parameter editor with real robot presets (UR5, UR10, KUKA, ABB, Fanuc).<br><br><span class="v">HOTKEYS:</span> [SPACE] Swarm Play | [R] Reset | [H] Toggle Panels | [P] Screenshot | [T] Teach Mode` }
+        about: { title: 'NEXUS ENGINE v2.0', body: `<strong>Kinematics Engine</strong><br>6-DOF robot arm with FK, CCD IK, LSPB trajectory planning, collision detection, and Teach Mode.<br><br><span class="v">HOTKEYS:</span> [H] Toggle Panels | [P] Screenshot | [T] Teach Mode` }
     };
 
     // ==========================================
@@ -1474,23 +1535,7 @@ SOLVER: CCD IK</div>
         b.addEventListener('click', e => { e.stopPropagation(); openModal(b.getAttribute('data-info')); });
     });
 
-    // ==========================================
-    // TAB SWITCHING
-    // ==========================================
-    const tabs    = document.querySelectorAll('.tab-btn[data-target]');
-    const modules = document.querySelectorAll('.module');
-    tabs.forEach(tab => {
-        tab.addEventListener('click', () => {
-            tabs.forEach(t => t.classList.remove('active'));
-            tab.classList.add('active');
-            modules.forEach(m => m.classList.remove('active'));
-            const target = document.getElementById(tab.getAttribute('data-target'));
-            if (target) target.classList.add('active');
-            // Resize on switch
-            if (tab.getAttribute('data-target') === 'mod-kine' && window._kineResizeFunc) window._kineResizeFunc();
-            if (tab.getAttribute('data-target') === 'mod-swarm' && window._swarmResizeFunc) window._swarmResizeFunc();
-        });
-    });
+
 
     // ==========================================
     // PANEL TOGGLE KEY [H]
@@ -1507,12 +1552,7 @@ SOLVER: CCD IK</div>
         }
         if (k === 'p') document.getElementById('btn-screenshot').click();
         if (k === 't') document.getElementById('btn-teach-mode')?.click();
-        if (k === 'r') {
-            if (document.getElementById('mod-swarm').classList.contains('active')) document.getElementById('btn-swarm-reset')?.click();
-        }
-        if (e.key === ' ' && document.getElementById('mod-swarm').classList.contains('active')) {
-            e.preventDefault(); document.getElementById('btn-swarm-play')?.click();
-        }
+
     });
 
     // ==========================================
@@ -1523,9 +1563,6 @@ SOLVER: CCD IK</div>
         if (document.getElementById('mod-kine').classList.contains('active') && window._kineRenderer) {
             dataURL = window._kineRenderer.domElement.toDataURL('image/png');
             fname = `nexus_kine_${Date.now()}.png`;
-        } else if (document.getElementById('mod-swarm').classList.contains('active')) {
-            dataURL = document.getElementById('swarmCanvas').toDataURL('image/png');
-            fname = `nexus_swarm_${Date.now()}.png`;
         } else { return; }
         const a = document.createElement('a'); a.href = dataURL; a.download = fname; a.click();
     });
@@ -1605,83 +1642,7 @@ SOLVER: CCD IK</div>
     // current DH params (will be updated from table or preset)
     let currentDH = JSON.parse(JSON.stringify(DH_PRESETS.custom));
 
-    function buildDHTable(preset) {
-        const tbody = document.getElementById('dh-tbody');
-        tbody.innerHTML = '';
-        preset.joints.forEach((j, i) => {
-            const tr = document.createElement('tr');
-            tr.innerHTML = `
-                <td class="joint-label">J${i+1}</td>
-                <td><input type="number" class="dh-inp" data-j="${i}" data-f="toff" value="${j.toff}" step="1"></td>
-                <td><input type="number" class="dh-inp" data-j="${i}" data-f="d"    value="${j.d}"    step="0.1"></td>
-                <td><input type="number" class="dh-inp" data-j="${i}" data-f="a"    value="${j.a}"    step="0.1"></td>
-                <td><input type="number" class="dh-inp" data-j="${i}" data-f="alpha" value="${j.alpha}" step="1"></td>
-                <td><input type="number" class="dh-inp" data-j="${i}" data-f="lmin" value="${j.lmin}" step="5"></td>
-                <td><input type="number" class="dh-inp" data-j="${i}" data-f="lmax" value="${j.lmax}" step="5"></td>
-            `;
-            tbody.appendChild(tr);
-        });
-        document.getQuerySelect = () => {}; // stub
-        // bind inputs
-        tbody.querySelectorAll('.dh-inp').forEach(inp => {
-            inp.addEventListener('input', () => {
-                const ji = parseInt(inp.dataset.j);
-                const field = inp.dataset.f;
-                currentDH.joints[ji][field] = parseFloat(inp.value) || 0;
-            });
-        });
-    }
 
-    document.getElementById('dh-preset-select').addEventListener('change', e => {
-        const preset = DH_PRESETS[e.target.value] || DH_PRESETS.custom;
-        currentDH = JSON.parse(JSON.stringify(preset));
-        document.getElementById('dh-scale').value = preset.scale;
-        buildDHTable(preset);
-    });
-
-    document.getElementById('dh-scale').addEventListener('input', e => {
-        currentDH.scale = parseFloat(e.target.value) || 0.03;
-    });
-
-    document.getElementById('btn-dh-apply').addEventListener('click', () => {
-        // Read table values fresh
-        document.querySelectorAll('#dh-tbody .dh-inp').forEach(inp => {
-            const ji = parseInt(inp.dataset.j);
-            const field = inp.dataset.f;
-            if (currentDH.joints[ji]) currentDH.joints[ji][field] = parseFloat(inp.value) || 0;
-        });
-        currentDH.scale = parseFloat(document.getElementById('dh-scale').value) || 0.03;
-
-        if (window._applyDHToRobot) {
-            window._applyDHToRobot(currentDH);
-        }
-
-        const stat = document.getElementById('dh-apply-status');
-        stat.textContent = `✓ APPLIED: ${currentDH.name || 'CUSTOM'}`;
-        stat.classList.add('vis');
-        setTimeout(() => stat.classList.remove('vis'), 3500);
-
-        // Update status bar + robot info
-        const presetName = document.getElementById('dh-preset-select').value;
-        const pLabel = DH_PRESETS[presetName] ? DH_PRESETS[presetName].name : 'CUSTOM';
-        document.getElementById('sb-robot').textContent = pLabel.toUpperCase();
-        document.getElementById('robot-info-box').textContent =
-`ROBOT: ${pLabel}
-DOF: 6
-SCALE: ${currentDH.scale} u/mm
-SOLVER: CCD IK`;
-    });
-
-    document.getElementById('btn-dh-export').addEventListener('click', () => {
-        const blob = new Blob([JSON.stringify(currentDH, null, 2)], { type: 'application/json' });
-        const a = document.createElement('a');
-        a.href = URL.createObjectURL(blob);
-        a.download = `nexus_dh_${Date.now()}.json`;
-        a.click();
-    });
-
-    // Initialize table with default
-    buildDHTable(DH_PRESETS.custom);
 
     // ==========================================
     // INIT ON LOAD
@@ -1689,7 +1650,7 @@ SOLVER: CCD IK`;
     window.addEventListener('load', () => {
         const loader = document.getElementById('loader');
         const status = document.getElementById('loader-status');
-        const msgs = ['BUILDING KINEMATICS ENGINE...', 'LOADING BOIDS PHYSICS...', 'WARMING UP DH SOLVER...', 'ONLINE'];
+        const msgs = ['BUILDING KINEMATICS ENGINE...', 'INITIALIZING CCD IK SOLVER...', 'WARMING UP DYNAMICS ENGINE...', 'ONLINE'];
         let mi = 0;
         const iv = setInterval(() => { if (msgs[mi]) status.textContent = msgs[mi++]; }, 320);
 
@@ -1701,7 +1662,6 @@ SOLVER: CCD IK`;
                 // Use double RAF to ensure layout is computed before Three.js sizes canvas
                 requestAnimationFrame(() => requestAnimationFrame(() => {
                     initKinematics();
-                    initSwarm();
                 }));
             }, 900);
         }, 1350);
@@ -1709,7 +1669,6 @@ SOLVER: CCD IK`;
 
     window.addEventListener('resize', () => {
         if (window._kineResizeFunc) window._kineResizeFunc();
-        if (window._swarmResizeFunc) window._swarmResizeFunc();
     });
 
     // ==========================================
@@ -1753,7 +1712,8 @@ SOLVER: CCD IK`;
         window._kineResizeFunc = resizeKine;
 
         // Lighting
-        scene.add(new THREE.AmbientLight(0xffffff, 0.4));
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.4);
+        scene.add(ambientLight);
         const dLight = new THREE.DirectionalLight(0x88ddff, 1.2);
         dLight.position.set(20, 50, 20);
         dLight.castShadow = true;
@@ -1768,11 +1728,147 @@ SOLVER: CCD IK`;
         // Grid floor
         const grid = new THREE.GridHelper(60, 30, 0x001a2e, 0x001020);
         grid.position.y = 0;
+        grid.material.transparent = true;
+        grid.material.opacity = 0.6;
         scene.add(grid);
 
         // Axes helper (small, in scene for reference)
         const axesHelper = new THREE.AxesHelper(5);
         scene.add(axesHelper);
+
+        // ========================
+        // 3D WAREHOUSE BACKGROUND
+        // ========================
+        // 1. Concrete floor plate
+        const floorGeo = new THREE.PlaneGeometry(120, 120);
+        const floorMat = new THREE.MeshStandardMaterial({
+            color: 0x080b13,
+            roughness: 0.65,
+            metalness: 0.2
+        });
+        const floorMesh = new THREE.Mesh(floorGeo, floorMat);
+        floorMesh.rotation.x = -Math.PI / 2;
+        floorMesh.position.y = -0.01;
+        floorMesh.receiveShadow = true;
+        scene.add(floorMesh);
+
+        // 2. Concrete/Metal Pillars
+        const pillarGeom = new THREE.BoxGeometry(1.6, 26, 1.6);
+        const pillarMat = new THREE.MeshStandardMaterial({ color: 0x1a2130, roughness: 0.6, metalness: 0.5 });
+        const pillarCollarGeom = new THREE.BoxGeometry(1.8, 1.8, 1.8);
+        const pillarCollarMat = new THREE.MeshStandardMaterial({ color: 0xffd166, roughness: 0.4 });
+        
+        const pillarCoords = [
+            [-30, -30], [-30, 30], [30, -30], [30, 30],
+            [-30, 0], [30, 0]
+        ];
+        pillarCoords.forEach(pos => {
+            const pillar = new THREE.Mesh(pillarGeom, pillarMat);
+            pillar.position.set(pos[0], 13, pos[1]);
+            pillar.castShadow = true;
+            pillar.receiveShadow = true;
+            scene.add(pillar);
+
+            // Bottom warning collar on pillar
+            const collar = new THREE.Mesh(pillarCollarGeom, pillarCollarMat);
+            collar.position.y = -12.0;
+            pillar.add(collar);
+        });
+
+        // 3. Storage Racks
+        function createStorageRack(x, z, rotY) {
+            const rackGroup = new THREE.Group();
+            rackGroup.position.set(x, 0, z);
+            rackGroup.rotation.y = rotY;
+            scene.add(rackGroup);
+
+            const uprightMat = new THREE.MeshStandardMaterial({ color: 0x222a3a, metalness: 0.8, roughness: 0.3 });
+            const uprightGeom = new THREE.BoxGeometry(0.18, 9, 0.18);
+            const uprightOffsets = [
+                [-2.0, -0.8], [-2.0, 0.8], [2.0, -0.8], [2.0, 0.8]
+            ];
+            uprightOffsets.forEach(u => {
+                const up = new THREE.Mesh(uprightGeom, uprightMat);
+                up.position.set(u[0], 4.5, u[1]);
+                up.castShadow = true;
+                rackGroup.add(up);
+            });
+
+            const shelfGeom = new THREE.BoxGeometry(4.2, 0.12, 1.8);
+            const shelfMat = new THREE.MeshStandardMaterial({ color: 0xff6b35, metalness: 0.4 }); // Safety orange beams
+            [0.15, 3.2, 6.2].forEach(y => {
+                const shelf = new THREE.Mesh(shelfGeom, shelfMat);
+                shelf.position.set(0, y, 0);
+                shelf.castShadow = true;
+                shelf.receiveShadow = true;
+                rackGroup.add(shelf);
+
+                // Add cargo bins
+                for (let bx = -1.4; bx <= 1.4; bx += 1.4) {
+                    if (Math.random() > 0.3) {
+                        const binH = 0.8 + Math.random() * 0.5;
+                        const binGeom = new THREE.BoxGeometry(0.9, binH, 0.9);
+                        const binMat = new THREE.MeshStandardMaterial({
+                            color: Math.random() > 0.6 ? 0x1f2b3e : (Math.random() > 0.5 ? 0x5a6e85 : 0x7a3e2a),
+                            roughness: 0.6
+                        });
+                        const bin = new THREE.Mesh(binGeom, binMat);
+                        bin.position.set(bx, y + binH/2 + 0.06, 0);
+                        bin.castShadow = true;
+                        rackGroup.add(bin);
+                    }
+                }
+            });
+        }
+        createStorageRack(-18, -18, 0);
+        createStorageRack(-22, -8, Math.PI / 2);
+        createStorageRack(18, -18, 0);
+        createStorageRack(22, -8, -Math.PI / 2);
+
+        // 4. Safety Guardrails defining robot zone
+        const railMat = new THREE.MeshStandardMaterial({ color: 0xffd166, roughness: 0.3, metalness: 0.8 });
+        const postGeom = new THREE.CylinderGeometry(0.12, 0.12, 1.6, 8);
+        const beamGeom = new THREE.BoxGeometry(10, 0.08, 0.15);
+
+        function createRailSegment(x, z, rotY) {
+            const railGroup = new THREE.Group();
+            railGroup.position.set(x, 0.8, z);
+            railGroup.rotation.y = rotY;
+            scene.add(railGroup);
+
+            [-5, 5].forEach(px => {
+                const post = new THREE.Mesh(postGeom, railMat);
+                post.position.set(px, 0, 0);
+                post.castShadow = true;
+                railGroup.add(post);
+            });
+
+            [-0.35, 0.4].forEach(py => {
+                const beam = new THREE.Mesh(beamGeom, railMat);
+                beam.position.set(0, py, 0);
+                beam.castShadow = true;
+                railGroup.add(beam);
+            });
+        }
+        createRailSegment(0, -6.5, 0);
+        createRailSegment(-6.5, 0, Math.PI / 2);
+        createRailSegment(6.5, 0, -Math.PI / 2);
+
+        // 5. Background Wall
+        const wallGeom = new THREE.BoxGeometry(70, 26, 0.2);
+        const wallMat = new THREE.MeshStandardMaterial({ color: 0x050810, roughness: 0.9, metalness: 0.3 });
+        const backWall = new THREE.Mesh(wallGeom, wallMat);
+        backWall.position.set(0, 13, -34);
+        scene.add(backWall);
+
+        // Horizontal steel wall beams
+        const trussGeom = new THREE.BoxGeometry(70, 0.3, 0.3);
+        const trussMat = new THREE.MeshStandardMaterial({ color: 0x111622 });
+        [5, 12, 19].forEach(y => {
+            const truss = new THREE.Mesh(trussGeom, trussMat);
+            truss.position.set(0, y - 13, 0.2);
+            backWall.add(truss);
+        });
 
         // ========================
         // ROBOT CONSTRUCTION
@@ -1797,9 +1893,66 @@ SOLVER: CCD IK`;
         let endEffectorPnt = new THREE.Object3D();
         let robotGroup = new THREE.Group();
 
+        let jointLEDs = [];
+        let fingerL, fingerR;
+        const displayJointAngles = [0, 0, 0, 0, 0, 0];
+        const displayJointVelocities = [0, 0, 0, 0, 0, 0];
+
         const base = new THREE.Group();
         scene.add(base);
         base.add(robotGroup);
+
+        // Curriculum Mode Variables
+        let currChallengeMeshes = [];
+        let challengeObstacles = [];
+        let activeChallengeId = null;
+        let completedChallenges = [false, false, false, false, false];
+        try {
+            const saved = localStorage.getItem('roboai_nexus_curriculum');
+            if (saved) completedChallenges = JSON.parse(saved);
+        } catch(e) {}
+
+        async function loadCurriculumProgress() {
+            const session = JSON.parse(localStorage.getItem('roboai_session'));
+            if (!session) return;
+            try {
+                const { data, error } = await supabase
+                    .from('profiles')
+                    .select('completed_challenges')
+                    .eq('id', session.id)
+                    .maybeSingle();
+                if (error) {
+                    console.error("Failed to load profile progress:", error.message);
+                    return;
+                }
+                if (data && data.completed_challenges) {
+                    completedChallenges = data.completed_challenges;
+                    localStorage.setItem('roboai_nexus_curriculum', JSON.stringify(completedChallenges));
+                    if (typeof updateCurriculumProgress === 'function') updateCurriculumProgress();
+                    if (typeof renderChallengesSidebar === 'function') renderChallengesSidebar();
+                }
+            } catch(e) {
+                console.error("Failed loading curriculum:", e);
+            }
+        }
+
+        async function updateCurriculumOnCloud(idx) {
+            const session = JSON.parse(localStorage.getItem('roboai_session'));
+            if (!session) return;
+            
+            completedChallenges[idx] = true;
+            
+            const { error } = await supabase
+                .from('profiles')
+                .update({ completed_challenges: completedChallenges })
+                .eq('id', session.id);
+            if (error) {
+                console.error("Failed to sync progress: ", error.message);
+            }
+        }
+
+        loadCurriculumProgress();
+        let challengeSuccessTimer = 0;
 
         // Build link geometry from DH table (references jointLimits above)
         function buildLinkDefsFromDH(dhData) {
@@ -1821,12 +1974,29 @@ SOLVER: CCD IK`;
         function buildRobot() {
             // Clear old
             while (robotGroup.children.length) robotGroup.remove(robotGroup.children[0]);
-            jointNodes = []; linkMeshes = []; jointSpheres = [];
+            jointNodes = []; linkMeshes = []; jointSpheres = []; jointLEDs = [];
 
             // Use only the first numJoints links
             const activeDefs = linkDefs.slice(0, numJoints);
 
             const jointMat = new THREE.MeshStandardMaterial({ color: 0x9b5de5, emissive: 0x3a0060, roughness: 0.3, metalness: 0.8 });
+
+            // Base turntable pedestal
+            const basePedGeom = new THREE.CylinderGeometry(2.5, 3.2, 1.2, 24);
+            const basePedMat = new THREE.MeshStandardMaterial({ color: 0x111622, roughness: 0.5, metalness: 0.9 });
+            const basePed = new THREE.Mesh(basePedGeom, basePedMat);
+            basePed.position.y = 0.6;
+            basePed.receiveShadow = true;
+            robotGroup.add(basePed);
+
+            // Yellow warning ring on pedestal
+            const baseRing = new THREE.Mesh(
+                new THREE.TorusGeometry(2.8, 0.08, 8, 36),
+                new THREE.MeshStandardMaterial({ color: 0xffd166, roughness: 0.4 })
+            );
+            baseRing.rotation.x = Math.PI / 2;
+            baseRing.position.y = 0.6;
+            basePed.add(baseRing);
 
             let parent = robotGroup;
             activeDefs.forEach((link, i) => {
@@ -1835,24 +2005,38 @@ SOLVER: CCD IK`;
                 parent.add(node);
                 jointNodes.push(node);
 
-                // Joint sphere
+                // Joint collar
                 if (i > 0) {
                     const sph = new THREE.Mesh(
-                        new THREE.SphereGeometry(link.r * 1.3, 12, 12),
+                        new THREE.SphereGeometry(link.r * 1.25, 12, 12),
                         jointMat.clone()
                     );
                     node.add(sph);
                     jointSpheres.push(sph);
+
+                    // LED Ring band on joint
+                    const ledGeom = new THREE.TorusGeometry(link.r * 1.35, 0.07, 8, 24);
+                    const ledMat = new THREE.MeshStandardMaterial({
+                        color: 0x00f5ff,
+                        emissive: 0x00f5ff,
+                        emissiveIntensity: 1.5,
+                        transparent: true,
+                        opacity: 0.8
+                    });
+                    const ledMesh = new THREE.Mesh(ledGeom, ledMat);
+                    ledMesh.rotation.x = Math.PI / 2;
+                    node.add(ledMesh);
+                    jointLEDs.push(ledMesh);
                 }
 
-                // Link cylinder
-                const geom = new THREE.CylinderGeometry(link.r * 0.85, link.r, link.l, 14);
+                // Tapered link casing
+                const geom = new THREE.CylinderGeometry(link.r * 0.65, link.r * 1.1, link.l, 14);
                 geom.translate(0, link.l / 2, 0);
                 const mat = new THREE.MeshStandardMaterial({
                     color: i === 0 ? 0x1a1a2e : (i % 2 === 0 ? 0x2e2e4a : 0x3a3a5a),
                     roughness: 0.35, metalness: 0.85
                 });
-                // Last link glows cyan as end-effector
+                // Last link glows cyan
                 if (i === numJoints - 1) {
                     mat.emissive = new THREE.Color(0x00f5ff);
                     mat.emissiveIntensity = 0.5;
@@ -1861,6 +2045,28 @@ SOLVER: CCD IK`;
                 mesh.castShadow = true;
                 node.add(mesh);
                 linkMeshes.push(mesh);
+
+                // Add support strut (mock hydraulic piston)
+                if (i > 0 && i < numJoints - 1) {
+                    const strutGeom = new THREE.CylinderGeometry(link.r * 0.22, link.r * 0.22, link.l * 0.8, 8);
+                    strutGeom.translate(link.r * 0.95, link.l * 0.4, 0);
+                    const strutMat = new THREE.MeshStandardMaterial({ color: 0x111622, roughness: 0.4, metalness: 0.95 });
+                    const strut = new THREE.Mesh(strutGeom, strutMat);
+                    node.add(strut);
+                }
+
+                // Yellow safety warning stripes
+                const stripGeom = new THREE.TorusGeometry(link.r * 1.12, 0.04, 8, 16);
+                const stripMat = new THREE.MeshStandardMaterial({ color: 0xffd166, roughness: 0.4 });
+                const strip = new THREE.Mesh(stripGeom, stripMat);
+                strip.rotation.x = Math.PI / 2;
+                strip.position.y = link.l * 0.25;
+                mesh.add(strip);
+
+                const strip2 = strip.clone();
+                strip2.position.y = link.l * 0.75;
+                mesh.add(strip2);
+
                 parent = node;
             });
 
@@ -1868,6 +2074,28 @@ SOLVER: CCD IK`;
             endEffectorPnt = new THREE.Object3D();
             endEffectorPnt.position.y = activeDefs[numJoints - 1].l;
             jointNodes[numJoints - 1].add(endEffectorPnt);
+
+            // Parallel claw pneumatic gripper
+            const gripBaseGeom = new THREE.BoxGeometry(1.2, 0.6, 1.2);
+            const gripBaseMat = new THREE.MeshStandardMaterial({ color: 0x1f242e, roughness: 0.4, metalness: 0.8 });
+            const gripBase = new THREE.Mesh(gripBaseGeom, gripBaseMat);
+            gripBase.position.y = 0.3;
+            gripBase.castShadow = true;
+            endEffectorPnt.add(gripBase);
+
+            const jawGeom = new THREE.BoxGeometry(0.22, 0.9, 0.5);
+            jawGeom.translate(0, 0.45, 0);
+            const jawMat = new THREE.MeshStandardMaterial({ color: 0xff6b35, roughness: 0.3, metalness: 0.9 });
+            
+            fingerL = new THREE.Mesh(jawGeom, jawMat);
+            fingerL.position.set(-0.4, 0.6, 0);
+            fingerL.castShadow = true;
+            gripBase.add(fingerL);
+
+            fingerR = new THREE.Mesh(jawGeom, jawMat);
+            fingerR.position.set(0.4, 0.6, 0);
+            fingerR.castShadow = true;
+            gripBase.add(fingerR);
 
             // End-effector glow ring
             effGlowMesh.position.set(0,0,0);
@@ -1908,7 +2136,162 @@ SOLVER: CCD IK`;
         let teachWaypoints = []; // {angles:[...], pos:{x,y,z}}
         const teachGhosts = [];
 
+        let pickPlaceActive = false;
+        let pickPlaceTimeline = null;
+        const pickPlaceTarget = new THREE.Vector3();
+        const gripperGap = { width: 0.4 };
+        let heldObjectKey = null;
+
+        // ========================
+        // INDUSTRIAL OBJECTS
+        // ========================
+        const palletPos = new THREE.Vector3(8, 0, -12);
+        const objectDefs = {
+            box: {
+                startPos: new THREE.Vector3(12, 0.8, 8),
+                grabWidth: 0.15,
+                heightOffset: 0.8,
+                color: 0xff6b35,
+                name: 'Heavy Cargo Box'
+            },
+            gear: {
+                startPos: new THREE.Vector3(0, 0.25, 14),
+                grabWidth: 0.12,
+                heightOffset: 0.25,
+                color: 0x5a6e85,
+                name: 'Industrial Gear'
+            },
+            canister: {
+                startPos: new THREE.Vector3(-12, 0.9, 8),
+                grabWidth: 0.18,
+                heightOffset: 0.9,
+                color: 0x00ffb2,
+                name: 'Fuel Canister'
+            }
+        };
+
+        // Pallet Platform
+        const palletGroup = new THREE.Group();
+        palletGroup.position.copy(palletPos);
+        scene.add(palletGroup);
+
+        const palletBase = new THREE.Mesh(
+            new THREE.BoxGeometry(4.5, 0.3, 4.5),
+            new THREE.MeshStandardMaterial({ color: 0x111622, roughness: 0.6, metalness: 0.8 })
+        );
+        palletBase.receiveShadow = true;
+        palletGroup.add(palletBase);
+
+        // Pallet Grid border
+        const palletGrid = new THREE.GridHelper(4.0, 4, 0x9b5de5, 0x9b5de5);
+        palletGrid.position.y = 0.16;
+        palletGroup.add(palletGrid);
+
+        // Object meshes maps
+        const objectMeshes = {};
+
+        // 1. Cargo Box
+        const boxGeom = new THREE.BoxGeometry(1.6, 1.6, 1.6);
+        const boxMat = new THREE.MeshStandardMaterial({ color: objectDefs.box.color, roughness: 0.4, metalness: 0.7 });
+        const boxMesh = new THREE.Mesh(boxGeom, boxMat);
+        boxMesh.castShadow = true;
+        boxMesh.receiveShadow = true;
+        scene.add(boxMesh);
+        objectMeshes.box = boxMesh;
+
+        // Add metal corners to box to make it high-fidelity
+        const cornerGeom = new THREE.BoxGeometry(0.3, 0.3, 0.3);
+        const cornerMat = new THREE.MeshStandardMaterial({ color: 0xccd6e0, roughness: 0.2, metalness: 0.9 });
+        const offsets = [-0.8, 0.8];
+        offsets.forEach(x => {
+            offsets.forEach(y => {
+                offsets.forEach(z => {
+                    const corner = new THREE.Mesh(cornerGeom, cornerMat);
+                    corner.position.set(x, y, z);
+                    boxMesh.add(corner);
+                });
+            });
+        });
+
+        // 2. Industrial Gear
+        const gearGroup = new THREE.Group();
+        scene.add(gearGroup);
+        objectMeshes.gear = gearGroup;
+
+        // Gear core
+        const gearCore = new THREE.Mesh(
+            new THREE.CylinderGeometry(0.8, 0.8, 0.5, 16),
+            new THREE.MeshStandardMaterial({ color: objectDefs.gear.color, roughness: 0.3, metalness: 0.8 })
+        );
+        gearCore.castShadow = true;
+        gearGroup.add(gearCore);
+
+        // Gear teeth
+        const toothGeom = new THREE.BoxGeometry(0.3, 0.4, 0.4);
+        for (let i = 0; i < 8; i++) {
+            const angle = (i / 8) * Math.PI * 2;
+            const tooth = new THREE.Mesh(toothGeom, gearCore.material);
+            tooth.position.set(Math.cos(angle) * 0.9, 0, Math.sin(angle) * 0.9);
+            tooth.rotation.y = -angle;
+            tooth.castShadow = true;
+            gearGroup.add(tooth);
+        }
+
+        // 3. Fuel Canister
+        const canisterGroup = new THREE.Group();
+        scene.add(canisterGroup);
+        objectMeshes.canister = canisterGroup;
+
+        const canBody = new THREE.Mesh(
+            new THREE.CylinderGeometry(0.6, 0.6, 1.4, 16),
+            new THREE.MeshStandardMaterial({ color: objectDefs.canister.color, roughness: 0.3, metalness: 0.7 })
+        );
+        canBody.castShadow = true;
+        canisterGroup.add(canBody);
+
+        // Canister bands
+        const bandGeom = new THREE.TorusGeometry(0.62, 0.05, 8, 24);
+        const bandMat = new THREE.MeshStandardMaterial({ color: 0x111622, roughness: 0.5, metalness: 0.8 });
+        [-0.4, 0.4].forEach(y => {
+            const band = new THREE.Mesh(bandGeom, bandMat);
+            band.rotation.x = Math.PI / 2;
+            band.position.y = y;
+            canisterGroup.add(band);
+        });
+
+        // Canister handle
+        const handleGeom = new THREE.BoxGeometry(0.1, 0.4, 0.8);
+        const handle = new THREE.Mesh(handleGeom, bandMat);
+        handle.position.y = 0.8;
+        canisterGroup.add(handle);
+
+        function resetAllObjects() {
+            Object.keys(objectDefs).forEach(key => {
+                const mesh = objectMeshes[key];
+                if (mesh) {
+                    if (mesh.parent !== scene) {
+                        scene.attach(mesh);
+                    }
+                    mesh.position.copy(objectDefs[key].startPos);
+                    mesh.rotation.set(0, 0, 0);
+                }
+            });
+            heldObjectKey = null;
+            if (gripperGap) gripperGap.width = 0.4;
+            if (pickPlaceTimeline) {
+                pickPlaceTimeline.kill();
+                pickPlaceTimeline = null;
+            }
+            pickPlaceActive = false;
+            const statusEl = document.getElementById('task-status');
+            if (statusEl) {
+                statusEl.textContent = 'Objects Reset.';
+                statusEl.style.color = 'var(--cyan)';
+            }
+        }
+
         buildRobot();
+        resetAllObjects();
 
         // ========================
         // DH APPLY
@@ -1916,7 +2299,12 @@ SOLVER: CCD IK`;
         window._applyDHToRobot = function(dhData) {
             linkDefs = buildLinkDefsFromDH(dhData);
             buildRobot();
-            jointAngles.fill(0);
+            for (let i = 0; i < numJoints; i++) {
+                const lmin = jointLimits[i] ? jointLimits[i][0] : -180;
+                const lmax = jointLimits[i] ? jointLimits[i][1] : 180;
+                jointAngles[i] = Math.max(lmin, Math.min(lmax, jointAngles[i]));
+                displayJointAngles[i] = Math.max(lmin, Math.min(lmax, displayJointAngles[i]));
+            }
             updateFKSliders();
             updateRobotAngles();
             updateReadout();
@@ -1969,6 +2357,8 @@ SOLVER: CCD IK`;
             const reach = linkDefs.slice(0, numJoints).reduce((s, l) => s + l.l, 0);
             wsSphere.geometry.dispose();
             wsSphere.geometry = new THREE.SphereGeometry(reach * 0.95, 20, 20);
+
+            if (typeof renderDHEditorTable === 'function') renderDHEditorTable();
         }
 
         // Wire DOF buttons (after torqueChart is created)
@@ -2226,6 +2616,83 @@ JOINTS [deg]:
                     }
                 }
             }
+
+            // Check object collisions
+            if (typeof objectMeshes !== 'undefined') {
+                Object.keys(objectMeshes).forEach(key => {
+                    // If this object is currently held, skip collision check
+                    if (heldObjectKey === key) return;
+
+                    const objMesh = objectMeshes[key];
+                    if (!objMesh) return;
+                    const objPos = new THREE.Vector3();
+                    objMesh.getWorldPosition(objPos);
+
+                    const objRadius = key === 'box' ? 0.9 : key === 'gear' ? 0.85 : 0.75;
+
+                    segs.forEach((seg, idx) => {
+                        const u = new THREE.Vector3().subVectors(seg.p2, seg.p1);
+                        const w = new THREE.Vector3().subVectors(objPos, seg.p1);
+                        const d = u.dot(u);
+                        let t = d < 0.0001 ? 0 : w.dot(u) / d;
+                        t = Math.max(0, Math.min(1, t));
+                        const closestPt = new THREE.Vector3().addVectors(seg.p1, u.multiplyScalar(t));
+                        const dist = closestPt.distanceTo(objPos);
+
+                        if (dist < seg.r + objRadius) {
+                            collisions.push(`OBJ_${key.toUpperCase()} × L${idx+1}`);
+                            if (linkMeshes[idx]) {
+                                linkMeshes[idx].material.emissive.setHex(0xff0000);
+                                linkMeshes[idx].material.emissiveIntensity = 1.5;
+                            }
+                        }
+                    });
+                });
+            }
+
+            // Check challenge obstacles
+            if (typeof challengeObstacles !== 'undefined' && challengeObstacles.length > 0) {
+                challengeObstacles.forEach(obs => {
+                    const obsPos = new THREE.Vector3();
+                    obs.mesh.getWorldPosition(obsPos);
+                    
+                    segs.forEach((seg, idx) => {
+                        let hit = false;
+                        if (obs.isBox) {
+                            const box = new THREE.Box3().setFromObject(obs.mesh);
+                            const u = new THREE.Vector3().subVectors(seg.p2, seg.p1);
+                            const w = new THREE.Vector3().subVectors(obsPos, seg.p1);
+                            const d = u.dot(u);
+                            let t = d < 0.0001 ? 0 : w.dot(u) / d;
+                            t = Math.max(0, Math.min(1, t));
+                            const closestPt = new THREE.Vector3().addVectors(seg.p1, u.multiplyScalar(t));
+                            
+                            if (box.containsPoint(closestPt) || box.distanceToPoint(closestPt) < seg.r) {
+                                hit = true;
+                            }
+                        } else {
+                            const u = new THREE.Vector3().subVectors(seg.p2, seg.p1);
+                            const w = new THREE.Vector3().subVectors(obsPos, seg.p1);
+                            const d = u.dot(u);
+                            let t = d < 0.0001 ? 0 : w.dot(u) / d;
+                            t = Math.max(0, Math.min(1, t));
+                            const closestPt = new THREE.Vector3().addVectors(seg.p1, u.multiplyScalar(t));
+                            if (closestPt.distanceTo(obsPos) < seg.r + obs.radius) {
+                                hit = true;
+                            }
+                        }
+
+                        if (hit) {
+                            collisions.push(`OBSTACLE × L${idx+1}`);
+                            if (linkMeshes[idx]) {
+                                linkMeshes[idx].material.emissive.setHex(0xff0000);
+                                linkMeshes[idx].material.emissiveIntensity = 1.5;
+                            }
+                        }
+                    });
+                });
+            }
+
             if (testAngles) {
                 origAngles.forEach((a,i) => { if(jointNodes[i]){jointNodes[i].setRotationFromAxisAngle(axes[i],a*Math.PI/180);jointNodes[i].updateMatrixWorld(true);} });
             } else {
@@ -2310,6 +2777,7 @@ JOINTS [deg]:
         let trajActive=false, trajTime=0, trajDuration=2.0, trajSeg=0;
         let trajJTgts=[], trajCTgts=[], trajInitJ=[], trajInitPos=null;
         let prevJoints=[...jointAngles], prevVels=[0,0,0,0,0,0];
+        let chartUpdateCounter = 0;
 
         document.getElementById('slider-traj-dur').addEventListener('input', e => {
             trajDuration = parseFloat(e.target.value);
@@ -2653,6 +3121,11 @@ JOINTS [deg]:
             // Collision monitor (every frame)
             if (!teachDragging) checkCollisions();
 
+            // Validate active curriculum challenge
+            if (activeChallengeId !== null && typeof checkChallengeCriteria === 'function') {
+                checkChallengeCriteria();
+            }
+
             // Trajectory
             if (trajActive && !teachDragging) {
                 const dt = 0.016;
@@ -2681,19 +3154,74 @@ JOINTS [deg]:
                         const cur = new THREE.Vector3().lerpVectors(startP, endP, s);
                         solveIK(cur, 5, 0.1);
                     }
-                    // Vel/Acc charts
-                    const curVels=[];
-                    for(let i=0;i<3;i++){
-                        const v=(jointAngles[i]-prevJoints[i])/dt; curVels.push(v);
-                        const a=(v-prevVels[i])/dt;
-                        velChart.data.datasets[i].data.shift(); velChart.data.datasets[i].data.push(v);
-                        accChart.data.datasets[i].data.shift(); accChart.data.datasets[i].data.push(a);
-                    }
-                    velChart.update(); accChart.update();
                     updateFKSliders(); updateReadout(); updateDynamics();
-                    prevJoints=[...jointAngles]; prevVels=curVels;
                 }
             }
+
+            // Update Velocity & Acceleration charts at ~20Hz (every 3 frames)
+            chartUpdateCounter++;
+            if (chartUpdateCounter >= 3) {
+                chartUpdateCounter = 0;
+                const dtChart = 0.048; // 3 * 0.016
+                const curVels = [];
+                for (let i = 0; i < 3; i++) {
+                    const v = (jointAngles[i] - prevJoints[i]) / dtChart;
+                    curVels.push(v);
+                    const a = (v - prevVels[i]) / dtChart;
+                    velChart.data.datasets[i].data.shift();
+                    velChart.data.datasets[i].data.push(v);
+                    accChart.data.datasets[i].data.shift();
+                    accChart.data.datasets[i].data.push(a);
+                }
+                velChart.update();
+                accChart.update();
+                prevJoints = [...jointAngles];
+                prevVels = curVels;
+            }
+
+            // Settle display angles with inertia wobble
+            const kSpring = 300;
+            const kDamping = 18;
+            const dtPhysics = 0.016;
+            for (let i = 0; i < 6; i++) {
+                const error = jointAngles[i] - displayJointAngles[i];
+                const acc = kSpring * error - kDamping * displayJointVelocities[i];
+                displayJointVelocities[i] += acc * dtPhysics;
+                displayJointAngles[i] += displayJointVelocities[i] * dtPhysics;
+            }
+
+            // Update visible Three.js joints from displayJointAngles
+            for (let i = 0; i < numJoints; i++) {
+                if (jointNodes[i]) {
+                    const rad = displayJointAngles[i] * Math.PI / 180;
+                    jointNodes[i].setRotationFromAxisAngle(axes[i], rad);
+                }
+            }
+
+            // Update gripper jaws
+            if (fingerL && fingerR && typeof gripperGap !== 'undefined') {
+                fingerL.position.x = -gripperGap.width;
+                fingerR.position.x = gripperGap.width;
+            }
+
+            // LED Status color
+            const isCol = document.getElementById('sb-col') && document.getElementById('sb-col').textContent !== 'CLEAR';
+            let ledColor = 0x00f5ff; // Cyan
+            let pulse = 1.0;
+            if (isCol) {
+                ledColor = 0xff4757; // Red
+                pulse = 1.5;
+            } else if (trajActive || pickPlaceActive) {
+                ledColor = 0xffb300; // Amber
+                pulse = 0.6 + Math.sin(Date.now() / 120) * 0.4;
+            }
+            jointLEDs.forEach(led => {
+                if (led.material) {
+                    led.material.color.setHex(ledColor);
+                    led.material.emissive.setHex(ledColor);
+                    led.material.emissiveIntensity = pulse;
+                }
+            });
 
             // Teach glow pulse
             if (teachMode) {
@@ -2708,199 +3236,1056 @@ JOINTS [deg]:
             drawGizmo();
         }
 
+        // Tab switching logic for sidebar
+        const tabs = [
+            { btnId: 'tab-btn-kine', contentId: 'tab-kine', activeClass: '' },
+            { btnId: 'tab-btn-traj', contentId: 'tab-traj', activeClass: 'orange-tab' },
+            { btnId: 'tab-btn-dyn',  contentId: 'tab-dyn',  activeClass: 'violet-tab' }
+        ];
+        tabs.forEach(tab => {
+            const btn = document.getElementById(tab.btnId);
+            if (btn) {
+                btn.addEventListener('click', () => {
+                    tabs.forEach(t => {
+                        const b = document.getElementById(t.btnId);
+                        const c = document.getElementById(t.contentId);
+                        if (b) b.classList.remove('active', 'orange-tab', 'violet-tab');
+                        if (c) c.classList.remove('active');
+                    });
+                    btn.classList.add('active');
+                    if (tab.activeClass) btn.classList.add(tab.activeClass);
+                    const content = document.getElementById(tab.contentId);
+                    if (content) content.classList.add('active');
+                });
+            }
+        });
+
+        // Collapsible sidebar toggle
+        const sidebarPanel = document.getElementById('sidebar-panel');
+        const btnSidebarToggle = document.getElementById('btn-sidebar-toggle');
+        if (btnSidebarToggle && sidebarPanel) {
+            btnSidebarToggle.addEventListener('click', () => {
+                sidebarPanel.classList.toggle('collapsed');
+                if (sidebarPanel.classList.contains('collapsed')) {
+                    btnSidebarToggle.textContent = '▶';
+                } else {
+                    btnSidebarToggle.textContent = '◀';
+                }
+                setTimeout(resizeKine, 350);
+            });
+        }
+
+        // Collapsible bottom charts toggle
+        const btnToggleCharts = document.getElementById('btn-toggle-charts');
+        const kineBottom = document.getElementById('kine-bottom');
+        if (btnToggleCharts && kineBottom) {
+            btnToggleCharts.addEventListener('click', () => {
+                kineBottom.classList.toggle('collapsed');
+                btnToggleCharts.classList.toggle('active');
+                setTimeout(resizeKine, 350);
+            });
+        }
+
+        // Reset Joint Angles to Home (Zero)
+        const btnHomeJoints = document.getElementById('btn-home-joints');
+        if (btnHomeJoints) {
+            btnHomeJoints.addEventListener('click', () => {
+                const testA = [0, 0, 0, 0, 0, 0];
+                if (document.getElementById('chk-safety').checked && checkCollisions(testA)) {
+                    showKineNotify('HOME POSE BLOCKED — SAFETY STOP', 'rgba(200,50,50,0.9)');
+                    return;
+                }
+                jointAngles.fill(0);
+                updateFKSliders();
+                updateRobotAngles();
+                updateReadout();
+                updateDynamics();
+                showKineNotify('RESET TO HOME POSE', 'rgba(0,245,255,0.85)');
+            });
+        }
+
+        // Execute Pick & Place Sequence
+        function executePickAndPlace(key) {
+            const objDef = objectDefs[key];
+            const objMesh = objectMeshes[key];
+            if (!objDef || !objMesh) return;
+
+            if (pickPlaceTimeline) {
+                pickPlaceTimeline.kill();
+            }
+
+            resetAllObjects();
+
+            pickPlaceActive = true;
+            heldObjectKey = null;
+            
+            const statusEl = document.getElementById('task-status');
+            if (statusEl) {
+                statusEl.textContent = 'Executing Pick & Place...';
+                statusEl.style.color = 'var(--yellow)';
+            }
+
+            pickPlaceTarget.copy(getEndEffectorPos());
+            gripperGap.width = 0.4;
+
+            pickPlaceTimeline = gsap.timeline({
+                onUpdate: () => {
+                    solveIK(pickPlaceTarget, 30, 0.1);
+                    updateFKSliders();
+                    updateReadout();
+                    updateDynamics();
+                },
+                onComplete: () => {
+                    pickPlaceActive = false;
+                    if (statusEl) {
+                        statusEl.textContent = 'Task Completed!';
+                        statusEl.style.color = 'var(--green)';
+                    }
+                }
+            });
+
+            // 1. Hover above object
+            const hoverPick = objDef.startPos.clone().add(new THREE.Vector3(0, 3.0, 0));
+            pickPlaceTimeline.to(pickPlaceTarget, { x: hoverPick.x, y: hoverPick.y, z: hoverPick.z, duration: 1.2, ease: "power2.out" });
+
+            // 2. Descend onto object
+            const pickCoords = objDef.startPos.clone().add(new THREE.Vector3(0, 0.1, 0));
+            pickPlaceTimeline.to(pickPlaceTarget, { x: pickCoords.x, y: pickCoords.y, z: pickCoords.z, duration: 0.8, ease: "power1.inOut" });
+
+            // 3. Grasp (close jaws)
+            pickPlaceTimeline.to(gripperGap, {
+                width: objDef.grabWidth,
+                duration: 0.6,
+                ease: "power1.inOut",
+                onComplete: () => {
+                    heldObjectKey = key;
+                    endEffectorPnt.attach(objMesh);
+                }
+            });
+
+            // 4. Ascend (lift up)
+            pickPlaceTimeline.to(pickPlaceTarget, { y: hoverPick.y, duration: 0.8, ease: "power1.inOut" });
+
+            // 5. Travel to hover above pallet
+            const hoverPlace = palletPos.clone().add(new THREE.Vector3(0, 3.0, 0));
+            pickPlaceTimeline.to(pickPlaceTarget, { x: hoverPlace.x, y: hoverPlace.y, z: hoverPlace.z, duration: 1.5, ease: "power2.inOut" });
+
+            // 6. Descend onto pallet
+            const placeCoords = palletPos.clone().add(new THREE.Vector3(0, objDef.heightOffset, 0));
+            pickPlaceTimeline.to(pickPlaceTarget, { x: placeCoords.x, y: placeCoords.y, z: placeCoords.z, duration: 0.8, ease: "power1.inOut" });
+
+            // 7. Release (open jaws)
+            pickPlaceTimeline.to(gripperGap, {
+                width: 0.4,
+                duration: 0.6,
+                ease: "power1.inOut",
+                onComplete: () => {
+                    scene.attach(objMesh);
+                    heldObjectKey = null;
+                }
+            });
+
+            // 8. Ascend (lift up empty)
+            pickPlaceTimeline.to(pickPlaceTarget, { y: hoverPlace.y, duration: 0.8, ease: "power1.inOut" });
+
+            // 9. Return to Home ready position
+            pickPlaceTimeline.to(pickPlaceTarget, { x: 0, y: 12, z: 8, duration: 1.2, ease: "power2.inOut" });
+        }
+
+        // Wire task execution button
+        const btnExecuteTask = document.getElementById('btn-execute-task');
+        if (btnExecuteTask) {
+            btnExecuteTask.addEventListener('click', () => {
+                const selectEl = document.getElementById('pick-object-select');
+                if (selectEl) {
+                    executePickAndPlace(selectEl.value);
+                }
+            });
+        }
+
+        // Wire reset objects button
+        const btnResetObjects = document.getElementById('btn-reset-objects');
+        if (btnResetObjects) {
+            btnResetObjects.addEventListener('click', () => {
+                resetAllObjects();
+            });
+        }
+
+        // Day/Night Theme Toggler
+        let isDayMode = false;
+        const btnToggleTheme = document.getElementById('btn-toggle-theme');
+        if (btnToggleTheme) {
+            btnToggleTheme.addEventListener('click', () => {
+                isDayMode = !isDayMode;
+                btnToggleTheme.textContent = isDayMode ? '🌙 NIGHT' : '☀️ DAY';
+                btnToggleTheme.style.background = isDayMode ? 'rgba(0, 245, 255, 0.3)' : 'rgba(0, 245, 255, 0.15)';
+
+                // WebGL environmental lighting & fog adjustments
+                renderer.setClearColor(isDayMode ? 0xdbdee6 : 0x020509, 1);
+                scene.fog.color.setHex(isDayMode ? 0xdbdee6 : 0x020509);
+                
+                ambientLight.intensity = isDayMode ? 1.0 : 0.4;
+                dLight.intensity = isDayMode ? 2.0 : 1.2;
+                dLight.color.setHex(isDayMode ? 0xfff8e7 : 0x88ddff);
+                
+                pLight.intensity = isDayMode ? 0.5 : 3.0;
+                pLight2.intensity = isDayMode ? 0.2 : 1.5;
+
+                // Material color adjustments
+                floorMat.color.setHex(isDayMode ? 0xbec3cc : 0x080b13);
+                wallMat.color.setHex(isDayMode ? 0xd0d5df : 0x050810);
+                pillarMat.color.setHex(isDayMode ? 0x828b9c : 0x1a2130);
+
+                // Grid opacity
+                grid.material.opacity = isDayMode ? 0.15 : 0.6;
+            });
+        }
+
+        // ==========================================
+        // ROBOTICS CURRICULUM MODE
+        // ==========================================
+        const CHALLENGES = [
+            {
+                id: 0,
+                title: "1. Manual Jogging Control",
+                desc: "Manually rotate the joint sliders in the sidebar (🦾 KINE tab) to guide the end-effector to touch the green target sphere. To test your spatial coordination, the 'SOLVE IK' button has been locked.",
+                constraints: "Solve with manual joint sliders only. 'SOLVE IK' button is disabled.",
+                targetPos: new THREE.Vector3(8, 12, 6),
+                criteria: [
+                    { id: "dist", text: "End-effector within 0.5 units of green target", check: () => getEndEffectorPos().distanceTo(CHALLENGES[0].targetPos) < 0.5 },
+                    { id: "manual", text: "Manual joint alignment", check: () => true }
+                ],
+                setup: () => {
+                    const btn = document.getElementById('btn-solve-ik');
+                    if (btn) {
+                        btn.disabled = true;
+                        btn.style.opacity = '0.3';
+                        btn.style.pointerEvents = 'none';
+                    }
+                    const st = document.getElementById('ik-status');
+                    if (st) st.textContent = 'IK SOLVER LOCKED (Challenge 1)';
+                },
+                cleanup: () => {
+                    const btn = document.getElementById('btn-solve-ik');
+                    if (btn) {
+                        btn.disabled = false;
+                        btn.style.opacity = '';
+                        btn.style.pointerEvents = '';
+                    }
+                    const st = document.getElementById('ik-status');
+                    if (st) st.textContent = 'IK Solver Ready';
+                }
+            },
+            {
+                id: 1,
+                title: "2. Precision Insertion (Box)",
+                desc: "Position the end-effector inside the red wireframe containment box at (-10, 6, 8). You must position the robot arm precisely. If any link touches the outer collision boundaries, the safety monitor will fail.",
+                constraints: "Safety monitor must stay CLEAR. Distance error must be < 0.4 units.",
+                targetPos: new THREE.Vector3(-10, 6, 8),
+                criteria: [
+                    { id: "dist", text: "End-effector inside wireframe box (< 0.4 units error)", check: () => getEndEffectorPos().distanceTo(CHALLENGES[1].targetPos) < 0.4 },
+                    { id: "collision", text: "Safety monitor remains CLEAR (No collisions)", check: () => {
+                        const sbCol = document.getElementById('sb-col');
+                        return sbCol ? sbCol.textContent === 'CLEAR' : !checkCollisions();
+                    }}
+                ],
+                setup: () => {
+                    const boxGeo = new THREE.BoxGeometry(2.5, 2.5, 2.5);
+                    const boxMat = new THREE.MeshBasicMaterial({ color: 0xff3b30, wireframe: true, transparent: true, opacity: 0.35 });
+                    const boxMesh = new THREE.Mesh(boxGeo, boxMat);
+                    boxMesh.position.copy(CHALLENGES[1].targetPos);
+                    scene.add(boxMesh);
+                    currChallengeMeshes.push(boxMesh);
+                },
+                cleanup: () => {}
+            },
+            {
+                id: 2,
+                title: "3. Taught Path Safety Wall",
+                desc: "Teach a multi-point path from Home position to the drop position at (12, 2, -8) that routes around the red safety barrier wall. Commit the path and execute it without hitting the partition safety wall.",
+                constraints: "Clear the red safety barrier. Path must contain at least 3 waypoints and finish cleanly.",
+                targetPos: new THREE.Vector3(12, 2, -8),
+                criteria: [
+                    { id: "wps", text: "Recorded path with at least 3 waypoints", check: () => waypoints.length >= 3 || teachWaypoints.length >= 3 },
+                    { id: "reached", text: "Reach the target drop position (within 1.0 unit)", check: () => getEndEffectorPos().distanceTo(CHALLENGES[2].targetPos) < 1.0 },
+                    { id: "collision", text: "No collisions detected during execution", check: () => {
+                        const sbCol = document.getElementById('sb-col');
+                        return sbCol ? sbCol.textContent === 'CLEAR' : !checkCollisions();
+                    }}
+                ],
+                setup: () => {
+                    const wallGeo = new THREE.BoxGeometry(1.2, 12, 16);
+                    const wallMat = new THREE.MeshStandardMaterial({ color: 0xff3b30, transparent: true, opacity: 0.35, roughness: 0.4, metalness: 0.6 });
+                    const safetyWall = new THREE.Mesh(wallGeo, wallMat);
+                    safetyWall.position.set(6, 6, 0);
+                    scene.add(safetyWall);
+                    currChallengeMeshes.push(safetyWall);
+                    challengeObstacles.push({ mesh: safetyWall, radius: 2.0, isBox: true });
+                },
+                cleanup: () => {}
+            },
+            {
+                id: 3,
+                title: "4. Singularity Resolution",
+                desc: "Position the robot arm at the absolute outer bounds of its workspace reaches at (0, 21.5, 2.0). The joints will lock close to a singularity. Solve IK to reach convergence with minimal error.",
+                constraints: "Distance error to target coordinate must be < 0.35 units.",
+                targetPos: new THREE.Vector3(0, 21.5, 2.0),
+                criteria: [
+                    { id: "dist", text: "Reach target within 0.35 units of error", check: () => getEndEffectorPos().distanceTo(CHALLENGES[3].targetPos) < 0.35 }
+                ],
+                setup: () => {},
+                cleanup: () => {}
+            },
+            {
+                id: 4,
+                title: "5. Autonomous Assembly Flow",
+                desc: "Program or execute a Pick & Place path to move the Industrial Gear from its starting stand at (0, 0.25, 14) onto the Pallet drop platform at (8, 0, -12) safely.",
+                constraints: "Execute complete Pick & Place sequence of the Gear onto the pallet. Gripper must release the gear.",
+                targetPos: new THREE.Vector3(8, 0.9, -12),
+                criteria: [
+                    { id: "gear_moved", text: "Gear mesh repositioned on the drop pallet", check: () => {
+                        const gearMesh = objectMeshes.gear;
+                        if (!gearMesh) return false;
+                        const gearPos = new THREE.Vector3();
+                        gearMesh.getWorldPosition(gearPos);
+                        return gearPos.distanceTo(CHALLENGES[4].targetPos) < 1.5;
+                    }},
+                    { id: "released", text: "Gripper released and holds no cargo", check: () => heldObjectKey === null }
+                ],
+                setup: () => {},
+                cleanup: () => {}
+            }
+        ];
+
+        let selectedChallengeId = null;
+
+        function isChallengeLocked(idx) {
+            if (idx === 0) return false;
+            return !completedChallenges[idx - 1];
+        }
+
+        function cleanupCurriculumScene() {
+            currChallengeMeshes.forEach(m => scene.remove(m));
+            currChallengeMeshes = [];
+            challengeObstacles = [];
+            resetAllObjects();
+            CHALLENGES.forEach(c => { if (c.cleanup) c.cleanup(); });
+        }
+
+        function updateCurriculumProgress() {
+            const count = completedChallenges.filter(Boolean).length;
+            const progressEl = document.getElementById('curriculum-overall-progress');
+            if (progressEl) progressEl.textContent = `PROGRESS: ${count}/5 COMPLETED`;
+        }
+
+        function selectChallenge(idx) {
+            selectedChallengeId = idx;
+            const challenge = CHALLENGES[idx];
+            const locked = isChallengeLocked(idx);
+            
+            const content = document.getElementById('challenge-content');
+            const placeholder = document.getElementById('challenge-placeholder');
+            
+            if (placeholder) placeholder.style.display = 'none';
+            if (content) content.style.display = 'flex';
+            
+            const titleEl = document.getElementById('curr-title');
+            const descEl = document.getElementById('curr-desc');
+            const constEl = document.getElementById('curr-constraints');
+            
+            if (titleEl) titleEl.textContent = challenge.title;
+            if (descEl) descEl.textContent = challenge.desc;
+            if (constEl) constEl.textContent = challenge.constraints;
+            
+            const critList = document.getElementById('curr-criteria-list');
+            if (critList) {
+                critList.innerHTML = '';
+                challenge.criteria.forEach(crit => {
+                    critList.insertAdjacentHTML('beforeend', `
+                        <div style="display:flex;align-items:center;gap:10px;font-size:0.68rem;color:var(--text-1);">
+                            <span id="crit-icon-${crit.id}">❌</span>
+                            <span>${crit.text}</span>
+                        </div>
+                    `);
+                });
+            }
+
+            const startBtn = document.getElementById('btn-curr-start');
+            const resetBtn = document.getElementById('btn-curr-reset');
+            
+            if (startBtn) {
+                if (locked) {
+                    startBtn.disabled = true;
+                    startBtn.textContent = '🔒 LOCKED (Complete previous challenge)';
+                    startBtn.style.opacity = '0.5';
+                    startBtn.style.pointerEvents = 'none';
+                    if (resetBtn) resetBtn.style.display = 'none';
+                } else if (completedChallenges[idx]) {
+                    startBtn.disabled = false;
+                    startBtn.style.opacity = '';
+                    startBtn.style.pointerEvents = '';
+                    startBtn.textContent = '🏆 COMPLETED (Replay challenge)';
+                    startBtn.style.background = 'var(--green)';
+                    startBtn.style.color = '#020509';
+                    if (resetBtn) resetBtn.style.display = 'none';
+                } else if (activeChallengeId === idx) {
+                    startBtn.disabled = true;
+                    startBtn.style.opacity = '0.7';
+                    startBtn.style.pointerEvents = 'none';
+                    startBtn.textContent = 'MONITORING CRITERIA...';
+                    startBtn.style.background = 'rgba(255,107,53,0.2)';
+                    startBtn.style.color = 'var(--orange)';
+                    if (resetBtn) resetBtn.style.display = 'block';
+                } else {
+                    startBtn.disabled = false;
+                    startBtn.style.opacity = '';
+                    startBtn.style.pointerEvents = '';
+                    startBtn.textContent = 'START CHALLENGE';
+                    startBtn.style.background = 'var(--orange)';
+                    startBtn.style.color = '#fff';
+                    if (resetBtn) resetBtn.style.display = 'none';
+                }
+            }
+        }
+
+        function renderChallengesSidebar() {
+            const sidebar = document.getElementById('curriculum-sidebar');
+            if (!sidebar) return;
+            sidebar.innerHTML = '';
+            
+            CHALLENGES.forEach((challenge, idx) => {
+                const completed = completedChallenges[idx];
+                const locked = isChallengeLocked(idx);
+                
+                let statusIcon = '🔒';
+                if (completed) statusIcon = '✅';
+                else if (!locked) statusIcon = '⭕';
+                
+                let activeStyle = '';
+                if (selectedChallengeId === idx) {
+                    activeStyle = 'background: rgba(255,107,53,0.15); border-left: 3px solid var(--orange);';
+                }
+                
+                sidebar.insertAdjacentHTML('beforeend', `
+                    <div class="sidebar-tab-curriculum" data-idx="${idx}" style="padding:14px 16px; border-bottom: 1px solid rgba(255,255,255,0.05); cursor:${locked ? 'not-allowed' : 'pointer'}; display:flex; align-items:center; gap:10px; transition:all 0.2s; ${activeStyle}">
+                        <span style="font-size:0.75rem;">${statusIcon}</span>
+                        <div style="display:flex; flex-direction:column; gap:2px;">
+                            <span style="font-size:0.68rem; font-weight:700; color:${locked ? 'var(--text-2)' : 'var(--text-0)'};">${challenge.title.replace(/^\d\.\s/, '')}</span>
+                            <span style="font-size:0.55rem; color:var(--text-2); font-family:var(--font-m);">${completed ? 'COMPLETED' : locked ? 'LOCKED' : 'AVAILABLE'}</span>
+                        </div>
+                    </div>
+                `);
+            });
+
+            sidebar.querySelectorAll('.sidebar-tab-curriculum').forEach(el => {
+                const idx = parseInt(el.dataset.idx);
+                const locked = isChallengeLocked(idx);
+                if (!locked) {
+                    el.addEventListener('click', () => {
+                        selectChallenge(idx);
+                        renderChallengesSidebar();
+                    });
+                }
+            });
+        }
+
+        function completeChallenge(idx) {
+            activeChallengeId = null;
+            challengeSuccessTimer = 0;
+            
+            completedChallenges[idx] = true;
+            localStorage.setItem('roboai_nexus_curriculum', JSON.stringify(completedChallenges));
+            updateCurriculumOnCloud(idx);
+            
+            showKineNotify(`CHALLENGE ${idx+1} PASSED! 🎓`, 'var(--green)');
+            cleanupCurriculumScene();
+            updateCurriculumProgress();
+            renderChallengesSidebar();
+            selectChallenge(idx);
+        }
+
+        window.checkChallengeCriteria = function() {
+            if (activeChallengeId === null) return;
+            const challenge = CHALLENGES[activeChallengeId];
+            let allPassed = true;
+            
+            challenge.criteria.forEach(crit => {
+                const passed = crit.check();
+                const iconEl = document.getElementById(`crit-icon-${crit.id}`);
+                if (iconEl) {
+                    iconEl.textContent = passed ? '✅' : '❌';
+                    iconEl.style.color = passed ? 'var(--green)' : 'var(--red)';
+                }
+                if (!passed) allPassed = false;
+            });
+
+            if (allPassed) {
+                challengeSuccessTimer += 0.016;
+                const startBtn = document.getElementById('btn-curr-start');
+                if (startBtn) {
+                    startBtn.textContent = `VERIFYING STABILITY... ${Math.min(100, Math.round(challengeSuccessTimer * 100))}%`;
+                    startBtn.style.background = 'var(--green)';
+                    startBtn.style.color = '#020509';
+                }
+                if (challengeSuccessTimer >= 1.0) {
+                    completeChallenge(activeChallengeId);
+                }
+            } else {
+                challengeSuccessTimer = 0;
+                const startBtn = document.getElementById('btn-curr-start');
+                if (startBtn) {
+                    startBtn.textContent = 'MONITORING CRITERIA...';
+                    startBtn.style.background = 'rgba(255,107,53,0.2)';
+                    startBtn.style.color = 'var(--orange)';
+                }
+            }
+        };
+
+        const modalCurriculum = document.getElementById('modal-curriculum');
+        const btnToggleCurriculum = document.getElementById('btn-toggle-curriculum');
+        if (btnToggleCurriculum && modalCurriculum) {
+            btnToggleCurriculum.addEventListener('click', () => {
+                modalCurriculum.classList.add('active');
+                updateCurriculumProgress();
+                renderChallengesSidebar();
+                if (selectedChallengeId !== null) selectChallenge(selectedChallengeId);
+            });
+        }
+
+        const btnCurriculumClose = document.getElementById('modal-curriculum-close');
+        if (btnCurriculumClose && modalCurriculum) {
+            btnCurriculumClose.addEventListener('click', () => {
+                modalCurriculum.classList.remove('active');
+            });
+        }
+
+        if (modalCurriculum) {
+            modalCurriculum.addEventListener('click', e => {
+                if (e.target === modalCurriculum) modalCurriculum.classList.remove('active');
+            });
+        }
+
+        const startBtn = document.getElementById('btn-curr-start');
+        if (startBtn) {
+            startBtn.addEventListener('click', () => {
+                if (selectedChallengeId === null) return;
+                const challenge = CHALLENGES[selectedChallengeId];
+                
+                activeChallengeId = selectedChallengeId;
+                challengeSuccessTimer = 0;
+                cleanupCurriculumScene();
+                
+                if (challenge.setup) challenge.setup();
+                
+                const targetPos = challenge.targetPos;
+                if (targetPos && selectedChallengeId !== 4) {
+                    const targetGeo = new THREE.SphereGeometry(0.5, 16, 16);
+                    const targetMat = new THREE.MeshBasicMaterial({ color: 0x00ffb2, wireframe: true });
+                    const mesh = new THREE.Mesh(targetGeo, targetMat);
+                    mesh.position.copy(targetPos);
+                    scene.add(mesh);
+                    currChallengeMeshes.push(mesh);
+                }
+                
+                selectChallenge(selectedChallengeId);
+                showKineNotify(`CHALLENGE STARTED: ${challenge.title.replace(/^\d\.\s/, '')}`, 'rgba(255,107,53,0.85)');
+                
+                setTimeout(() => {
+                    modalCurriculum.classList.remove('active');
+                }, 850);
+            });
+        }
+
+        const resetBtn = document.getElementById('btn-curr-reset');
+        if (resetBtn) {
+            resetBtn.addEventListener('click', () => {
+                cleanupCurriculumScene();
+                activeChallengeId = null;
+                challengeSuccessTimer = 0;
+                selectChallenge(selectedChallengeId);
+                showKineNotify('CHALLENGE RESET', 'rgba(200,50,50,0.85)');
+            });
+        }
+
+        // ==========================================
+        // CODE GENERATOR EXPORT LOGIC
+        // ==========================================
+        function getActivePathData() {
+            const hasWaypoints = waypoints && waypoints.length > 0;
+            const hasTeach = teachWaypoints && teachWaypoints.length > 0;
+            
+            if (!hasWaypoints && !hasTeach) return null;
+            
+            const wpList = hasWaypoints ? waypoints : teachWaypoints.map(tw => new THREE.Vector3(tw.pos.x, tw.pos.y, tw.pos.z));
+            
+            // Backup current joint angles
+            const originalAngles = [...jointAngles];
+            
+            // Temporarily disable safety check for solving IK
+            const safetyCheckbox = document.getElementById('chk-safety');
+            const originalSafety = safetyCheckbox ? safetyCheckbox.checked : false;
+            if (safetyCheckbox) safetyCheckbox.checked = false;
+            
+            const resolvedPoints = [];
+            
+            wpList.forEach((wp, idx) => {
+                // If it's teach mode waypoints and waypoints is empty, we already have exact joint angles
+                if (!hasWaypoints && hasTeach && teachWaypoints[idx]) {
+                    resolvedPoints.push({
+                        cartesian: wp.clone(),
+                        joints: [...teachWaypoints[idx].angles]
+                    });
+                } else {
+                    // Solve IK
+                    solveIK(wp, 120, 0.1);
+                    resolvedPoints.push({
+                        cartesian: wp.clone(),
+                        joints: [...jointAngles]
+                    });
+                }
+            });
+            
+            // Restore safety check and joint angles
+            if (safetyCheckbox) safetyCheckbox.checked = originalSafety;
+            jointAngles.splice(0, 6, ...originalAngles);
+            updateRobotAngles();
+            
+            return resolvedPoints;
+        }
+
+        function generateRobotCode(format) {
+            const pathData = getActivePathData();
+            if (!pathData) return null;
+            
+            const scale = currentDH.scale || 0.03;
+            const robotName = currentDH.name || "Custom Robot";
+            
+            let code = "";
+            let filename = "";
+            let badgeText = "";
+            
+            if (format === 'gcode') {
+                filename = "nexus_trajectory.gcode";
+                badgeText = "G-CODE";
+                code += `; ==========================================\n`;
+                code += `; NEXUS Robotics Kinematics Engine\n`;
+                code += `; EXPORTED PATH (G-CODE)\n`;
+                code += `; Robot Config: ${robotName} (${numJoints}-DOF)\n`;
+                code += `; Exported on: ${new Date().toLocaleString()}\n`;
+                code += `; Waypoints: ${pathData.length}\n`;
+                code += `; ==========================================\n\n`;
+                code += `G90 ; Absolute positioning\n`;
+                code += `G21 ; Units: Millimeters\n\n`;
+                
+                pathData.forEach((pt, i) => {
+                    const mmX = (pt.cartesian.x / scale).toFixed(3);
+                    const mmY = (pt.cartesian.y / scale).toFixed(3);
+                    const mmZ = (pt.cartesian.z / scale).toFixed(3);
+                    code += `G1 X${mmX} Y${mmY} Z${mmZ} F1500 ; Waypoint ${i + 1}\n`;
+                });
+                
+                code += `\nM30 ; End of program\n`;
+            } 
+            else if (format === 'urscript') {
+                filename = "nexus_trajectory.script";
+                badgeText = "URSCRIPT";
+                code += `# ==========================================\n`;
+                code += `# NEXUS Robotics Kinematics Engine\n`;
+                code += `# EXPORTED PATH (URScript for UR5/UR10)\n`;
+                code += `# Robot Config: ${robotName} (${numJoints}-DOF)\n`;
+                code += `# Exported on: ${new Date().toLocaleString()}\n`;
+                code += `# Waypoints: ${pathData.length}\n`;
+                code += `# ==========================================\n\n`;
+                code += `def nexus_trajectory():\n`;
+                code += `  # Set speed and acceleration defaults\n`;
+                code += `  v_joint = 1.05\n`;
+                code += `  a_joint = 1.4\n\n`;
+                
+                pathData.forEach((pt, i) => {
+                    const rads = pt.joints.slice(0, numJoints).map(deg => (deg * Math.PI / 180).toFixed(5));
+                    const metersX = (pt.cartesian.x / scale / 1000).toFixed(4);
+                    const metersY = (pt.cartesian.y / scale / 1000).toFixed(4);
+                    const metersZ = (pt.cartesian.z / scale / 1000).toFixed(4);
+                    
+                    code += `  # Waypoint ${i + 1} (Cartesian: X=${metersX}m, Y=${metersY}m, Z=${metersZ}m)\n`;
+                    code += `  movej([${rads.join(', ')}], a=a_joint, v=v_joint)\n\n`;
+                });
+                
+                code += `end\n`;
+            } 
+            else if (format === 'moveit') {
+                filename = "nexus_trajectory.py";
+                badgeText = "ROS2 MOVEIT";
+                code += `#!/usr/bin/env python3\n`;
+                code += `"""\n`;
+                code += `NEXUS Robotics Kinematics Engine\n`;
+                code += `EXPORTED PATH (ROS2 MoveIt Python Script)\n`;
+                code += `Robot Config: ${robotName} (${numJoints}-DOF)\n`;
+                code += `Exported on: ${new Date().toLocaleString()}\n`;
+                code += `Waypoints: ${pathData.length}\n`;
+                code += `"""\n\n`;
+                code += `import rclpy\n`;
+                code += `from rclpy.node import Node\n`;
+                code += `from moveit_commander import RobotCommander, PlanningSceneInterface, MoveGroupCommander\n`;
+                code += `import sys\n\n`;
+                code += `def main():\n`;
+                code += `    rclpy.init(args=sys.argv)\n`;
+                code += `    node = rclpy.create_node('nexus_trajectory_executor')\n\n`;
+                code += `    # Initialize MoveGroupCommander for the planning group\n`;
+                code += `    group_name = "manipulator"\n`;
+                code += `    move_group = MoveGroupCommander(group_name)\n\n`;
+                code += `    # Set tolerances and velocities\n`;
+                code += `    move_group.set_max_velocity_scaling_factor(0.5)\n`;
+                code += `    move_group.set_max_acceleration_scaling_factor(0.5)\n\n`;
+                code += `    # Define trajectory joint states (angles in radians)\n`;
+                code += `    waypoints = [\n`;
+                
+                pathData.forEach((pt, i) => {
+                    const rads = pt.joints.slice(0, numJoints).map(deg => (deg * Math.PI / 180).toFixed(5));
+                    const metersX = (pt.cartesian.x / scale / 1000).toFixed(4);
+                    const metersY = (pt.cartesian.y / scale / 1000).toFixed(4);
+                    const metersZ = (pt.cartesian.z / scale / 1000).toFixed(4);
+                    code += `        [${rads.join(', ')}], # Waypoint ${i + 1} (X=${metersX}m, Y=${metersY}m, Z=${metersZ}m)\n`;
+                });
+                
+                code += `    ]\n\n`;
+                code += `    print(f"Executing trajectory with {len(waypoints)} waypoints...")\n\n`;
+                code += `    for i, joint_angles in enumerate(waypoints):\n`;
+                code += `        print(f"Moving to Waypoint {i+1}...")\n`;
+                code += `        move_group.go(joint_angles, wait=True)\n`;
+                code += `        move_group.stop()\n\n`;
+                code += `    print("Trajectory execution completed successfully!")\n`;
+                code += `    rclpy.shutdown()\n\n`;
+                code += `if __name__ == '__main__':\n`;
+                code += `    main()\n`;
+            }
+            
+            return { code, filename, badgeText };
+        }
+
+        const modalCodeExport = document.getElementById('modal-code-export');
+        const btnGenerateCode = document.getElementById('btn-generate-code');
+        const exportedCodeArea = document.getElementById('exported-code-area');
+        const exportBadge = document.getElementById('export-badge');
+        const terminalFilename = document.getElementById('terminal-filename');
+        const exportSummary = document.getElementById('export-summary');
+        const copyStatus = document.getElementById('copy-status');
+        
+        let generatedCodeData = null;
+
+        if (btnGenerateCode && modalCodeExport) {
+            btnGenerateCode.addEventListener('click', () => {
+                const formatSelect = document.getElementById('export-format-select');
+                const format = formatSelect ? formatSelect.value : 'gcode';
+                
+                const result = generateRobotCode(format);
+                if (!result) {
+                    showKineNotify('RECORD A PATH OR USE TEACH MODE FIRST!', 'rgba(255,107,53,0.85)');
+                    return;
+                }
+                
+                generatedCodeData = result;
+                exportedCodeArea.value = result.code;
+                exportBadge.textContent = result.badgeText;
+                terminalFilename.textContent = result.filename;
+                
+                const totalWp = waypoints.length + teachWaypoints.length;
+                exportSummary.textContent = `Generated code for ${totalWp} waypoints on ${currentDH.name || "Custom Robot"} (${numJoints}-DOF).`;
+                
+                modalCodeExport.classList.add('active');
+                copyStatus.style.opacity = '0';
+            });
+        }
+
+        const btnCodeExportClose = document.getElementById('modal-code-export-close');
+        if (btnCodeExportClose && modalCodeExport) {
+            btnCodeExportClose.addEventListener('click', () => {
+                modalCodeExport.classList.remove('active');
+            });
+        }
+
+        if (modalCodeExport) {
+            modalCodeExport.addEventListener('click', e => {
+                if (e.target === modalCodeExport) modalCodeExport.classList.remove('active');
+            });
+        }
+
+        const btnCopyCode = document.getElementById('btn-copy-code');
+        if (btnCopyCode) {
+            btnCopyCode.addEventListener('click', () => {
+                if (!generatedCodeData) return;
+                exportedCodeArea.select();
+                navigator.clipboard.writeText(exportedCodeArea.value)
+                    .then(() => {
+                        copyStatus.style.opacity = '1';
+                        setTimeout(() => { copyStatus.style.opacity = '0'; }, 2000);
+                    })
+                    .catch(err => {
+                        console.error('Failed to copy text: ', err);
+                    });
+            });
+        }
+
+        const btnDownloadCode = document.getElementById('btn-download-code');
+        if (btnDownloadCode) {
+            btnDownloadCode.addEventListener('click', () => {
+                if (!generatedCodeData) return;
+                const blob = new Blob([generatedCodeData.code], { type: 'text/plain;charset=utf-8' });
+                const a = document.createElement('a');
+                a.href = URL.createObjectURL(blob);
+                a.download = generatedCodeData.filename;
+                a.click();
+            });
+        }
+
+        // ==========================================
+        // DH EDITOR SUB-TAB LOGIC
+        // ==========================================
+        const subtabBtnJog = document.getElementById('subtab-btn-jog');
+        const subtabBtnDhedit = document.getElementById('subtab-btn-dhedit');
+        const subtabContentJog = document.getElementById('subtab-content-jog');
+        const subtabContentDhedit = document.getElementById('subtab-content-dhedit');
+        
+        if (subtabBtnJog && subtabBtnDhedit) {
+            subtabBtnJog.addEventListener('click', () => {
+                subtabBtnJog.style.background = 'rgba(0,245,255,0.12)';
+                subtabBtnJog.style.borderColor = 'var(--cyan)';
+                subtabBtnJog.style.color = 'var(--cyan)';
+                
+                subtabBtnDhedit.style.background = 'transparent';
+                subtabBtnDhedit.style.borderColor = 'transparent';
+                subtabBtnDhedit.style.color = 'var(--text-2)';
+                
+                subtabContentJog.style.display = 'block';
+                subtabContentDhedit.style.display = 'none';
+            });
+            
+            subtabBtnDhedit.addEventListener('click', () => {
+                subtabBtnDhedit.style.background = 'rgba(155,93,229,0.12)';
+                subtabBtnDhedit.style.borderColor = 'var(--violet)';
+                subtabBtnDhedit.style.color = 'var(--violet)';
+                
+                subtabBtnJog.style.background = 'transparent';
+                subtabBtnJog.style.borderColor = 'transparent';
+                subtabBtnJog.style.color = 'var(--text-2)';
+                
+                subtabContentJog.style.display = 'none';
+                subtabContentDhedit.style.display = 'block';
+                
+                renderDHEditorTable();
+            });
+        }
+
+        window.renderDHEditorTable = function() {
+            const tbody = document.getElementById('dh-editor-tbody');
+            if (!tbody) return;
+            tbody.innerHTML = '';
+            
+            for (let i = 0; i < numJoints; i++) {
+                const joint = currentDH.joints[i];
+                if (!joint) continue;
+                
+                const tr = document.createElement('tr');
+                tr.style.borderBottom = '1px solid rgba(255,255,255,0.05)';
+                tr.style.height = '32px';
+                
+                tr.innerHTML = `
+                    <td style="padding: 2px; font-weight: bold; color: var(--text-2); font-family: var(--font-d);">${i+1}</td>
+                    <td style="padding: 2px;"><input type="number" class="dh-input" data-joint="${i}" data-param="toff" value="${joint.toff}"></td>
+                    <td style="padding: 2px;"><input type="number" class="dh-input" data-joint="${i}" data-param="d" value="${Math.round(joint.d)}"></td>
+                    <td style="padding: 2px;"><input type="number" class="dh-input" data-joint="${i}" data-param="a" value="${Math.round(joint.a)}"></td>
+                    <td style="padding: 2px;"><input type="number" class="dh-input" data-joint="${i}" data-param="alpha" value="${joint.alpha}"></td>
+                    <td style="padding: 2px;"><input type="number" class="dh-input" data-joint="${i}" data-param="lmin" value="${joint.lmin}"></td>
+                    <td style="padding: 2px;"><input type="number" class="dh-input" data-joint="${i}" data-param="lmax" value="${joint.lmax}"></td>
+                `;
+                tbody.appendChild(tr);
+            }
+            
+            tbody.querySelectorAll('.dh-input').forEach(input => {
+                input.addEventListener('input', e => {
+                    const jointIdx = parseInt(e.target.dataset.joint);
+                    const param = e.target.dataset.param;
+                    const val = parseFloat(e.target.value) || 0;
+                    
+                    if (currentDH.joints[jointIdx]) {
+                        if (param === 'toff') currentDH.joints[jointIdx].toff = val;
+                        else if (param === 'd') currentDH.joints[jointIdx].d = val;
+                        else if (param === 'a') currentDH.joints[jointIdx].a = val;
+                        else if (param === 'alpha') currentDH.joints[jointIdx].alpha = val;
+                        else if (param === 'lmin') {
+                            currentDH.joints[jointIdx].lmin = val;
+                            jointLimits[jointIdx][0] = val;
+                        }
+                        else if (param === 'lmax') {
+                            currentDH.joints[jointIdx].lmax = val;
+                            jointLimits[jointIdx][1] = val;
+                        }
+                        
+                        window._applyDHToRobot(currentDH);
+                    }
+                });
+            });
+        };
+
+        // Preset Apply
+        const btnLoadDHPreset = document.getElementById('btn-load-dh-preset');
+        if (btnLoadDHPreset) {
+            btnLoadDHPreset.addEventListener('click', () => {
+                const select = document.getElementById('dh-preset-select');
+                const presetKey = select ? select.value : 'custom';
+                const preset = DH_PRESETS[presetKey];
+                if (preset) {
+                    currentDH = JSON.parse(JSON.stringify(preset));
+                    const newDof = currentDH.joints.length;
+                    
+                    setDOF(newDof);
+                    window._applyDHToRobot(currentDH);
+                    renderDHEditorTable();
+                    showKineNotify(`APPLIED DH PRESET: ${currentDH.name || presetKey.toUpperCase()}`, 'rgba(155,93,229,0.85)');
+                }
+            });
+        }
+
+        // Custom configs Supabase Integration
+        const btnSaveDH = document.getElementById('btn-save-dh-custom');
+        const btnDeleteDH = document.getElementById('btn-delete-dh-custom');
+        const btnLoadDH = document.getElementById('btn-load-dh-custom');
+        const selectCustomDH = document.getElementById('dh-custom-select');
+        const inputDHName = document.getElementById('dh-custom-name');
+        
+        async function saveDHToSupabase(name, dhData) {
+            const session = JSON.parse(localStorage.getItem('roboai_session'));
+            if (!session) return;
+            
+            const { data, error } = await supabase
+                .from('custom_dh_configs')
+                .insert([
+                    { 
+                        user_id: session.id, 
+                        name: name, 
+                        scale: dhData.scale, 
+                        joints: dhData.joints 
+                    }
+                ])
+                .select();
+            if (error) {
+                showKineNotify(`SAVE FAILED: ${error.message}`, 'rgba(255,71,87,0.85)');
+                return;
+            }
+            
+            showKineNotify(`CONFIG "${name.toUpperCase()}" SAVED TO CLOUD`, 'rgba(0,245,255,0.85)');
+            await fetchSavedDHConfigs();
+        }
+
+        async function fetchSavedDHConfigs() {
+            const { data, error } = await supabase
+                .from('custom_dh_configs')
+                .select('name, scale, joints');
+                
+            if (error) {
+                console.error("Error reading configs: ", error);
+                return;
+            }
+            
+            const selectEl = document.getElementById('dh-custom-select');
+            if (!selectEl) return;
+            selectEl.innerHTML = '';
+            
+            if (data.length === 0) {
+                selectEl.insertAdjacentHTML('beforeend', '<option value="">— NO SAVED CONFIGS —</option>');
+                window.cloudConfigsCache = [];
+            } else {
+                data.forEach(cfg => {
+                    selectEl.insertAdjacentHTML('beforeend', `<option value="${cfg.name}">${cfg.name}</option>`);
+                });
+                // Cache data array for local lookup when Loading
+                window.cloudConfigsCache = data;
+            }
+        }
+        
+        if (btnSaveDH) {
+            btnSaveDH.addEventListener('click', async () => {
+                const name = inputDHName ? inputDHName.value.trim() : '';
+                if (!name) {
+                    showKineNotify('ENTER A CONFIG NAME FIRST!', 'rgba(255,107,53,0.85)');
+                    return;
+                }
+                
+                await saveDHToSupabase(name, {
+                    scale: currentDH.scale || 0.03,
+                    joints: currentDH.joints
+                });
+                
+                if (inputDHName) inputDHName.value = '';
+                if (selectCustomDH) selectCustomDH.value = name;
+            });
+        }
+        
+        if (btnDeleteDH) {
+            btnDeleteDH.addEventListener('click', async () => {
+                const name = selectCustomDH ? selectCustomDH.value : '';
+                if (!name || name === '') {
+                    showKineNotify('SELECT A CONFIG TO DELETE', 'rgba(255,71,87,0.85)');
+                    return;
+                }
+                
+                const session = JSON.parse(localStorage.getItem('roboai_session'));
+                if (!session) return;
+                
+                showKineNotify('DELETING FROM CLOUD...', 'rgba(255,71,87,0.85)');
+                
+                try {
+                    const { error } = await supabase
+                        .from('custom_dh_configs')
+                        .delete()
+                        .eq('user_id', session.id)
+                        .eq('name', name);
+                        
+                    if (error) {
+                        showKineNotify(`DELETE FAILED: ${error.message.toUpperCase()}`, 'rgba(255,71,87,0.85)');
+                        return;
+                    }
+                    
+                    await fetchSavedDHConfigs();
+                    showKineNotify(`CONFIG "${name.toUpperCase()}" DELETED`, 'rgba(255,71,87,0.85)');
+                } catch(e) {
+                    showKineNotify(`DELETE EXCEPTION: ${e.message.toUpperCase()}`, 'rgba(255,71,87,0.85)');
+                }
+            });
+        }
+        
+        if (btnLoadDH) {
+            btnLoadDH.addEventListener('click', () => {
+                const name = selectCustomDH ? selectCustomDH.value : '';
+                if (!name || name === '') {
+                    showKineNotify('SELECT A CONFIG TO LOAD', 'rgba(255,107,53,0.85)');
+                    return;
+                }
+                
+                const cache = window.cloudConfigsCache || [];
+                const config = cache.find(c => c.name === name);
+                if (config) {
+                    currentDH = JSON.parse(JSON.stringify(config));
+                    const newDof = currentDH.joints.length;
+                    
+                    setDOF(newDof);
+                    window._applyDHToRobot(currentDH);
+                    renderDHEditorTable();
+                    showKineNotify(`LOADED CONFIG: ${name.toUpperCase()}`, 'rgba(0,245,255,0.85)');
+                } else {
+                    showKineNotify('CONFIG NOT FOUND IN CLOUD CACHE', 'rgba(255,71,87,0.85)');
+                }
+            });
+        }
+        
+        fetchSavedDHConfigs();
+        renderDHEditorTable();
+
         updateRobotAngles();
         updateReadout();
         updateDynamics();
         animate();
     } // end initKinematics
-
-    // ==========================================
-    //  MODULE 2: SWARM BOIDS ENGINE
-    // ==========================================
-    function initSwarm() {
-        const canvas = document.getElementById('swarmCanvas');
-        const ctx    = canvas.getContext('2d');
-        let W = 800, H = 600;
-
-        let boids=[], obstacles=[], goal=null, isPlaying=true, mode='none';
-        let currentTask='none', searchTargets=[], searchStartTime=0, searchTargetsFound=0;
-        let formationSlots=[], formationShape='circle';
-        const hmRes=40; let heatmap=[];
-        let sessionHistory=[], sessionStartTime=Date.now();
-        let collisions=0, frameCount=0;
-
-        function resize() {
-            const c = document.getElementById('swarm-main') || canvas.parentElement;
-            const v = document.querySelector('#mod-swarm .swarm-main');
-            if(!v) return;
-            const nW=v.clientWidth, nH=v.clientHeight;
-            if(!nW||!nH) return;
-            W=nW; H=nH;
-            canvas.width=W; canvas.height=H;
-            const cols=Math.ceil(W/hmRes), rows=Math.ceil(H/hmRes);
-            heatmap=new Array(cols*rows).fill(0);
-        }
-        window._swarmResizeFunc = resize;
-        resize();
-
-        ['agents','sep','ali','coh','speed','radius'].forEach(id => {
-            const el=document.getElementById(`param-${id}`), vl=document.getElementById(`val-${id}`);
-            if(el&&vl) el.addEventListener('input',()=>vl.innerText=el.value);
-        });
-
-        document.getElementById('param-agents').addEventListener('change', e => {
-            const n=parseInt(e.target.value);
-            if(n>boids.length) for(let i=boids.length;i<n;i++) boids.push(mkBoid());
-            else boids.length=n;
-        });
-
-        const gP = id => { const el=document.getElementById(id); return el?parseFloat(el.value):1; };
-
-        function mkBoid() {
-            return { x:Math.random()*W, y:Math.random()*H, vx:(Math.random()-0.5)*4, vy:(Math.random()-0.5)*4,
-                     color:`hsl(${Math.random()*60+160},100%,60%)`, state:'exploring' };
-        }
-        for(let i=0;i<gP('param-agents');i++) boids.push(mkBoid());
-
-        function setTask(task) {
-            currentTask=task;
-            document.getElementById('formation-controls').style.display=task==='formation'?'block':'none';
-            document.getElementById('search-stats').style.display=task==='search'?'block':'none';
-            if(task==='search'){
-                searchTargets=[]; for(let i=0;i<5;i++) searchTargets.push({x:50+Math.random()*(W-100),y:50+Math.random()*(H-100),found:false});
-                searchStartTime=Date.now(); searchTargetsFound=0;
-                document.getElementById('search-found').textContent='0 / 5';
-            } else if(task==='formation') updateFormationSlots();
-        }
-
-        function updateFormationSlots() {
-            const shape=document.getElementById('formation-shape-select').value;
-            formationSlots=[];
-            const cx=W/2, cy=H/2, N=boids.length;
-            if(shape==='circle'){const R=Math.min(W,H)*0.35;for(let i=0;i<N;i++){const a=(i/N)*Math.PI*2;formationSlots.push({x:cx+Math.cos(a)*R,y:cy+Math.sin(a)*R});}}
-            else if(shape==='grid'){const s=Math.ceil(Math.sqrt(N)),sp=40,sx=cx-(s*sp)/2,sy=cy-(s*sp)/2;for(let i=0;i<N;i++){const r=Math.floor(i/s),c=i%s;formationSlots.push({x:sx+c*sp,y:sy+r*sp});}}
-            else if(shape==='vshape'){const sp=35;for(let i=0;i<N;i++){const side=i%2?-1:1,d=Math.floor(i/2);formationSlots.push({x:cx-d*sp*0.8,y:cy+side*d*sp});}}
-            else if(shape==='arrow'){const sp=30,hs=Math.floor(N*0.3);for(let i=0;i<N;i++){if(i<hs){const side=i%2?-1:1,d=Math.floor(i/2);formationSlots.push({x:cx+d*sp,y:cy+side*d*sp});}else formationSlots.push({x:cx-(i-hs)*sp,y:cy});}}
-        }
-
-        document.getElementById('swarm-task-select').addEventListener('change',e=>setTask(e.target.value));
-        document.getElementById('formation-shape-select').addEventListener('change',updateFormationSlots);
-
-        // Charts
-        const covChart = new Chart(document.getElementById('coverageChart').getContext('2d'),{
-            type:'line', data:{labels:Array(20).fill(''),datasets:[{label:'Coverage',data:Array(20).fill(0),borderColor:'#9B5DE5',tension:0.4,borderWidth:2,fill:true,backgroundColor:'rgba(155,93,229,0.06)'}]},
-            options:{responsive:true,maintainAspectRatio:false,animation:false,scales:{x:{display:false},y:{min:0,max:100,ticks:{color:'#5A6E85',font:{size:8}},grid:{color:'rgba(255,255,255,0.04)'}}},plugins:{legend:{display:false}}}
-        });
-        const stateChart = new Chart(document.getElementById('stateChart').getContext('2d'),{
-            type:'doughnut', data:{labels:['Exploring','Flocking','Seeking','Avoiding'],datasets:[{data:[100,0,0,0],backgroundColor:['#00F5FF','#9B5DE5','#00FFB2','#FF4757'],borderWidth:0}]},
-            options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'right',labels:{color:'#A0B0C8',font:{size:9}}}},cutout:'68%'}
-        });
-
-        function updateAnalytics() {
-            frameCount++;
-            if(frameCount%10!==0) return;
-            let totalSpeed=0; const states={exploring:0,flocking:0,goal_seeking:0,avoiding:0};
-            boids.forEach(b=>{totalSpeed+=Math.hypot(b.vx||0,b.vy||0);if(states[b.state]!==undefined)states[b.state]++;});
-            document.getElementById('stat-vel').textContent=(boids.length>0?(totalSpeed/boids.length).toFixed(2):'0.0');
-            const cs=50,cols=Math.max(1,Math.ceil(W/cs)),rows=Math.max(1,Math.ceil(H/cs)),grid=new Set();
-            boids.forEach(b=>{if(isNaN(b.x)||isNaN(b.y))return;grid.add(`${Math.floor(b.x/cs)},${Math.floor(b.y/cs)}`);
-                const hc=Math.floor(b.x/hmRes),hr=Math.floor(b.y/hmRes),hi=hr*Math.ceil(W/hmRes)+hc;
-                if(heatmap[hi]!==undefined)heatmap[hi]=Math.min(100,heatmap[hi]+1);
-            });
-            if(currentTask==='search'&&searchTargetsFound<5) document.getElementById('search-time').textContent=`${((Date.now()-searchStartTime)/1000).toFixed(1)}s`;
-            const covPct=Math.min((grid.size/(cols*rows))*100*2.5,100).toFixed(1)||0;
-            document.getElementById('stat-cov').textContent=`${covPct}%`;
-            covChart.data.datasets[0].data.shift(); covChart.data.datasets[0].data.push(covPct); covChart.update();
-            stateChart.data.datasets[0].data=[states.exploring,states.flocking,states.goal_seeking,states.avoiding]; stateChart.update();
-            document.getElementById('stat-col').textContent=collisions;
-            document.getElementById('stat-cluster').textContent=boids.length>0?Math.max(1,Math.floor(boids.length/10*(states.flocking/Math.max(1,boids.length)))):0;
-        }
-
-        const dist=(a,b)=>Math.hypot(b.x-a.x,b.y-a.y);
-
-        function runBoids() {
-            if(!isPlaying) return;
-            const vis=gP('param-radius'),maxSp=gP('param-speed'),wS=gP('param-sep'),wA=gP('param-ali'),wC=gP('param-coh');
-            boids.forEach((b,i)=>{
-                let neighbors=0,sep={x:0,y:0},ali={x:0,y:0},coh={x:0,y:0},avoid={x:0,y:0},toGoal={x:0,y:0},toFo={x:0,y:0};
-                b.state='exploring';
-                if(currentTask==='formation'&&formationSlots[i]){const sl=formationSlots[i];toFo.x=(sl.x-b.x)*0.1;toFo.y=(sl.y-b.y)*0.1;}
-                if(currentTask==='search') searchTargets.forEach(t=>{if(!t.found&&dist(b,t)<30){t.found=true;searchTargetsFound++;document.getElementById('search-found').textContent=`${searchTargetsFound} / 5`;}});
-                boids.forEach(o=>{if(b===o)return;const d=dist(b,o);if(d<vis){neighbors++;if(d<vis*0.4){sep.x+=b.x-o.x;sep.y+=b.y-o.y;if(d<5&&Math.random()<0.01)collisions++;}ali.x+=o.vx;ali.y+=o.vy;coh.x+=o.x;coh.y+=o.y;}});
-                if(neighbors>0){ali.x/=neighbors;ali.y/=neighbors;coh.x/=neighbors;coh.y/=neighbors;coh.x-=b.x;coh.y-=b.y;b.state='flocking';}
-                let avoiding=false;
-                obstacles.forEach(o=>{const d=dist(b,o);if(d<o.r+30){avoid.x+=(b.x-o.x)*(20/d);avoid.y+=(b.y-o.y)*(20/d);avoiding=true;}});
-                let seeking=false;
-                if(goal&&!avoiding){const dg=dist(b,goal);if(dg>10){toGoal.x=(goal.x-b.x)*0.05;toGoal.y=(goal.y-b.y)*0.05;seeking=true;}else{goal=null;document.getElementById('btn-set-goal').textContent='SET TARGET';}}
-                if(avoiding)b.state='avoiding'; else if(seeking)b.state='goal_seeking';
-                const fMult=currentTask==='formation'?0.3:1.0;
-                if(!isNaN(sep.x)){b.vx+=(sep.x*wS*0.05*fMult)+(ali.x*wA*0.05*fMult)+(coh.x*wC*0.005*fMult)+(avoid.x*0.5)+toGoal.x+(toFo.x*0.5);b.vy+=(sep.y*wS*0.05*fMult)+(ali.y*wA*0.05*fMult)+(coh.y*wC*0.005*fMult)+(avoid.y*0.5)+toGoal.y+(toFo.y*0.5);}
-                let sp=Math.hypot(b.vx,b.vy); if(isNaN(sp)||sp===0)sp=0.1;
-                if(sp>maxSp){b.vx=(b.vx/sp)*maxSp;b.vy=(b.vy/sp)*maxSp;}
-                else if(sp<maxSp*0.2){b.vx=(b.vx/sp)*maxSp*0.5||(Math.random()-0.5);b.vy=(b.vy/sp)*maxSp*0.5||(Math.random()-0.5);}
-                if(!isNaN(b.vx))b.x+=b.vx; if(!isNaN(b.vy))b.y+=b.vy;
-                if(isNaN(b.x)||b.x<0)b.x=W; if(b.x>W)b.x=0;
-                if(isNaN(b.y)||b.y<0)b.y=H; if(b.y>H)b.y=0;
-            });
-        }
-
-        function draw() {
-            ctx.fillStyle='rgba(2,5,9,0.42)'; ctx.fillRect(0,0,W,H);
-            const hC=Math.ceil(W/hmRes),hR=Math.ceil(H/hmRes);
-            for(let r=0;r<hR;r++) for(let c=0;c<hC;c++){const v=heatmap[r*hC+c];if(v>0){ctx.fillStyle=`rgba(0,245,255,${Math.min(0.18,v/100)})`;ctx.fillRect(c*hmRes,r*hmRes,hmRes,hmRes);}}
-            ctx.shadowBlur=12;
-            obstacles.forEach(o=>{ctx.shadowColor='#ff4757';ctx.fillStyle='#ff4757';ctx.beginPath();ctx.arc(o.x,o.y,o.r,0,Math.PI*2);ctx.fill();ctx.fillStyle='rgba(0,0,0,0.5)';ctx.beginPath();ctx.arc(o.x,o.y,o.r*0.6,0,Math.PI*2);ctx.fill();});
-            if(goal){ctx.shadowColor='#00FFB2';ctx.strokeStyle='#00FFB2';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(goal.x-10,goal.y-10);ctx.lineTo(goal.x+10,goal.y+10);ctx.moveTo(goal.x+10,goal.y-10);ctx.lineTo(goal.x-10,goal.y+10);ctx.stroke();ctx.beginPath();ctx.arc(goal.x,goal.y,15+Math.sin(Date.now()*0.005)*5,0,Math.PI*2);ctx.stroke();}
-            if(currentTask==='search') searchTargets.forEach(t=>{if(t.found){ctx.shadowColor='#00F5FF';ctx.shadowBlur=18;ctx.fillStyle='rgba(0,245,255,0.6)';ctx.beginPath();ctx.arc(t.x,t.y,10,0,Math.PI*2);ctx.fill();ctx.strokeStyle='#00F5FF';ctx.stroke();}});
-            if(currentTask==='formation'){ctx.setLineDash([4,4]);ctx.strokeStyle='rgba(155,93,229,0.3)';formationSlots.forEach(s=>{ctx.beginPath();ctx.arc(s.x,s.y,8,0,Math.PI*2);ctx.stroke();});ctx.setLineDash([]);}
-            ctx.shadowBlur=6;
-            boids.forEach(b=>{
-                ctx.shadowColor=b.color;
-                ctx.fillStyle=b.state==='avoiding'?'#FF4757':b.state==='goal_seeking'?'#00FFB2':b.color;
-                const angle=Math.atan2(b.vy,b.vx);
-                ctx.save();ctx.translate(b.x,b.y);ctx.rotate(angle);
-                ctx.beginPath();ctx.moveTo(9,0);ctx.lineTo(-5,5);ctx.lineTo(-2,0);ctx.lineTo(-5,-5);ctx.closePath();ctx.fill();
-                ctx.restore();
-            });
-            ctx.shadowBlur=0;
-        }
-
-        function tick() {
-            try {
-                if(document.getElementById('mod-swarm').classList.contains('active')){
-                    if(boids.length===0) for(let i=0;i<gP('param-agents');i++) boids.push(mkBoid());
-                    runBoids(); draw(); if(isPlaying) updateAnalytics();
-                }
-            } catch(e){ console.error('Swarm tick:',e); }
-            requestAnimationFrame(tick);
-        }
-
-        // Interaction
-        canvas.addEventListener('mousedown', e=>{
-            const rect=canvas.getBoundingClientRect(),x=e.clientX-rect.left,y=e.clientY-rect.top;
-            if(mode==='add-obstacle') obstacles.push({x,y,r:Math.random()*20+15});
-            else if(mode==='set-goal'){goal={x,y};mode='none';document.getElementById('btn-set-goal').textContent='SET TARGET';}
-        });
-        document.getElementById('btn-add-obstacle').addEventListener('click',()=>{mode=mode==='add-obstacle'?'none':'add-obstacle';document.getElementById('btn-add-obstacle').textContent=mode==='add-obstacle'?'CLICK IN CANVAS...':'ADD OBSTACLE';document.getElementById('btn-set-goal').textContent='SET TARGET';});
-        document.getElementById('btn-set-goal').addEventListener('click',()=>{mode=mode==='set-goal'?'none':'set-goal';document.getElementById('btn-set-goal').textContent=mode==='set-goal'?'CLICK IN CANVAS...':'SET TARGET';document.getElementById('btn-add-obstacle').textContent='ADD OBSTACLE';});
-        document.getElementById('btn-clear-env').addEventListener('click',()=>{obstacles=[];goal=null;mode='none';document.getElementById('btn-set-goal').textContent='SET TARGET';document.getElementById('btn-add-obstacle').textContent='ADD OBSTACLE';});
-        document.getElementById('btn-swarm-play').addEventListener('click',()=>{isPlaying=!isPlaying;document.getElementById('btn-swarm-play').textContent=isPlaying?'PAUSE':'PLAY';});
-
-        function pushHistory(){
-            const s={time:((Date.now()-sessionStartTime)/1000).toFixed(1),cov:document.getElementById('stat-cov').textContent,col:collisions,vel:document.getElementById('stat-vel').textContent,agents:boids.length,ts:new Date().toLocaleTimeString()};
-            sessionHistory.unshift(s); if(sessionHistory.length>5) sessionHistory.pop();
-            document.getElementById('session-history-list').innerHTML=sessionHistory.map(s=>`<div style="padding:5px;border-bottom:1px solid rgba(255,255,255,0.03);display:flex;justify-content:space-between;font-size:0.6rem;"><span>[${s.ts}] COV:${s.cov}</span><span style="color:var(--cyan);">T:${s.time}s</span></div>`).join('');
-        }
-
-        document.getElementById('btn-swarm-export').addEventListener('click',()=>{
-            const r={session:{ts:new Date().toISOString(),dur:((Date.now()-sessionStartTime)/1000)+'s',cov:document.getElementById('stat-cov').textContent,col:collisions,vel:document.getElementById('stat-vel').textContent},config:{agents:boids.length,sep:gP('param-sep'),ali:gP('param-ali'),coh:gP('param-coh'),speed:gP('param-speed'),vis:gP('param-radius')}};
-            const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(r,null,2)],{type:'application/json'}));a.download=`nexus_swarm_${Date.now()}.json`;a.click();
-        });
-
-        document.getElementById('btn-swarm-reset').addEventListener('click',()=>{pushHistory();boids=[];collisions=0;heatmap.fill(0);sessionStartTime=Date.now();ctx.fillStyle='#020509';ctx.fillRect(0,0,W,H);for(let i=0;i<gP('param-agents');i++)boids.push(mkBoid());});
-
-        tick();
-    } // end initSwarm
     </script>
 </body>
 </html>

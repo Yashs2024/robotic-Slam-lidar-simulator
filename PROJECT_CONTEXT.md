@@ -222,17 +222,15 @@ index.html (Landing Page)
 
 ### 5.2 NEXUS Engine (`nexus.html`)
 
-**Purpose:** Simulate robotic arm kinematics, trajectory planning, and swarm intelligence.
+**Purpose:** Simulate robotic arm kinematics and trajectory planning.
 
 #### Key Features
 - **6-DOF Robot Arm** with Three.js 3D visualization
 - **Forward Kinematics (FK)** — joint angle sliders driving end-effector position
 - **Inverse Kinematics (IK)** — numerical IK solver
-- **DH (Denavit-Hartenberg) Parameter Table** — editable, with preset configurations
 - **LSPB Trajectory Planning** — Linear Segment with Parabolic Blend
 - **Dynamic Torque Analysis** — real-time torque charts per joint
 - **Teach Mode** — record waypoints, replay computed trajectories
-- **Reynolds Boids Swarm Intelligence** — flocking simulation with separation, alignment, cohesion
 - **DOF Selector** — configurable 2-6 joints with live reconfiguration
 
 #### Architecture
@@ -240,10 +238,10 @@ index.html (Landing Page)
 - All CSS, JS, and HTML in one file
 - Uses Three.js r128, Chart.js 3.9.1, GSAP 3.12.2
 - Custom loading screen with progress bar
-- Tabbed interface: Kinematics | Swarm | DH Config
-- Left panel: joint sliders, IK controls, safety zone config
-- Right panel: DH readout, FK data, teach mode controls
-- Bottom strip: joint angle chart, velocity chart
+- Direct single-screen interface: Kinematics Engine only (no tabs)
+- Left panel: Forward Kinematics (sliders), Inverse Kinematics (CCD solver), Trajectory Engine
+- Right panel: DOF selector (2-6 joints), Teach Mode (waypoint path recording), Dynamics (live torque estimation), Workspace reachability envelope
+- Bottom strip: Velocity Profile (J1-J3), Acceleration Profile (J1-J3) charts
 
 #### Design System
 ```
@@ -393,14 +391,13 @@ npm run vercel-build  # Alias for vite build (Vercel hook)
 | Algorithm | Location | Description |
 |-----------|---------|------------|
 | Forward Kinematics (FK) | `nexus.html` | DH parameter chain evaluation |
-| Inverse Kinematics (IK) | `nexus.html` | Numerical Jacobian solver |
+| Inverse Kinematics (IK) | `nexus.html` | CCD (Cyclic Coordinate Descent) solver |
 | LSPB Trajectory | `nexus.html` | Linear segment with parabolic blend |
 | Torque Analysis | `nexus.html` | Per-joint dynamic torque computation |
 
 ### Swarm Intelligence
 | Algorithm | Location | Description |
 |-----------|---------|------------|
-| Reynolds Boids | `nexus.html` | Separation + Alignment + Cohesion |
 | Task Assignment | `hive.html` | Nearest-idle-robot with battery gating |
 | Collision Avoidance | `hive.html` | Dynamic A* re-routing |
 
@@ -428,9 +425,9 @@ npm run vercel-build  # Alias for vite build (Vercel hook)
 
 | File | Size | Content |
 |------|------|---------|
-| `index.html` | 42 KB | Landing + Login + Hub screens |
+| `index.html` | 78 KB | Landing + Login + Hub screens |
 | `slam.html` | 24 KB | SLAM simulator shell + sidebar |
-| `nexus.html` | 135 KB | Complete NEXUS engine (self-contained) |
+| `nexus.html` | 97 KB | Complete NEXUS engine (self-contained) |
 | `hive.html` | 86 KB | Complete HIVE simulator (self-contained) |
 | `src/hive_landing.html` | 37 KB | HIVE marketing landing page |
 | `style.css` | 34 KB | Shared SLAM/landing CSS |
@@ -481,7 +478,7 @@ npm run preview
 
 1. **Core SLAM Simulator** — LiDAR raycasting, occupancy grid, A* navigation
 2. **Enhanced SLAM** — Particle filter, loop closure, 3D point cloud, multiple algorithms
-3. **NEXUS Engine** — 6-DOF robot arm, FK/IK, swarm intelligence
+3. **NEXUS Engine** — 6-DOF robot arm, FK/IK
 4. **HIVE Logistics** — Isometric warehouse simulation, multi-robot coordination
 5. **Unified Platform** — Hub landing page, mock auth, three engines under one roof
 6. **DOF Selector** — Dynamic 2-6 joint configuration for NEXUS
