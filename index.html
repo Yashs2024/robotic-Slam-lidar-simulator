@@ -1,17 +1,17 @@
-﻿<!DOCTYPE html>
+?<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>VectraSim Suite â€” Unified Robotics Simulation Platform</title>
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>ðŸ¤–</text></svg>">
+<title>VectraSim Suite — Unified Robotics Simulation Platform</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🤖</text></svg>">
 <meta name="description" content="VectraSim Suite - Advanced AI Robotics Simulation Environment. Includes SLAM, NEXUS 6-DOF, and HIVE Swarm simulations.">
 <meta property="og:title" content="VectraSim Suite">
 <meta property="og:description" content="Advanced AI Robotics Simulation Environment.">
 <meta property="og:type" content="website">
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=Share+Tech+Mono&family=Rajdhani:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
-/* â”€â”€ CSS VARIABLES (must be first) â”€â”€ */
+/* ── CSS VARIABLES (must be first) ── */
 :root{
   --bg:#020509;--bg2:#06090F;--bg3:#0B0F1A;--bg4:#0E1420;
   --blue:#3b82f6;--violet:#9B5DE5;--amber:#F59E0B;--cyan:#00F5FF;--green:#10B981;--mint:#00FFB2;
@@ -24,7 +24,7 @@
   --font-body:'Rajdhani',sans-serif;
 }
 
-/* â”€â”€ LOGIN MODAL â”€â”€ */
+/* ── LOGIN MODAL ── */
 #login-overlay{position:fixed;inset:0;z-index:9000;display:flex;align-items:center;justify-content:center;background:rgba(2,5,9,0.96);backdrop-filter:blur(24px);opacity:0;pointer-events:none;transition:opacity 0.4s ease;}
 #login-overlay.open{opacity:1;pointer-events:all;}
 .login-box{background:linear-gradient(145deg,rgba(11,15,26,0.98),rgba(6,9,15,0.99));border:1px solid rgba(0,245,255,0.2);width:100%;max-width:420px;padding:48px 40px;position:relative;}
@@ -38,7 +38,7 @@
 .login-field input{width:100%;background:rgba(0,0,0,0.4);border:1px solid rgba(0,245,255,0.15);color:var(--text);font-family:var(--font-mono);font-size:12px;padding:11px 14px;outline:none;transition:border-color 0.2s,box-shadow 0.2s;}
 .login-field input:focus{border-color:rgba(0,245,255,0.5);box-shadow:0 0 20px rgba(0,245,255,0.1);}
 .login-field input::placeholder{color:var(--muted);font-size:11px;}
-/* â”€â”€ password show/hide toggle â”€â”€ */
+/* ── password show/hide toggle ── */
 .pw-wrap{position:relative;display:flex;align-items:center;}
 .pw-wrap input{flex:1;padding-right:40px !important;}
 .pw-toggle{position:absolute;right:10px;background:none;border:none;cursor:pointer;padding:4px;display:flex;align-items:center;color:var(--muted);transition:color 0.2s;}
@@ -54,7 +54,7 @@
 .login-corner.bl{bottom:6px;left:6px;border-bottom:1px solid var(--cyan);border-left:1px solid var(--cyan);}
 .login-corner.br{bottom:6px;right:6px;border-bottom:1px solid var(--cyan);border-right:1px solid var(--cyan);}
 
-/* â”€â”€ HUB OVERLAY â”€â”€ */
+/* ── HUB OVERLAY ── */
 #hub-overlay{position:fixed;inset:0;z-index:8500;background:var(--bg);overflow-y:auto;opacity:0;pointer-events:none;transition:opacity 0.5s ease;}
 #hub-overlay.open{opacity:1;pointer-events:all;}
 .hub-inner{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:60px 40px;}
@@ -108,7 +108,7 @@
 .hub-signout{font-family:var(--font-mono);font-size: 11px;letter-spacing:2px;color:var(--muted);background:none;border:1px solid rgba(255,255,255,0.08);padding:8px 20px;cursor:pointer;transition:all 0.2s;}
 .hub-signout:hover{border-color:rgba(255,255,255,0.2);color:var(--text);}
 @media(max-width:768px){.hub-cards{grid-template-columns:1fr;}}
-/* â”€â”€ AUTH TABS â”€â”€ */
+/* ── AUTH TABS ── */
 .auth-tabs{display:flex;position:relative;border-bottom:1px solid rgba(0,245,255,0.12);margin-bottom:20px;margin-top:8px;}
 .auth-tab{flex:1;background:none;border:none;color:var(--muted,#4A5568);font-family:var(--font-display);font-size: 11px;font-weight:700;letter-spacing:3px;padding:10px 0;cursor:pointer;transition:color 0.2s;position:relative;z-index:1;}
 .auth-tab.active{color:var(--cyan,#00F5FF);}
@@ -116,14 +116,14 @@
 .auth-switch-link{color:var(--cyan,#00F5FF);cursor:pointer;font-weight:700;text-decoration:underline;text-underline-offset:3px;}
 .auth-switch-link:hover{opacity:0.8;}
 
-/* body base â€” dark background is required for the whole dark glassmorphism theme */
+/* body base — dark background is required for the whole dark glassmorphism theme */
 html, body {
   background: var(--bg);
   color: var(--text);
   font-family: var(--font-body);
   min-height: 100vh;
 }
-/* cursor:none scoped to this page â€” custom JS cursor defined below */
+/* cursor:none scoped to this page — custom JS cursor defined below */
 body { cursor: none; }
 
 /* ANIMATED DOT GRID BG */
@@ -133,7 +133,7 @@ body { cursor: none; }
   background-size: 28px 28px;
 }
 
-/* â”€â”€ STICKY NAV â”€â”€ */
+/* ── STICKY NAV ── */
 #nav{
   position:fixed;top:0;left:0;right:0;height:52px;
   background:rgba(2,5,9,0.9);backdrop-filter:blur(20px);
@@ -164,7 +164,7 @@ body { cursor: none; }
 .btn-ghost{background:transparent;border:1px solid var(--border);color:var(--cyan);}
 .btn-ghost:hover{border-color:var(--cyan);box-shadow:var(--cyan-glow);background:rgba(0,245,255,0.05);}
 
-/* â”€â”€ STATUS TICKER â”€â”€ */
+/* ── STATUS TICKER ── */
 #ticker-bar{background:rgba(0,245,255,0.04);border-bottom:1px solid var(--border);height:26px;overflow:hidden;white-space:nowrap;position:relative;}
 #ticker-bar::before,#ticker-bar::after{content:'';position:absolute;top:0;width:80px;height:100%;z-index:2;}
 #ticker-bar::before{left:0;background:linear-gradient(90deg,var(--bg),transparent);}
@@ -172,7 +172,7 @@ body { cursor: none; }
 #ticker-inner{display:inline-block;animation:tick 35s linear infinite;font-family:var(--font-mono);font-size: 11px;letter-spacing:2px;color:var(--cyan);opacity:0.7;line-height:26px;padding-left:100%;}
 @keyframes tick{from{transform:translateX(0)}to{transform:translateX(-50%)}}
 
-/* â”€â”€ HERO â”€â”€ */
+/* ── HERO ── */
 #hero{
   min-height:100vh;
   display:grid;
@@ -195,7 +195,7 @@ body { cursor: none; }
 .eyebrow-text{font-family:var(--font-mono);font-size: 11px;letter-spacing:3px;color:var(--cyan);opacity:0.8;}
 .hero-pre{font-family:var(--font-display);font-size:13px;font-weight:400;letter-spacing:8px;color:rgba(224,230,237,0.4);margin-bottom:8px;}
 
-/* GLITCH TITLE â€” ghost layers use mix-blend-mode so they only show on dark backgrounds */
+/* GLITCH TITLE — ghost layers use mix-blend-mode so they only show on dark backgrounds */
 .glitch-wrap{position:relative;margin-bottom:12px;}
 .hero-title{font-family:var(--font-display);font-size:clamp(64px,8vw,96px);font-weight:900;line-height:0.95;letter-spacing:4px;color:var(--cyan);text-shadow:0 0 60px rgba(0,245,255,0.4),0 0 120px rgba(0,245,255,0.15);position:relative;}
 .hero-title::before,.hero-title::after{content:attr(data-text);position:absolute;inset:0;font-family:var(--font-display);font-size:clamp(64px,8vw,96px);font-weight:900;letter-spacing:4px;mix-blend-mode:screen;}
@@ -234,7 +234,7 @@ body { cursor: none; }
 .corner-bl{bottom:8px;left:8px;border-bottom:1px solid var(--cyan);border-left:1px solid var(--cyan);}
 .corner-br{bottom:8px;right:8px;border-bottom:1px solid var(--cyan);border-right:1px solid var(--cyan);}
 
-/* â”€â”€ STATS BAR â”€â”€ */
+/* ── STATS BAR ── */
 #stats{padding:0 0;display:grid;grid-template-columns:repeat(5,1fr);background:var(--bg2);border-top:1px solid var(--border);border-bottom:1px solid var(--border);}
 .stat-item{padding:28px 24px;border-right:1px solid var(--border);text-align:center;position:relative;transition:background 0.3s;cursor:default;}
 .stat-item:last-child{border-right:none;}
@@ -247,7 +247,7 @@ body { cursor: none; }
 .stat-val.g{color:var(--green);text-shadow:0 0 20px rgba(16,185,129,0.4);}
 .stat-lbl{font-family:var(--font-mono);font-size: 11px;letter-spacing:2px;color:var(--text-0);}
 
-/* â”€â”€ ENGINES SECTION â”€â”€ */
+/* ── ENGINES SECTION ── */
 #engines{padding:100px 80px;background:var(--bg);}
 .section-header{margin-bottom:64px;position:relative;}
 .section-header h2{font-family:var(--font-display);font-size:clamp(28px,4vw,40px);font-weight:900;letter-spacing:4px;color:var(--text);margin-bottom:10px;}
@@ -313,9 +313,9 @@ body { cursor: none; }
 .aero .ec-launch-btn{color:var(--mint);border-color:rgba(0,255,178,0.4);}
 .aero .ec-launch-btn:hover{background:var(--mint);color:#000;box-shadow:var(--mint-glow);}
 .ec-status{font-family:var(--font-mono);font-size: 11px;letter-spacing:1px;color:var(--green);display:flex;align-items:center;gap:5px;}
-.ec-status::before{content:'â—';animation:blink 2s infinite;}
+.ec-status::before{content:'●';animation:blink 2s infinite;}
 
-/* â”€â”€ ALGORITHMS â”€â”€ */
+/* ── ALGORITHMS ── */
 #algos{padding:100px 80px;background:var(--bg2);position:relative;overflow:hidden;}
 #algos::before{content:'';position:absolute;top:-200px;right:-200px;width:600px;height:600px;border-radius:50%;background:radial-gradient(circle,rgba(155,93,229,0.04),transparent 70%);pointer-events:none;}
 .algo-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-top:8px;}
@@ -344,7 +344,7 @@ body { cursor: none; }
 .ac-desc{font-size:11px;line-height:1.7;color:var(--muted);}
 .ac-loc{display:inline-block;margin-top:8px;font-family:var(--font-mono);font-size: 11px;letter-spacing:1px;padding:2px 6px;background:rgba(255,255,255,0.03);border:1px solid var(--border);color:rgba(224,230,237,0.3);}
 
-/* â”€â”€ TECH STACK â”€â”€ */
+/* ── TECH STACK ── */
 #stack{padding:80px;background:var(--bg);position:relative;}
 .stack-row{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin-bottom:12px;}
 .stack-chip{display:inline-flex;align-items:center;gap:7px;font-family:var(--font-mono);font-size: 11px;letter-spacing:1.5px;padding:8px 16px;border:1px solid var(--border);background:var(--bg3);color:var(--text);transition:all 0.2s;position:relative;}
@@ -357,7 +357,7 @@ body { cursor: none; }
 .cnode{width:6px;height:6px;background:var(--cyan);box-shadow:0 0 10px var(--cyan);}
 .cdot{width:3px;height:3px;background:var(--muted);margin:0 12px;border-radius:50%;}
 
-/* â”€â”€ PROJECT META â”€â”€ */
+/* ── PROJECT META ── */
 #meta{padding:80px;background:var(--bg2);display:grid;grid-template-columns:1fr 1fr;gap:60px;align-items:start;}
 .meta-left{}
 .meta-left h2{font-family:var(--font-display);font-size:clamp(42px,6vw,68px);font-weight:900;line-height:0.95;letter-spacing:4px;color:var(--cyan);text-shadow:0 0 60px rgba(0,245,255,0.3);margin-bottom:20px;}
@@ -377,19 +377,19 @@ body { cursor: none; }
 .kv .v.vi{color:var(--violet);}
 .kv .v.a{color:var(--amber);}
 .kv .v.g{color:var(--green);display:flex;align-items:center;gap:5px;}
-.kv .v.g::before{content:'â—';animation:blink 2s infinite;}
+.kv .v.g::before{content:'●';animation:blink 2s infinite;}
 
 footer{padding:20px 80px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
 .footer-logo{font-family:var(--font-display);font-size:12px;font-weight:900;color:var(--cyan);letter-spacing:4px;text-shadow:0 0 20px rgba(0,245,255,0.3);}
 .footer-text{font-family:var(--font-mono);font-size: 11px;letter-spacing:2px;color:var(--muted);}
 .footer-build{font-family:var(--font-mono);font-size: 11px;color:rgba(0,245,255,0.3);letter-spacing:1px;}
 
-/* â”€â”€ REVEAL ANIMATIONS â”€â”€ */
+/* ── REVEAL ANIMATIONS ── */
 .reveal{opacity:0;transform:translateY(28px);transition:opacity 0.7s cubic-bezier(0.16,1,0.3,1),transform 0.7s cubic-bezier(0.16,1,0.3,1);}
 .reveal.in{opacity:1;transform:none;}
 .rd1{transition-delay:0.08s;}.rd2{transition-delay:0.16s;}.rd3{transition-delay:0.24s;}.rd4{transition-delay:0.32s;}
 
-/* â”€â”€ HERO INITIAL ANIMATION â”€â”€ */
+/* ── HERO INITIAL ANIMATION ── */
 .hero-content > *{opacity:0;transform:translateY(20px);animation:heroIn 0.7s cubic-bezier(0.16,1,0.3,1) forwards;}
 .hero-eyebrow{animation-delay:0.2s;}
 .hero-pre{animation-delay:0.3s;}
@@ -442,9 +442,9 @@ footer{padding:20px 80px;border-top:1px solid var(--border);display:flex;align-i
     <a href="#" onclick="authGate('aero.html');return false;" class="mint" style="color:var(--mint)">AERO</a>
   </div>
   <div class="nav-r">
-    <a href="#" class="btn btn-ghost btn-sm" id="btnDonate" style="color:var(--amber);border-color:rgba(245,158,11,0.3);margin-right:8px;">âš¡ DONATE</a>
+    <a href="#" class="btn btn-ghost btn-sm" id="btnDonate" style="color:var(--amber);border-color:rgba(245,158,11,0.3);margin-right:8px;">⚡ DONATE</a>
     <a href="#" class="btn btn-ghost btn-sm" id="nav-signin">SIGN IN</a>
-    <a href="#" class="btn btn-cyan btn-sm" id="nav-enter">â–¶ ENTER HUB</a>
+    <a href="#" class="btn btn-cyan btn-sm" id="nav-enter">▶ ENTER HUB</a>
   </div>
 </nav>
 
@@ -464,8 +464,8 @@ footer{padding:20px 80px;border-top:1px solid var(--border);display:flex;align-i
 <!-- TICKER -->
 <div id="ticker-bar">
   <span id="ticker-inner">
-    â—† VECTRASIM SUITE ONLINE &nbsp;|&nbsp; 4 SIMULATION ENGINES ACTIVE &nbsp;|&nbsp; AERO DRONE SWARM FLIGHT &nbsp;|&nbsp; SLAM LIDAR MAPPING &nbsp;|&nbsp; NEXUS 6-DOF ARM KINEMATICS &nbsp;|&nbsp; HIVE SWARM LOGISTICS &nbsp;|&nbsp; 22 ALGORITHM MODULES &nbsp;|&nbsp; REYNOLDS FLOCKING APF &nbsp;|&nbsp; VITE 7.3.1 BUILD &nbsp;|&nbsp; PLAYWRIGHT E2E TESTED &nbsp;&nbsp;&nbsp;&nbsp;
-    â—† VECTRASIM SUITE ONLINE &nbsp;|&nbsp; 4 SIMULATION ENGINES ACTIVE &nbsp;|&nbsp; AERO DRONE SWARM FLIGHT &nbsp;|&nbsp; SLAM LIDAR MAPPING &nbsp;|&nbsp; NEXUS 6-DOF ARM KINEMATICS &nbsp;|&nbsp; HIVE SWARM LOGISTICS &nbsp;|&nbsp; 22 ALGORITHM MODULES &nbsp;|&nbsp; REYNOLDS FLOCKING APF &nbsp;|&nbsp; VITE 7.3.1 BUILD &nbsp;|&nbsp; PLAYWRIGHT E2E TESTED &nbsp;&nbsp;&nbsp;&nbsp;
+    ◆ VECTRASIM SUITE ONLINE &nbsp;|&nbsp; 4 SIMULATION ENGINES ACTIVE &nbsp;|&nbsp; AERO DRONE SWARM FLIGHT &nbsp;|&nbsp; SLAM LIDAR MAPPING &nbsp;|&nbsp; NEXUS 6-DOF ARM KINEMATICS &nbsp;|&nbsp; HIVE SWARM LOGISTICS &nbsp;|&nbsp; 22 ALGORITHM MODULES &nbsp;|&nbsp; REYNOLDS FLOCKING APF &nbsp;|&nbsp; VITE 7.3.1 BUILD &nbsp;|&nbsp; PLAYWRIGHT E2E TESTED &nbsp;&nbsp;&nbsp;&nbsp;
+    ◆ VECTRASIM SUITE ONLINE &nbsp;|&nbsp; 4 SIMULATION ENGINES ACTIVE &nbsp;|&nbsp; AERO DRONE SWARM FLIGHT &nbsp;|&nbsp; SLAM LIDAR MAPPING &nbsp;|&nbsp; NEXUS 6-DOF ARM KINEMATICS &nbsp;|&nbsp; HIVE SWARM LOGISTICS &nbsp;|&nbsp; 22 ALGORITHM MODULES &nbsp;|&nbsp; REYNOLDS FLOCKING APF &nbsp;|&nbsp; VITE 7.3.1 BUILD &nbsp;|&nbsp; PLAYWRIGHT E2E TESTED &nbsp;&nbsp;&nbsp;&nbsp;
   </span>
 </div>
 
@@ -478,11 +478,11 @@ footer{padding:20px 80px;border-top:1px solid var(--border);display:flex;align-i
     <div class="glitch-wrap">
       <div class="hero-title" data-text="VECTRASIM">VECTRASIM</div>
     </div>
-    <div class="hero-tagline">Suite â€” Four Engines. One Platform.</div>
-    <p class="hero-desc">A browser-based robotics simulation suite featuring 3D drone swarm flight, SLAM mapping with LiDAR, 6-DOF arm kinematics, and multi-robot warehouse logistics. Built with Vanilla JS, Three.js, and HTML5 Canvas â€” no framework required.</p>
+    <div class="hero-tagline">Suite — Four Engines. One Platform.</div>
+    <p class="hero-desc">A browser-based robotics simulation suite featuring 3D drone swarm flight, SLAM mapping with LiDAR, 6-DOF arm kinematics, and multi-robot warehouse logistics. Built with Vanilla JS, Three.js, and HTML5 Canvas — no framework required.</p>
     <div class="hero-btns">
-      <a href="#" class="btn btn-cyan" id="hero-enter-btn" onclick="(function(e){e.preventDefault();var s=typeof getSession==='function'&&getSession();if(s)openHub(s);else openLogin();})(event)">â–¶ ENTER HUB</a>
-      <a href="#engines" class="btn btn-ghost">â†“ EXPLORE ENGINES</a>
+      <a href="#" class="btn btn-cyan" id="hero-enter-btn" onclick="(function(e){e.preventDefault();var s=typeof getSession==='function'&&getSession();if(s)openHub(s);else openLogin();})(event)">▶ ENTER HUB</a>
+      <a href="#engines" class="btn btn-ghost">↓ EXPLORE ENGINES</a>
     </div>
     <div class="hero-pills">
       <span class="pill"><span class="dot dot-green"></span>4 ENGINES LIVE</span>
@@ -501,13 +501,13 @@ footer{padding:20px 80px;border-top:1px solid var(--border);display:flex;align-i
       SYS: ONLINE<br>
       AGENTS: 12 ACTIVE<br>
       FPS: 60.0<br>
-      MAP: 512Ã—512<br>
+      MAP: 512×512<br>
       BUILD: v3.0.0
     </div>
     <div class="hero-hud-r">
-      SLAM â–  ACTIVE<br>
-      NEXUS â–  ACTIVE<br>
-      HIVE â–  ACTIVE<br>
+      SLAM ■ ACTIVE<br>
+      NEXUS ■ ACTIVE<br>
+      HIVE ■ ACTIVE<br>
       AUTH: SESSION<br>
       ENV: BROWSER
     </div>
@@ -549,7 +549,7 @@ footer{padding:20px 80px;border-top:1px solid var(--border);display:flex;align-i
         <div class="ec-num">ENGINE 01</div>
         <div class="ec-name">SLAM</div>
         <div class="ec-sub">LiDAR Mapping Simulator</div>
-        <p class="ec-desc">Simultaneous Localization and Mapping with 360Â° LiDAR raycasting, Bayesian occupancy grids, particle filter MCL, and autonomous frontier exploration. Three drive models, three pathfinding algorithms.</p>
+        <p class="ec-desc">Simultaneous Localization and Mapping with 360° LiDAR raycasting, Bayesian occupancy grids, particle filter MCL, and autonomous frontier exploration. Three drive models, three pathfinding algorithms.</p>
         <div class="ec-tags">
           <span class="ec-tag">A* PATHFINDING</span>
           <span class="ec-tag">PARTICLE FILTER</span>
@@ -558,7 +558,7 @@ footer{padding:20px 80px;border-top:1px solid var(--border);display:flex;align-i
           <span class="ec-tag">MCL</span>
         </div>
         <div class="ec-launch">
-          <a href="#" onclick="authGate('src/slam_landing.html');return false;" class="ec-launch-btn">â–¶ LAUNCH SLAM</a>
+          <a href="#" onclick="authGate('src/slam_landing.html');return false;" class="ec-launch-btn">▶ LAUNCH SLAM</a>
           <span class="ec-status">LOGIN REQUIRED</span>
         </div>
       </div>
@@ -584,7 +584,7 @@ footer{padding:20px 80px;border-top:1px solid var(--border);display:flex;align-i
           <span class="ec-tag">THREE.JS</span>
         </div>
         <div class="ec-launch">
-          <a href="#" onclick="authGate('src/nexus_landing.html');return false;" class="ec-launch-btn">â–¶ LAUNCH NEXUS</a>
+          <a href="#" onclick="authGate('src/nexus_landing.html');return false;" class="ec-launch-btn">▶ LAUNCH NEXUS</a>
           <span class="ec-status">LOGIN REQUIRED</span>
         </div>
       </div>
@@ -601,7 +601,7 @@ footer{padding:20px 80px;border-top:1px solid var(--border);display:flex;align-i
         <div class="ec-num">ENGINE 03</div>
         <div class="ec-name">HIVE</div>
         <div class="ec-sub">Swarm Logistics Simulator</div>
-        <p class="ec-desc">Multi-robot warehouse with 4 autonomous agents across 3 industrial scenarios â€” Warehouse, Assembly, and Mapping. Isometric 2.5D engine, battery management, collision avoidance, live analytics.</p>
+        <p class="ec-desc">Multi-robot warehouse with 4 autonomous agents across 3 industrial scenarios — Warehouse, Assembly, and Mapping. Isometric 2.5D engine, battery management, collision avoidance, live analytics.</p>
         <div class="ec-tags">
           <span class="ec-tag">ISOMETRIC 2.5D</span>
           <span class="ec-tag">BATTERY SIM</span>
@@ -610,7 +610,7 @@ footer{padding:20px 80px;border-top:1px solid var(--border);display:flex;align-i
           <span class="ec-tag">HEATMAP</span>
         </div>
         <div class="ec-launch">
-          <a href="#" onclick="authGate('src/hive_landing.html');return false;" class="ec-launch-btn">â–¶ LAUNCH HIVE</a>
+          <a href="#" onclick="authGate('src/hive_landing.html');return false;" class="ec-launch-btn">▶ LAUNCH HIVE</a>
           <span class="ec-status">LOGIN REQUIRED</span>
         </div>
       </div>
@@ -636,7 +636,7 @@ footer{padding:20px 80px;border-top:1px solid var(--border);display:flex;align-i
           <span class="ec-tag">TELEMETRY</span>
         </div>
         <div class="ec-launch">
-          <a href="#" onclick="authGate('aero.html');return false;" class="ec-launch-btn">â–¶ LAUNCH AERO</a>
+          <a href="#" onclick="authGate('aero.html');return false;" class="ec-launch-btn">▶ LAUNCH AERO</a>
           <span class="ec-status">LOGIN REQUIRED</span>
         </div>
       </div>
@@ -654,20 +654,20 @@ footer{padding:20px 80px;border-top:1px solid var(--border);display:flex;align-i
   </div>
 
   <div class="algo-grid">
-    <div class="algo-card ac-blue reveal"><span class="ac-icon">ðŸŽ¯</span><div class="ac-name">A* PATHFINDING</div><p class="ac-desc">TypedArray-optimized with wall proximity penalties and diagonal movement.</p><span class="ac-loc">AStar.js + hive.html</span></div>
-    <div class="algo-card ac-blue reveal rd1"><span class="ac-icon">ðŸ”€</span><div class="ac-name">DIJKSTRA'S</div><p class="ac-desc">Optimal shortest path without heuristic for guaranteed minimum cost.</p><span class="ac-loc">Dijkstra.js</span></div>
-    <div class="algo-card ac-blue reveal rd2"><span class="ac-icon">ðŸ›</span><div class="ac-name">BUG2 ALGORITHM</div><p class="ac-desc">Reactive wall-following navigation for obstacle-dense environments.</p><span class="ac-loc">BugAlgorithm.js</span></div>
-    <div class="algo-card ac-blue reveal rd3"><span class="ac-icon">ðŸ—º</span><div class="ac-name">FRONTIER EXPLORE</div><p class="ac-desc">Autonomous frontier cell detection for complete unknown area mapping.</p><span class="ac-loc">FrontierExplorer.js</span></div>
-    <div class="algo-card ac-cyan reveal"><span class="ac-icon">ðŸ§ª</span><div class="ac-name">BAYESIAN GRID</div><p class="ac-desc">Log-odds occupancy mapping with Bresenham ray voting for SLAM.</p><span class="ac-loc">Mapper.js</span></div>
-    <div class="algo-card ac-cyan reveal rd1"><span class="ac-icon">ðŸŽ²</span><div class="ac-name">PARTICLE FILTER</div><p class="ac-desc">Monte Carlo Localization with 50â€“500 configurable particles.</p><span class="ac-loc">ParticleFilter.js</span></div>
-    <div class="algo-card ac-cyan reveal rd2"><span class="ac-icon">ðŸ”</span><div class="ac-name">LOOP CLOSURE</div><p class="ac-desc">Scan-matching keyframe system for drift correction over long traversals.</p><span class="ac-loc">LoopClosureDetector.js</span></div>
-    <div class="algo-card ac-cyan reveal rd3"><span class="ac-icon">ðŸ“¡</span><div class="ac-name">LIDAR RAYCASTING</div><p class="ac-desc">2D raycasting with 30â€“360 rays, Gaussian noise, and ray visualization.</p><span class="ac-loc">Lidar.js</span></div>
-    <div class="algo-card ac-violet reveal"><span class="ac-icon">ðŸ¦¾</span><div class="ac-name">FORWARD KINEMATICS</div><p class="ac-desc">DH parameter chain evaluation for 2â€“6 configurable joint configurations.</p><span class="ac-loc">nexus.html</span></div>
-    <div class="algo-card ac-violet reveal rd1"><span class="ac-icon">ðŸŽ¯</span><div class="ac-name">INVERSE KINEMATICS</div><p class="ac-desc">Numerical Jacobian IK solver for end-effector position targeting.</p><span class="ac-loc">nexus.html</span></div>
-    <div class="algo-card ac-violet reveal rd2"><span class="ac-icon">ðŸ“ˆ</span><div class="ac-name">LSPB TRAJECTORY</div><p class="ac-desc">Linear Segment with Parabolic Blend for smooth joint trajectory planning.</p><span class="ac-loc">nexus.html</span></div>
-    <div class="algo-card ac-amber reveal rd3"><span class="ac-icon">ðŸ¦</span><div class="ac-name">REYNOLDS BOIDS</div><p class="ac-desc">Emergent swarm intelligence via 3D separation, alignment, and cohesion rules.</p><span class="ac-loc">aero.html</span></div>
-    <div class="algo-card ac-cyan reveal rd4"><span class="ac-icon">ðŸ§²</span><div class="ac-name">ARTIFICIAL POTENTIAL FIELDS</div><p class="ac-desc">3D path navigation using attractive forces to goals and repulsive forces from obstacles.</p><span class="ac-loc">aero.html</span></div>
-    <div class="algo-card ac-mint reveal"><span class="ac-icon">ðŸŽ›</span><div class="ac-name">PID CONTROLLER</div><p class="ac-desc">Closed-loop feedback controller for drone swarm altitude and position stability.</p><span class="ac-loc">aero.html</span></div>
+    <div class="algo-card ac-blue reveal"><span class="ac-icon">🎯</span><div class="ac-name">A* PATHFINDING</div><p class="ac-desc">TypedArray-optimized with wall proximity penalties and diagonal movement.</p><span class="ac-loc">AStar.js + hive.html</span></div>
+    <div class="algo-card ac-blue reveal rd1"><span class="ac-icon">🔀</span><div class="ac-name">DIJKSTRA'S</div><p class="ac-desc">Optimal shortest path without heuristic for guaranteed minimum cost.</p><span class="ac-loc">Dijkstra.js</span></div>
+    <div class="algo-card ac-blue reveal rd2"><span class="ac-icon">🐛</span><div class="ac-name">BUG2 ALGORITHM</div><p class="ac-desc">Reactive wall-following navigation for obstacle-dense environments.</p><span class="ac-loc">BugAlgorithm.js</span></div>
+    <div class="algo-card ac-blue reveal rd3"><span class="ac-icon">🗺</span><div class="ac-name">FRONTIER EXPLORE</div><p class="ac-desc">Autonomous frontier cell detection for complete unknown area mapping.</p><span class="ac-loc">FrontierExplorer.js</span></div>
+    <div class="algo-card ac-cyan reveal"><span class="ac-icon">🧪</span><div class="ac-name">BAYESIAN GRID</div><p class="ac-desc">Log-odds occupancy mapping with Bresenham ray voting for SLAM.</p><span class="ac-loc">Mapper.js</span></div>
+    <div class="algo-card ac-cyan reveal rd1"><span class="ac-icon">🎲</span><div class="ac-name">PARTICLE FILTER</div><p class="ac-desc">Monte Carlo Localization with 50–500 configurable particles.</p><span class="ac-loc">ParticleFilter.js</span></div>
+    <div class="algo-card ac-cyan reveal rd2"><span class="ac-icon">🔁</span><div class="ac-name">LOOP CLOSURE</div><p class="ac-desc">Scan-matching keyframe system for drift correction over long traversals.</p><span class="ac-loc">LoopClosureDetector.js</span></div>
+    <div class="algo-card ac-cyan reveal rd3"><span class="ac-icon">📡</span><div class="ac-name">LIDAR RAYCASTING</div><p class="ac-desc">2D raycasting with 30–360 rays, Gaussian noise, and ray visualization.</p><span class="ac-loc">Lidar.js</span></div>
+    <div class="algo-card ac-violet reveal"><span class="ac-icon">🦾</span><div class="ac-name">FORWARD KINEMATICS</div><p class="ac-desc">DH parameter chain evaluation for 2–6 configurable joint configurations.</p><span class="ac-loc">nexus.html</span></div>
+    <div class="algo-card ac-violet reveal rd1"><span class="ac-icon">🎯</span><div class="ac-name">INVERSE KINEMATICS</div><p class="ac-desc">Numerical Jacobian IK solver for end-effector position targeting.</p><span class="ac-loc">nexus.html</span></div>
+    <div class="algo-card ac-violet reveal rd2"><span class="ac-icon">📈</span><div class="ac-name">LSPB TRAJECTORY</div><p class="ac-desc">Linear Segment with Parabolic Blend for smooth joint trajectory planning.</p><span class="ac-loc">nexus.html</span></div>
+    <div class="algo-card ac-amber reveal rd3"><span class="ac-icon">🐦</span><div class="ac-name">REYNOLDS BOIDS</div><p class="ac-desc">Emergent swarm intelligence via 3D separation, alignment, and cohesion rules.</p><span class="ac-loc">aero.html</span></div>
+    <div class="algo-card ac-cyan reveal rd4"><span class="ac-icon">🧲</span><div class="ac-name">ARTIFICIAL POTENTIAL FIELDS</div><p class="ac-desc">3D path navigation using attractive forces to goals and repulsive forces from obstacles.</p><span class="ac-loc">aero.html</span></div>
+    <div class="algo-card ac-mint reveal"><span class="ac-icon">🎛</span><div class="ac-name">PID CONTROLLER</div><p class="ac-desc">Closed-loop feedback controller for drone swarm altitude and position stability.</p><span class="ac-loc">aero.html</span></div>
   </div>
 </section>
 
@@ -680,20 +680,20 @@ footer{padding:20px 80px;border-top:1px solid var(--border);display:flex;align-i
   </div>
 
   <div class="stack-row reveal">
-    <span class="stack-chip"><span class="si">ðŸŒ</span>HTML5</span>
-    <span class="stack-chip"><span class="si">ðŸŽ¨</span>CSS3</span>
-    <span class="stack-chip"><span class="si">âš¡</span>Vanilla JS</span>
-    <span class="stack-chip"><span class="si">ðŸŽ®</span>Canvas 2D API</span>
-    <span class="stack-chip"><span class="si">ðŸ§Š</span>Three.js r183</span>
-    <span class="stack-chip"><span class="si">ðŸ“Š</span>Chart.js 3.9.1</span>
+    <span class="stack-chip"><span class="si">🌐</span>HTML5</span>
+    <span class="stack-chip"><span class="si">🎨</span>CSS3</span>
+    <span class="stack-chip"><span class="si">⚡</span>Vanilla JS</span>
+    <span class="stack-chip"><span class="si">🎮</span>Canvas 2D API</span>
+    <span class="stack-chip"><span class="si">🧊</span>Three.js r183</span>
+    <span class="stack-chip"><span class="si">📊</span>Chart.js 3.9.1</span>
   </div>
   <div class="stack-row reveal rd1">
-    <span class="stack-chip"><span class="si">âš™</span>Vite 7.3.1</span>
-    <span class="stack-chip"><span class="si">ðŸŽ¬</span>GSAP 3.12.2</span>
-    <span class="stack-chip"><span class="si">ðŸ•¹</span>nipplejs</span>
-    <span class="stack-chip"><span class="si">ðŸ”Š</span>Web Audio API</span>
-    <span class="stack-chip"><span class="si">ðŸ§ª</span>Playwright E2E</span>
-    <span class="stack-chip"><span class="si">ðŸš€</span>Vercel Deploy</span>
+    <span class="stack-chip"><span class="si">⚙</span>Vite 7.3.1</span>
+    <span class="stack-chip"><span class="si">🎬</span>GSAP 3.12.2</span>
+    <span class="stack-chip"><span class="si">🕹</span>nipplejs</span>
+    <span class="stack-chip"><span class="si">🔊</span>Web Audio API</span>
+    <span class="stack-chip"><span class="si">🧪</span>Playwright E2E</span>
+    <span class="stack-chip"><span class="si">🚀</span>Vercel Deploy</span>
   </div>
 
   <div class="circuit reveal rd2">
@@ -709,13 +709,13 @@ footer{padding:20px 80px;border-top:1px solid var(--border);display:flex;align-i
 <section id="meta">
   <div class="meta-left reveal">
     <h2>READY<br>TO RUN?</h2>
-    <p>Open the Hub, authenticate with any credentials, and choose your simulation engine. No setup required â€” the entire platform runs in your browser.</p>
+    <p>Open the Hub, authenticate with any credentials, and choose your simulation engine. No setup required — the entire platform runs in your browser.</p>
     <div class="meta-links">
-      <a href="#" class="meta-link">â–¶ LAUNCH HUB</a>
-      <a href="https://github.com/Yashs2024/Slam-lidar-simulator" class="meta-link" target="_blank">âŒ¥ GITHUB</a>
-      <a href="https://www.linkedin.com/in/yash-surve-3b6a72253" class="meta-link" target="_blank">â†— LINKEDIN</a>
+      <a href="#" class="meta-link">▶ LAUNCH HUB</a>
+      <a href="https://github.com/Yashs2024/Slam-lidar-simulator" class="meta-link" target="_blank">⌥ GITHUB</a>
+      <a href="https://www.linkedin.com/in/yash-surve-3b6a72253" class="meta-link" target="_blank">↗ LINKEDIN</a>
     </div>
-    <div class="meta-note">Any email + password Â· Session stored locally Â· Zero backend</div>
+    <div class="meta-note">Any email + password · Session stored locally · Zero backend</div>
   </div>
   <div class="info-card reveal rd1">
     <div class="ic-title">PROJECT MANIFEST</div>
@@ -737,7 +737,7 @@ footer{padding:20px 80px;border-top:1px solid var(--border);display:flex;align-i
   <div class="login-box">
     <div class="login-corner tl"></div><div class="login-corner tr"></div>
     <div class="login-corner bl"></div><div class="login-corner br"></div>
-    <button class="login-close" id="login-close-btn">âœ•</button>
+    <button class="login-close" id="login-close-btn">✕</button>
 
     <div class="login-logo">VECTRASIM</div>
 
@@ -765,8 +765,8 @@ footer{padding:20px 80px;border-top:1px solid var(--border);display:flex;align-i
         </div>
       </div>
       <div class="login-err" id="si-err"></div>
-      <button class="login-btn" id="si-submit">â–¶ SIGN IN</button>
-      <div class="login-note">No account? <span class="auth-switch-link" onclick="switchTab('signup')">Create one â†’</span></div>
+      <button class="login-btn" id="si-submit">▶ SIGN IN</button>
+      <div class="login-note">No account? <span class="auth-switch-link" onclick="switchTab('signup')">Create one →</span></div>
     </div>
 
     <!-- Sign Up Form -->
@@ -799,8 +799,8 @@ footer{padding:20px 80px;border-top:1px solid var(--border);display:flex;align-i
         </div>
       </div>
       <div class="login-err" id="su-err"></div>
-      <button class="login-btn" id="su-submit">â–¶ CREATE ACCOUNT</button>
-      <div class="login-note">Already registered? <span class="auth-switch-link" onclick="switchTab('signin')">Sign in â†’</span></div>
+      <button class="login-btn" id="su-submit">▶ CREATE ACCOUNT</button>
+      <div class="login-note">Already registered? <span class="auth-switch-link" onclick="switchTab('signin')">Sign in →</span></div>
     </div>
   </div>
 </div>
@@ -816,38 +816,38 @@ footer{padding:20px 80px;border-top:1px solid var(--border);display:flex;align-i
     <div class="hub-cards">
       <a href="src/slam_landing.html" class="hub-card hc-slam">
         <div class="hc-bar"></div>
-        <div class="hc-icon">ðŸ—º</div>
+        <div class="hc-icon">🗺</div>
         <div class="hc-num">ENGINE 01</div>
         <div class="hc-name">SLAM</div>
         <p class="hc-desc">LiDAR mapping, Monte Carlo localization, frontier exploration, and three pathfinding algorithms.</p>
-        <span class="hc-go">â–¶ LAUNCH SLAM</span>
+        <span class="hc-go">▶ LAUNCH SLAM</span>
       </a>
       <a href="src/nexus_landing.html" class="hub-card hc-nexus">
         <div class="hc-bar"></div>
-        <div class="hc-icon">ðŸ¦¾</div>
+        <div class="hc-icon">🦾</div>
         <div class="hc-num">ENGINE 02</div>
         <div class="hc-name">NEXUS</div>
         <p class="hc-desc">6-DOF robot arm with forward/inverse kinematics, LSPB trajectory planning, and Teach Mode.</p>
-        <span class="hc-go">â–¶ LAUNCH NEXUS</span>
+        <span class="hc-go">▶ LAUNCH NEXUS</span>
       </a>
       <a href="src/hive_landing.html" class="hub-card hc-hive">
         <div class="hc-bar"></div>
-        <div class="hc-icon">ðŸ­</div>
+        <div class="hc-icon">🏭</div>
         <div class="hc-num">ENGINE 03</div>
         <div class="hc-name">HIVE</div>
         <p class="hc-desc">Multi-robot warehouse logistics with isometric 2.5D rendering, battery sim, and task scheduling.</p>
-        <span class="hc-go">â–¶ LAUNCH HIVE</span>
+        <span class="hc-go">▶ LAUNCH HIVE</span>
       </a>
       <a href="aero.html" class="hub-card hc-aero">
         <div class="hc-bar"></div>
-        <div class="hc-icon">ðŸ›¸</div>
+        <div class="hc-icon">🛸</div>
         <div class="hc-num">ENGINE 04</div>
         <div class="hc-name">AERO</div>
         <p class="hc-desc">Drone Swarm simulator with Reynolds flocking, APF pathfinding, PID control, battery auto-docking, and live telemetry tracking.</p>
-        <span class="hc-go">â–¶ LAUNCH AERO</span>
+        <span class="hc-go">▶ LAUNCH AERO</span>
       </a>
     </div>
-    <button class="hub-signout" id="hub-signout">âŽ‹ SIGN OUT</button>
+    <button class="hub-signout" id="hub-signout">⎋ SIGN OUT</button>
   </div>
 </div>
 
@@ -908,15 +908,15 @@ footer{padding:20px 80px;border-top:1px solid var(--border);display:flex;align-i
     <a href="https://www.linkedin.com/in/yash-surve-3b6a72253" target="_blank" style="font-family:var(--font-mono);font-size: 11px;letter-spacing:2px;color:var(--muted);text-decoration:none;transition:color 0.2s;" onmouseover="this.style.color='var(--blue)'" onmouseout="this.style.color='var(--muted)'">LINKEDIN</a>
     <a href="mailto:yashusurve2005@gmail.com" style="font-family:var(--font-mono);font-size: 11px;letter-spacing:2px;color:var(--muted);text-decoration:none;transition:color 0.2s;" onmouseover="this.style.color='var(--violet)'" onmouseout="this.style.color='var(--muted)'">CONTACT</a>
   </div>
-  <span style="font-family:var(--font-mono);font-size: 11px;color:rgba(0,245,255,0.3);letter-spacing:1px;">BUILD v3.0.0 Â· VITE + VERCEL</span>
+  <span style="font-family:var(--font-mono);font-size: 11px;color:rgba(0,245,255,0.3);letter-spacing:1px;">BUILD v3.0.0 · VITE + VERCEL</span>
 </footer>
 
 <script>
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// ══════════════════════════
 // VECTRASIM AUTH SYSTEM v2.0
 // Storage: localStorage
 // File: public/users.json (structure reference)
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// ══════════════════════════
 const SESSION_KEY = 'vectrasim_session';
 
 function getSession() {
@@ -948,8 +948,8 @@ function closeHub() { document.getElementById('hub-overlay').classList.remove('o
 function updateNavForLoggedIn(user) {
   const btn = document.getElementById('nav-enter');
   const si = document.getElementById('nav-signin');
-  if(btn) { btn.textContent = 'â¬¡ HUB'; btn.onclick = (e) => { e.preventDefault(); openHub(user); }; }
-  if(si) { si.textContent = 'âŽ‹ SIGN OUT'; si.onclick = (e) => { e.preventDefault(); doSignOut(); }; }
+  if(btn) { btn.textContent = '⬡ HUB'; btn.onclick = (e) => { e.preventDefault(); openHub(user); }; }
+  if(si) { si.textContent = '⎋ SIGN OUT'; si.onclick = (e) => { e.preventDefault(); doSignOut(); }; }
 }
 async function doSignOut() {
   try {
@@ -960,12 +960,12 @@ async function doSignOut() {
   clearSession();
   const btn = document.getElementById('nav-enter');
   const si = document.getElementById('nav-signin');
-  if(btn) { btn.textContent = 'â–¶ ENTER HUB'; btn.onclick = null; }
+  if(btn) { btn.textContent = '▶ ENTER HUB'; btn.onclick = null; }
   if(si) { si.textContent = 'SIGN IN'; si.onclick = null; }
   closeHub();
 }
 
-// Auth gate â€” call before navigating to any simulator
+// Auth gate — call before navigating to any simulator
 window.authGate = function(url) {
   const session = getSession();
   if(session) {
@@ -977,7 +977,7 @@ window.authGate = function(url) {
 };
 
 
-// â”€â”€ Show/Hide password toggle â”€â”€
+// ── Show/Hide password toggle ──
 window.togglePwVis = function(inputId, btn) {
   const input = document.getElementById(inputId);
   const isHidden = input.type === 'password';
@@ -1010,10 +1010,10 @@ document.getElementById('si-submit').addEventListener('click', async () => {
   const email = document.getElementById('si-email').value.trim().toLowerCase();
   const pass  = document.getElementById('si-pass').value;
   const err   = document.getElementById('si-err');
-  if (!email) { err.textContent = 'âš  EMAIL REQUIRED'; return; }
-  if (!pass)  { err.textContent = 'âš  PASSWORD REQUIRED'; return; }
+  if (!email) { err.textContent = '⚠ EMAIL REQUIRED'; return; }
+  if (!pass)  { err.textContent = '⚠ PASSWORD REQUIRED'; return; }
   
-  err.textContent = 'âš¡ AUTHENTICATING...';
+  err.textContent = '⚡ AUTHENTICATING...';
   err.style.color = '';
   
   try {
@@ -1040,7 +1040,7 @@ document.getElementById('si-submit').addEventListener('click', async () => {
         }
         return;
       }
-      err.textContent = `âš  ${error.message.toUpperCase()}`;
+      err.textContent = `⚠ ${error.message.toUpperCase()}`;
       return;
     }
     
@@ -1076,7 +1076,7 @@ document.getElementById('si-submit').addEventListener('click', async () => {
       }
       return;
     }
-    err.textContent = `âš  EXCEPTION: ${e.message.toUpperCase()}`;
+    err.textContent = `⚠ EXCEPTION: ${e.message.toUpperCase()}`;
   }
 });
 
@@ -1088,13 +1088,13 @@ document.getElementById('su-submit').addEventListener('click', async () => {
   const pass2 = document.getElementById('su-pass2').value;
   const err   = document.getElementById('su-err');
   console.log("Signup button clicked with email:", email);
-  if (!name)             { err.textContent = 'âš  NAME REQUIRED'; console.log("Validation error: name required"); return; }
-  if (!email)            { err.textContent = 'âš  EMAIL REQUIRED'; console.log("Validation error: email required"); return; }
-  if (!/^[^@]+@[^@]+\.[^@]+$/.test(email)) { err.textContent = 'âš  INVALID EMAIL FORMAT'; console.log("Validation error: invalid email format"); return; }
-  if (pass.length < 6)   { err.textContent = 'âš  PASSWORD MIN 6 CHARACTERS'; console.log("Validation error: password too short"); return; }
-  if (pass !== pass2)    { err.textContent = 'âš  PASSWORDS DO NOT MATCH'; console.log("Validation error: passwords do not match"); return; }
+  if (!name)             { err.textContent = '⚠ NAME REQUIRED'; console.log("Validation error: name required"); return; }
+  if (!email)            { err.textContent = '⚠ EMAIL REQUIRED'; console.log("Validation error: email required"); return; }
+  if (!/^[^@]+@[^@]+\.[^@]+$/.test(email)) { err.textContent = '⚠ INVALID EMAIL FORMAT'; console.log("Validation error: invalid email format"); return; }
+  if (pass.length < 6)   { err.textContent = '⚠ PASSWORD MIN 6 CHARACTERS'; console.log("Validation error: password too short"); return; }
+  if (pass !== pass2)    { err.textContent = '⚠ PASSWORDS DO NOT MATCH'; console.log("Validation error: passwords do not match"); return; }
   
-  err.textContent = 'âš¡ CREATING ACCOUNT...';
+  err.textContent = '⚡ CREATING ACCOUNT...';
   err.style.color = '';
   
   try {
@@ -1118,7 +1118,7 @@ document.getElementById('su-submit').addEventListener('click', async () => {
         };
         saveSession(user, 'mock-bypass-token');
         err.style.color = 'var(--green)';
-        err.textContent = 'âœ” ACCOUNT CREATED â€” SIGNING IN...';
+        err.textContent = '✔ ACCOUNT CREATED — SIGNING IN...';
         setTimeout(() => {
           err.style.color = '';
           const target = window._authTarget;
@@ -1133,7 +1133,7 @@ document.getElementById('su-submit').addEventListener('click', async () => {
         }, 900);
         return;
       }
-      err.textContent = `âš  ${error.message.toUpperCase()}`;
+      err.textContent = `⚠ ${error.message.toUpperCase()}`;
       return;
     }
     
@@ -1145,7 +1145,7 @@ document.getElementById('su-submit').addEventListener('click', async () => {
       };
       saveSession(user, data.session?.access_token);
       err.style.color = 'var(--green)';
-      err.textContent = 'âœ” ACCOUNT CREATED â€” SIGNING IN...';
+      err.textContent = '✔ ACCOUNT CREATED — SIGNING IN...';
       setTimeout(() => {
         err.style.color = '';
         const target = window._authTarget;
@@ -1166,7 +1166,7 @@ document.getElementById('su-submit').addEventListener('click', async () => {
       };
       saveSession(user, 'mock-bypass-token');
       err.style.color = 'var(--green)';
-      err.textContent = 'âœ” ACCOUNT CREATED â€” SIGNING IN...';
+      err.textContent = '✔ ACCOUNT CREATED — SIGNING IN...';
       setTimeout(() => {
         err.style.color = '';
         const target = window._authTarget;
@@ -1191,7 +1191,7 @@ document.getElementById('su-submit').addEventListener('click', async () => {
       };
       saveSession(user, 'mock-bypass-token');
       err.style.color = 'var(--green)';
-      err.textContent = 'âœ” ACCOUNT CREATED â€” SIGNING IN...';
+      err.textContent = '✔ ACCOUNT CREATED — SIGNING IN...';
       setTimeout(() => {
         err.style.color = '';
         const target = window._authTarget;
@@ -1206,7 +1206,7 @@ document.getElementById('su-submit').addEventListener('click', async () => {
       }, 900);
       return;
     }
-    err.textContent = `âš  EXCEPTION: ${e.message.toUpperCase()}`;
+    err.textContent = `⚠ EXCEPTION: ${e.message.toUpperCase()}`;
   }
 });
 
@@ -1224,7 +1224,7 @@ document.getElementById('login-close-btn').addEventListener('click', closeLogin)
 // Hub sign out
 document.getElementById('hub-signout').addEventListener('click', doSignOut);
 
-// Auto-login check on load â€” waits for window.supabase (ES module) to be ready
+// Auto-login check on load — waits for window.supabase (ES module) to be ready
 (async function initAuth() {
   // Wait up to 3 seconds for the Supabase module to hydrate window.supabase
   for (let i = 0; i < 30 && !window.supabase; i++) {
@@ -1299,7 +1299,7 @@ document.getElementById('hub-signout').addEventListener('click', doSignOut);
   }
 })();
 
-// Wire ENTER HUB / SIGN IN nav buttons (initial state â€” not logged in)
+// Wire ENTER HUB / SIGN IN nav buttons (initial state — not logged in)
 document.getElementById('nav-enter').addEventListener('click', e => {
   e.preventDefault();
   const s = getSession();
@@ -1346,7 +1346,7 @@ document.querySelectorAll('.meta-link').forEach(el => {
   }
 });
 
-// â”€â”€ CURSOR â”€â”€
+// ── CURSOR ──
 const cursor=document.getElementById('cursor');
 const ring=document.getElementById('cursor-ring');
 let mx=0,my=0,rx=0,ry=0;
@@ -1357,7 +1357,7 @@ document.querySelectorAll('a,button,.engine-card,.algo-card,.stack-chip').forEac
   el.addEventListener('mouseleave',()=>{cursor.style.transform='translate(-50%,-50%) scale(1)';ring.style.transform='translate(-50%,-50%) scale(1)';ring.style.borderColor='rgba(0,245,255,0.5)';});
 });
 
-// â”€â”€ NAV SHOW ON SCROLL â”€â”€
+// ── NAV SHOW ON SCROLL ──
 // Nav starts visible. When hero is fully in view (at top), we dim it via hidden-nav so it
 // doesn't compete visually with the hero title. It becomes fully opaque once user scrolls past.
 const nav=document.getElementById('nav');
@@ -1373,14 +1373,14 @@ new IntersectionObserver(entries=>{
   }
 },{threshold:0.1}).observe(heroEl);
 
-// â”€â”€ REVEAL OBSERVER â”€â”€
+// ── REVEAL OBSERVER ──
 const revEls=document.querySelectorAll('.reveal');
 const revObs=new IntersectionObserver(entries=>{
   entries.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');revObs.unobserve(e.target);}});
 },{threshold:0.12});
 revEls.forEach(el=>revObs.observe(el));
 
-// â”€â”€ STAT COUNTERS â”€â”€
+// ── STAT COUNTERS ──
 const statVals=document.querySelectorAll('.stat-val[data-target]');
 const stObs=new IntersectionObserver(entries=>{
   entries.forEach(e=>{
@@ -1399,9 +1399,9 @@ const stObs=new IntersectionObserver(entries=>{
 },{threshold:0.5});
 statVals.forEach(el=>stObs.observe(el));
 
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-//  HERO CANVAS â€” tri-panel
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// ══════════════════════════
+//  HERO CANVAS — tri-panel
+// ══════════════════════════
 (function(){
   const cv=document.getElementById('heroCanvas');
   const ctx=cv.getContext('2d');
@@ -1489,7 +1489,7 @@ statVals.forEach(el=>stObs.observe(el));
     // Label
     ctx.font=`8px 'Share Tech Mono'`;ctx.fillStyle='rgba(59,130,246,0.7)';ctx.textAlign='left';
     ctx.fillText('SLAM ENGINE',ox+8,oy+14);
-    ctx.fillStyle='rgba(59,130,246,0.4)';ctx.fillText('LIDAR â€¢ MCL â€¢ A*',ox+8,oy+24);
+    ctx.fillStyle='rgba(59,130,246,0.4)';ctx.fillText('LIDAR • MCL • A*',ox+8,oy+24);
   }
 
   function drawNEXUS(ox,oy,pw,ph){
@@ -1533,7 +1533,7 @@ statVals.forEach(el=>stObs.observe(el));
     
     ctx.font=`8px 'Share Tech Mono'`;ctx.fillStyle='rgba(155,93,229,0.7)';ctx.textAlign='left';
     ctx.fillText('NEXUS ENGINE',ox+8,oy+14);
-    ctx.fillStyle='rgba(155,93,229,0.4)';ctx.fillText('FK â€¢ IK â€¢ BOIDS',ox+8,oy+24);
+    ctx.fillStyle='rgba(155,93,229,0.4)';ctx.fillText('FK • IK • BOIDS',ox+8,oy+24);
   }
 
   function drawHIVE(ox,oy,pw,ph){
@@ -1568,7 +1568,7 @@ statVals.forEach(el=>stObs.observe(el));
     
     ctx.font=`8px 'Share Tech Mono'`;ctx.fillStyle='rgba(245,158,11,0.7)';ctx.textAlign='left';
     ctx.fillText('HIVE ENGINE',ox+8,oy+14);
-    ctx.fillStyle='rgba(245,158,11,0.4)';ctx.fillText('A* â€¢ SWARM â€¢ ISO',ox+8,oy+24);
+    ctx.fillStyle='rgba(245,158,11,0.4)';ctx.fillText('A* • SWARM • ISO',ox+8,oy+24);
   }
 
   // AERO drones
@@ -1680,7 +1680,7 @@ statVals.forEach(el=>stObs.observe(el));
     ctx.textAlign = 'left';
     ctx.fillText('AERO ENGINE', ox + 8, oy + 14);
     ctx.fillStyle = 'rgba(0, 255, 178, 0.4)';
-    ctx.fillText('APF â€¢ BOIDS â€¢ PID', ox + 8, oy + 24);
+    ctx.fillText('APF • BOIDS • PID', ox + 8, oy + 24);
   }
 
   function frame(ts){
@@ -1724,11 +1724,11 @@ statVals.forEach(el=>stObs.observe(el));
   heroObs.observe(cv);
 })();
 
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-// ENGINE CARD MINI CANVASES â€” Enhanced
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// ══════════════════════════════════
+// ENGINE CARD MINI CANVASES — Enhanced
+// ══════════════════════════════════════
 
-/* â”€â”€ SLAM ENGINE â”€â”€ */
+/* ── SLAM ENGINE ── */
 (function slamMini(){
   const cv = document.getElementById('slamCanvas');
   if (!cv) return;
@@ -1839,7 +1839,7 @@ statVals.forEach(el=>stObs.observe(el));
   frame();
 })();
 
-/* â”€â”€ NEXUS ENGINE â€” 6-DOF Arm â”€â”€ */
+/* ── NEXUS ENGINE — 6-DOF Arm ── */
 (function nexusMini(){
   const cv = document.getElementById('nexusCanvas');
   if(!cv) return;
@@ -1923,7 +1923,7 @@ statVals.forEach(el=>stObs.observe(el));
   frame();
 })();
 
-/* â”€â”€ HIVE ENGINE â€” Swarm Bots â”€â”€ */
+/* ── HIVE ENGINE — Swarm Bots ── */
 (function hiveMini(){
   const cv = document.getElementById('hiveCanvas');
   if(!cv) return;
@@ -1990,7 +1990,7 @@ statVals.forEach(el=>stObs.observe(el));
         ctx.strokeStyle=b.c+'44'; ctx.lineWidth=1.4;
         ctx.setLineDash([2,4]); ctx.stroke(); ctx.setLineDash([]);
       }
-      // Bot body â€” elevated dot
+      // Bot body — elevated dot
       const pulsed = 5 + 1.5*Math.sin(b.pulse);
       const bGrad = ctx.createRadialGradient(s.x,s.y-4,0,s.x,s.y-4,pulsed+5);
       bGrad.addColorStop(0, b.c+'aa'); bGrad.addColorStop(1, b.c+'00');
@@ -2004,7 +2004,7 @@ statVals.forEach(el=>stObs.observe(el));
   frame();
 })();
 
-/* â”€â”€ AERO ENGINE â€” Drone Swarm â”€â”€ */
+/* ── AERO ENGINE — Drone Swarm ── */
 (function aeroMini(){
   const cv = document.getElementById('aeroCanvas');
   if(!cv) return;
@@ -2089,7 +2089,7 @@ statVals.forEach(el=>stObs.observe(el));
         }
       });
 
-      // Drone body â€” crosshair + glow
+      // Drone body — crosshair + glow
       const ps = 0.5+0.5*Math.sin(d.pulse);
       const rng = ctx.createRadialGradient(sx,sy,0,sx,sy,10);
       rng.addColorStop(0,`rgba(0,255,178,${0.35*ps})`);
