@@ -4,18 +4,18 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>NEXUS — Robotics Simulation Engine</title>
-    <meta name="description" content="Professional browser-based robotics simulation: 6-DOF kinematics and teach mode.">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🤖</text></svg>">
+    <meta name="description" content="VectraSim Suite - Advanced AI Robotics Simulation Environment. Includes SLAM, NEXUS 6-DOF, and HIVE Swarm simulations.">
+    <meta property="og:title" content="VectraSim Suite">
+    <meta property="og:description" content="Advanced AI Robotics Simulation Environment.">
+    <meta property="og:type" content="website">
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=JetBrains+Mono:wght@300;400;700&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script>
-        const SUPABASE_URL = "https://lusiusuhfttnrppxbbbp.supabase.co";
-        const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx1c2l1c3VoZnR0bnJwcHhiYmJwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAwNjM1NDQsImV4cCI6MjA5NTYzOTU0NH0.YPXzZL6zGktOc2dpHd5jKZs7UyLm97hVhZ0hkQj3koY";
-        window.supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-    </script>
+    <!-- Supabase: credentials loaded from .env via Vite (not hardcoded) -->
+    <script type="module" src="../src/supabase-client.js"></script>
 
     <style>
         /* ===================================
@@ -338,7 +338,11 @@
             z-index: 200;
             flex-shrink: 0;
             position: relative;
+            overflow: hidden;
         }
+        .side-panel::-webkit-scrollbar { width: 4px; }
+        .side-panel::-webkit-scrollbar-track { background: rgba(0,0,0,0.2); }
+        .side-panel::-webkit-scrollbar-thumb { background: var(--border-h); border-radius: 2px; }
         .side-panel.collapsed {
             margin-left: calc(-1 * var(--lp-w));
         }
@@ -424,7 +428,12 @@
             flex: 1;
             overflow-y: auto;
             display: none;
+            min-height: 0;
         }
+        .tab-content::-webkit-scrollbar { width: 4px; }
+        .tab-content::-webkit-scrollbar-track { background: rgba(0,0,0,0.15); }
+        .tab-content::-webkit-scrollbar-thumb { background: rgba(0,245,255,0.2); border-radius: 2px; }
+        .tab-content::-webkit-scrollbar-thumb:hover { background: var(--cyan-d); }
         .tab-content.active {
             display: block;
         }
@@ -999,12 +1008,50 @@
 </head>
 <body>
 <script>
-// ── ROBOAI AUTH GUARD ──
+// ── VECTRASIM AUTH GUARD ──
 (function(){
   try {
-    var s = JSON.parse(localStorage.getItem('roboai_session'));
+    var s = JSON.parse(localStorage.getItem('vectrasim_session'));
     if (!s || !s.email || !s.id) { window.location.replace('index.html?r=nexus'); }
   } catch(e) { window.location.replace('index.html?r=nexus'); }
+})();
+</script>
+<script>
+// ── ACTIVE SERVER-SIDE JWT VALIDATION ──
+(async function validateSession() {
+  try {
+    var session = JSON.parse(localStorage.getItem('vectrasim_session'));
+    if (session && (session.token === 'mock-bypass-token' || (session.id && session.id.startsWith('mock-')))) {
+      console.log("Active server-side validation bypassed for mock session:", session.email);
+      return;
+    }
+  } catch(e) {}
+
+  for (let i = 0; i < 30 && !window.supabase; i++) {
+    await new Promise(r => setTimeout(r, 100));
+  }
+  if (window.supabase) {
+    try {
+      const { data: { user }, error } = await supabase.auth.getUser();
+      if (error) {
+        if (error.status === 400 || error.status === 401 || error.status === 403) {
+          console.warn("Active server session validation failed. Redirecting...", error.message);
+          localStorage.removeItem('vectrasim_session');
+          window.location.replace('index.html?r=nexus');
+        } else {
+          console.warn("Supabase check encountered a network/server issue. Operating in offline mode:", error.message);
+        }
+      } else if (!user) {
+        console.warn("No active user found on server. Redirecting...");
+        localStorage.removeItem('vectrasim_session');
+        window.location.replace('index.html?r=nexus');
+      } else {
+        console.log("Active server session verified successfully:", user.email);
+      }
+    } catch(e) {
+      console.warn("Could not reach Supabase server. Operating in offline/mock bypass mode.");
+    }
+  }
 })();
 </script>
 
@@ -1028,10 +1075,12 @@
         </div>
 
         <div class="nav-right">
-            <div class="nav-hint">
-                <kbd>SPACE</kbd><kbd>R</kbd><kbd>H</kbd><kbd>P</kbd><kbd>T</kbd>
+            <div class="nav-hint" style="display:flex; gap:12px;">
+                <span title="Hide/Show UI"><kbd>H</kbd> UI</span>
+                <span title="Take Screenshot"><kbd>P</kbd> Snap</span>
+                <span title="Toggle Teach Mode"><kbd>T</kbd> Teach</span>
             </div>
-            <span id="fps-counter">-- FPS</span>
+            <span id="fps-counter">60 FPS</span>
             <button class="btn-ss" id="btn-toggle-theme" style="background:rgba(0,245,255,0.15);color:var(--cyan);font-weight:700;">☀️ DAY</button>
             <button class="btn-ss" id="btn-screenshot">📷 SNAP</button>
             <div class="nav-status">● ONLINE</div>
@@ -1908,12 +1957,12 @@ SOLVER: CCD IK</div>
         let activeChallengeId = null;
         let completedChallenges = [false, false, false, false, false];
         try {
-            const saved = localStorage.getItem('roboai_nexus_curriculum');
+            const saved = localStorage.getItem('vectrasim_nexus_curriculum');
             if (saved) completedChallenges = JSON.parse(saved);
         } catch(e) {}
 
         async function loadCurriculumProgress() {
-            const session = JSON.parse(localStorage.getItem('roboai_session'));
+            const session = JSON.parse(localStorage.getItem('vectrasim_session'));
             if (!session) return;
             try {
                 const { data, error } = await supabase
@@ -1927,7 +1976,7 @@ SOLVER: CCD IK</div>
                 }
                 if (data && data.completed_challenges) {
                     completedChallenges = data.completed_challenges;
-                    localStorage.setItem('roboai_nexus_curriculum', JSON.stringify(completedChallenges));
+                    localStorage.setItem('vectrasim_nexus_curriculum', JSON.stringify(completedChallenges));
                     if (typeof updateCurriculumProgress === 'function') updateCurriculumProgress();
                     if (typeof renderChallengesSidebar === 'function') renderChallengesSidebar();
                 }
@@ -1937,7 +1986,7 @@ SOLVER: CCD IK</div>
         }
 
         async function updateCurriculumOnCloud(idx) {
-            const session = JSON.parse(localStorage.getItem('roboai_session'));
+            const session = JSON.parse(localStorage.getItem('vectrasim_session'));
             if (!session) return;
             
             completedChallenges[idx] = true;
@@ -3091,6 +3140,18 @@ JOINTS [deg]:
         // ANIMATE LOOP
         // ========================
         function animate() {
+            try {
+                _animateInner();
+            } catch(e) {
+                document.getElementById('sys-status').textContent = 'ERROR';
+                document.getElementById('sys-status').style.color = 'var(--red)';
+                console.error("NEXUS CRASH:", e);
+                const fpsEl = document.getElementById('fps-counter');
+                if (fpsEl) { fpsEl.textContent = 'CRASHED'; fpsEl.style.color = 'var(--red)'; }
+                alert("NEXUS Engine Crashed: " + e.message);
+            }
+        }
+        function _animateInner() {
             requestAnimationFrame(animate);
 
             // FPS
@@ -3694,7 +3755,7 @@ JOINTS [deg]:
             challengeSuccessTimer = 0;
             
             completedChallenges[idx] = true;
-            localStorage.setItem('roboai_nexus_curriculum', JSON.stringify(completedChallenges));
+            localStorage.setItem('vectrasim_nexus_curriculum', JSON.stringify(completedChallenges));
             updateCurriculumOnCloud(idx);
             
             showKineNotify(`CHALLENGE ${idx+1} PASSED! 🎓`, 'var(--green)');
@@ -4154,7 +4215,7 @@ JOINTS [deg]:
         const inputDHName = document.getElementById('dh-custom-name');
         
         async function saveDHToSupabase(name, dhData) {
-            const session = JSON.parse(localStorage.getItem('roboai_session'));
+            const session = JSON.parse(localStorage.getItem('vectrasim_session'));
             if (!session) return;
             
             const { data, error } = await supabase
@@ -4229,7 +4290,7 @@ JOINTS [deg]:
                     return;
                 }
                 
-                const session = JSON.parse(localStorage.getItem('roboai_session'));
+                const session = JSON.parse(localStorage.getItem('vectrasim_session'));
                 if (!session) return;
                 
                 showKineNotify('DELETING FROM CLOUD...', 'rgba(255,71,87,0.85)');

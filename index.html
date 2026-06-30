@@ -1,12 +1,17 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>RoboAI Suite — Unified Robotics Simulation Platform</title>
+<title>VectraSim Suite â€” Unified Robotics Simulation Platform</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>ðŸ¤–</text></svg>">
+<meta name="description" content="VectraSim Suite - Advanced AI Robotics Simulation Environment. Includes SLAM, NEXUS 6-DOF, and HIVE Swarm simulations.">
+<meta property="og:title" content="VectraSim Suite">
+<meta property="og:description" content="Advanced AI Robotics Simulation Environment.">
+<meta property="og:type" content="website">
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=Share+Tech+Mono&family=Rajdhani:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
-/* ── CSS VARIABLES (must be first) ── */
+/* â”€â”€ CSS VARIABLES (must be first) â”€â”€ */
 :root{
   --bg:#020509;--bg2:#06090F;--bg3:#0B0F1A;--bg4:#0E1420;
   --blue:#3b82f6;--violet:#9B5DE5;--amber:#F59E0B;--cyan:#00F5FF;--green:#10B981;--mint:#00FFB2;
@@ -19,7 +24,7 @@
   --font-body:'Rajdhani',sans-serif;
 }
 
-/* ── LOGIN MODAL ── */
+/* â”€â”€ LOGIN MODAL â”€â”€ */
 #login-overlay{position:fixed;inset:0;z-index:9000;display:flex;align-items:center;justify-content:center;background:rgba(2,5,9,0.96);backdrop-filter:blur(24px);opacity:0;pointer-events:none;transition:opacity 0.4s ease;}
 #login-overlay.open{opacity:1;pointer-events:all;}
 .login-box{background:linear-gradient(145deg,rgba(11,15,26,0.98),rgba(6,9,15,0.99));border:1px solid rgba(0,245,255,0.2);width:100%;max-width:420px;padding:48px 40px;position:relative;}
@@ -33,6 +38,12 @@
 .login-field input{width:100%;background:rgba(0,0,0,0.4);border:1px solid rgba(0,245,255,0.15);color:var(--text);font-family:var(--font-mono);font-size:12px;padding:11px 14px;outline:none;transition:border-color 0.2s,box-shadow 0.2s;}
 .login-field input:focus{border-color:rgba(0,245,255,0.5);box-shadow:0 0 20px rgba(0,245,255,0.1);}
 .login-field input::placeholder{color:var(--muted);font-size:11px;}
+/* â”€â”€ password show/hide toggle â”€â”€ */
+.pw-wrap{position:relative;display:flex;align-items:center;}
+.pw-wrap input{flex:1;padding-right:40px !important;}
+.pw-toggle{position:absolute;right:10px;background:none;border:none;cursor:pointer;padding:4px;display:flex;align-items:center;color:var(--muted);transition:color 0.2s;}
+.pw-toggle:hover{color:var(--cyan);}
+.pw-toggle svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;}
 .login-err{font-family:var(--font-mono);font-size: 11px;color:#ff4757;letter-spacing:1px;margin-bottom:12px;min-height:14px;}
 .login-btn{width:100%;background:var(--cyan);color:#000;font-family:var(--font-display);font-size:11px;font-weight:900;letter-spacing:3px;padding:13px;border:none;cursor:pointer;transition:all 0.25s;margin-top:4px;}
 .login-btn:hover{box-shadow:0 0 40px rgba(0,245,255,0.6);transform:translateY(-1px);}
@@ -43,14 +54,14 @@
 .login-corner.bl{bottom:6px;left:6px;border-bottom:1px solid var(--cyan);border-left:1px solid var(--cyan);}
 .login-corner.br{bottom:6px;right:6px;border-bottom:1px solid var(--cyan);border-right:1px solid var(--cyan);}
 
-/* ── HUB OVERLAY ── */
+/* â”€â”€ HUB OVERLAY â”€â”€ */
 #hub-overlay{position:fixed;inset:0;z-index:8500;background:var(--bg);overflow-y:auto;opacity:0;pointer-events:none;transition:opacity 0.5s ease;}
 #hub-overlay.open{opacity:1;pointer-events:all;}
 .hub-inner{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:60px 40px;}
 .hub-header{text-align:center;margin-bottom:56px;}
 .hub-greeting{font-family:var(--font-mono);font-size: 11px;letter-spacing:3px;color:var(--cyan);opacity:0.7;margin-bottom:10px;}
 .hub-title{font-family:var(--font-display);font-size:clamp(32px,5vw,52px);font-weight:900;letter-spacing:4px;color:var(--cyan);text-shadow:0 0 40px rgba(0,245,255,0.3);margin-bottom:8px;}
-..hub-sub{font-family:var(--font-body);font-size:13px;color:var(--muted);letter-spacing:2px;}
+.hub-sub{font-family:var(--font-body);font-size:13px;color:var(--muted);letter-spacing:2px;}
 .hub-cards{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;max-width:1200px;width:100%;margin-bottom:40px;}
 .hub-card{border:1px solid var(--border);padding:24px 20px;cursor:pointer;position:relative;transition:all 0.35s cubic-bezier(0.16,1,0.3,1);text-decoration:none;display:flex;flex-direction:column;}
 .hub-card::before{content:'';position:absolute;inset:0;opacity:0;transition:opacity 0.35s;}
@@ -97,7 +108,7 @@
 .hub-signout{font-family:var(--font-mono);font-size: 11px;letter-spacing:2px;color:var(--muted);background:none;border:1px solid rgba(255,255,255,0.08);padding:8px 20px;cursor:pointer;transition:all 0.2s;}
 .hub-signout:hover{border-color:rgba(255,255,255,0.2);color:var(--text);}
 @media(max-width:768px){.hub-cards{grid-template-columns:1fr;}}
-/* ── AUTH TABS ── */
+/* â”€â”€ AUTH TABS â”€â”€ */
 .auth-tabs{display:flex;position:relative;border-bottom:1px solid rgba(0,245,255,0.12);margin-bottom:20px;margin-top:8px;}
 .auth-tab{flex:1;background:none;border:none;color:var(--muted,#4A5568);font-family:var(--font-display);font-size: 11px;font-weight:700;letter-spacing:3px;padding:10px 0;cursor:pointer;transition:color 0.2s;position:relative;z-index:1;}
 .auth-tab.active{color:var(--cyan,#00F5FF);}
@@ -105,14 +116,14 @@
 .auth-switch-link{color:var(--cyan,#00F5FF);cursor:pointer;font-weight:700;text-decoration:underline;text-underline-offset:3px;}
 .auth-switch-link:hover{opacity:0.8;}
 
-/* body base — dark background is required for the whole dark glassmorphism theme */
+/* body base â€” dark background is required for the whole dark glassmorphism theme */
 html, body {
   background: var(--bg);
   color: var(--text);
   font-family: var(--font-body);
   min-height: 100vh;
 }
-/* cursor:none scoped to this page — custom JS cursor defined below */
+/* cursor:none scoped to this page â€” custom JS cursor defined below */
 body { cursor: none; }
 
 /* ANIMATED DOT GRID BG */
@@ -122,7 +133,7 @@ body { cursor: none; }
   background-size: 28px 28px;
 }
 
-/* ── STICKY NAV ── */
+/* â”€â”€ STICKY NAV â”€â”€ */
 #nav{
   position:fixed;top:0;left:0;right:0;height:52px;
   background:rgba(2,5,9,0.9);backdrop-filter:blur(20px);
@@ -153,7 +164,7 @@ body { cursor: none; }
 .btn-ghost{background:transparent;border:1px solid var(--border);color:var(--cyan);}
 .btn-ghost:hover{border-color:var(--cyan);box-shadow:var(--cyan-glow);background:rgba(0,245,255,0.05);}
 
-/* ── STATUS TICKER ── */
+/* â”€â”€ STATUS TICKER â”€â”€ */
 #ticker-bar{background:rgba(0,245,255,0.04);border-bottom:1px solid var(--border);height:26px;overflow:hidden;white-space:nowrap;position:relative;}
 #ticker-bar::before,#ticker-bar::after{content:'';position:absolute;top:0;width:80px;height:100%;z-index:2;}
 #ticker-bar::before{left:0;background:linear-gradient(90deg,var(--bg),transparent);}
@@ -161,7 +172,7 @@ body { cursor: none; }
 #ticker-inner{display:inline-block;animation:tick 35s linear infinite;font-family:var(--font-mono);font-size: 11px;letter-spacing:2px;color:var(--cyan);opacity:0.7;line-height:26px;padding-left:100%;}
 @keyframes tick{from{transform:translateX(0)}to{transform:translateX(-50%)}}
 
-/* ── HERO ── */
+/* â”€â”€ HERO â”€â”€ */
 #hero{
   min-height:100vh;
   display:grid;
@@ -184,7 +195,7 @@ body { cursor: none; }
 .eyebrow-text{font-family:var(--font-mono);font-size: 11px;letter-spacing:3px;color:var(--cyan);opacity:0.8;}
 .hero-pre{font-family:var(--font-display);font-size:13px;font-weight:400;letter-spacing:8px;color:rgba(224,230,237,0.4);margin-bottom:8px;}
 
-/* GLITCH TITLE — ghost layers use mix-blend-mode so they only show on dark backgrounds */
+/* GLITCH TITLE â€” ghost layers use mix-blend-mode so they only show on dark backgrounds */
 .glitch-wrap{position:relative;margin-bottom:12px;}
 .hero-title{font-family:var(--font-display);font-size:clamp(64px,8vw,96px);font-weight:900;line-height:0.95;letter-spacing:4px;color:var(--cyan);text-shadow:0 0 60px rgba(0,245,255,0.4),0 0 120px rgba(0,245,255,0.15);position:relative;}
 .hero-title::before,.hero-title::after{content:attr(data-text);position:absolute;inset:0;font-family:var(--font-display);font-size:clamp(64px,8vw,96px);font-weight:900;letter-spacing:4px;mix-blend-mode:screen;}
@@ -223,7 +234,7 @@ body { cursor: none; }
 .corner-bl{bottom:8px;left:8px;border-bottom:1px solid var(--cyan);border-left:1px solid var(--cyan);}
 .corner-br{bottom:8px;right:8px;border-bottom:1px solid var(--cyan);border-right:1px solid var(--cyan);}
 
-/* ── STATS BAR ── */
+/* â”€â”€ STATS BAR â”€â”€ */
 #stats{padding:0 0;display:grid;grid-template-columns:repeat(5,1fr);background:var(--bg2);border-top:1px solid var(--border);border-bottom:1px solid var(--border);}
 .stat-item{padding:28px 24px;border-right:1px solid var(--border);text-align:center;position:relative;transition:background 0.3s;cursor:default;}
 .stat-item:last-child{border-right:none;}
@@ -236,7 +247,7 @@ body { cursor: none; }
 .stat-val.g{color:var(--green);text-shadow:0 0 20px rgba(16,185,129,0.4);}
 .stat-lbl{font-family:var(--font-mono);font-size: 11px;letter-spacing:2px;color:var(--text-0);}
 
-/* ── ENGINES SECTION ── */
+/* â”€â”€ ENGINES SECTION â”€â”€ */
 #engines{padding:100px 80px;background:var(--bg);}
 .section-header{margin-bottom:64px;position:relative;}
 .section-header h2{font-family:var(--font-display);font-size:clamp(28px,4vw,40px);font-weight:900;letter-spacing:4px;color:var(--text);margin-bottom:10px;}
@@ -267,7 +278,7 @@ body { cursor: none; }
 
 /* Top accent bar */
 .ec-bar{height:2px;}
-..slam .ec-bar{background:linear-gradient(90deg,var(--blue),transparent);}
+.slam .ec-bar{background:linear-gradient(90deg,var(--blue),transparent);}
 .nexus .ec-bar{background:linear-gradient(90deg,var(--violet),transparent);}
 .hive .ec-bar{background:linear-gradient(90deg,var(--amber),transparent);}
 .aero .ec-bar{background:linear-gradient(90deg,var(--mint),transparent);}
@@ -302,9 +313,9 @@ body { cursor: none; }
 .aero .ec-launch-btn{color:var(--mint);border-color:rgba(0,255,178,0.4);}
 .aero .ec-launch-btn:hover{background:var(--mint);color:#000;box-shadow:var(--mint-glow);}
 .ec-status{font-family:var(--font-mono);font-size: 11px;letter-spacing:1px;color:var(--green);display:flex;align-items:center;gap:5px;}
-.ec-status::before{content:'●';animation:blink 2s infinite;}
+.ec-status::before{content:'â—';animation:blink 2s infinite;}
 
-/* ── ALGORITHMS ── */
+/* â”€â”€ ALGORITHMS â”€â”€ */
 #algos{padding:100px 80px;background:var(--bg2);position:relative;overflow:hidden;}
 #algos::before{content:'';position:absolute;top:-200px;right:-200px;width:600px;height:600px;border-radius:50%;background:radial-gradient(circle,rgba(155,93,229,0.04),transparent 70%);pointer-events:none;}
 .algo-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-top:8px;}
@@ -333,7 +344,7 @@ body { cursor: none; }
 .ac-desc{font-size:11px;line-height:1.7;color:var(--muted);}
 .ac-loc{display:inline-block;margin-top:8px;font-family:var(--font-mono);font-size: 11px;letter-spacing:1px;padding:2px 6px;background:rgba(255,255,255,0.03);border:1px solid var(--border);color:rgba(224,230,237,0.3);}
 
-/* ── TECH STACK ── */
+/* â”€â”€ TECH STACK â”€â”€ */
 #stack{padding:80px;background:var(--bg);position:relative;}
 .stack-row{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin-bottom:12px;}
 .stack-chip{display:inline-flex;align-items:center;gap:7px;font-family:var(--font-mono);font-size: 11px;letter-spacing:1.5px;padding:8px 16px;border:1px solid var(--border);background:var(--bg3);color:var(--text);transition:all 0.2s;position:relative;}
@@ -346,7 +357,7 @@ body { cursor: none; }
 .cnode{width:6px;height:6px;background:var(--cyan);box-shadow:0 0 10px var(--cyan);}
 .cdot{width:3px;height:3px;background:var(--muted);margin:0 12px;border-radius:50%;}
 
-/* ── PROJECT META ── */
+/* â”€â”€ PROJECT META â”€â”€ */
 #meta{padding:80px;background:var(--bg2);display:grid;grid-template-columns:1fr 1fr;gap:60px;align-items:start;}
 .meta-left{}
 .meta-left h2{font-family:var(--font-display);font-size:clamp(42px,6vw,68px);font-weight:900;line-height:0.95;letter-spacing:4px;color:var(--cyan);text-shadow:0 0 60px rgba(0,245,255,0.3);margin-bottom:20px;}
@@ -366,19 +377,19 @@ body { cursor: none; }
 .kv .v.vi{color:var(--violet);}
 .kv .v.a{color:var(--amber);}
 .kv .v.g{color:var(--green);display:flex;align-items:center;gap:5px;}
-.kv .v.g::before{content:'●';animation:blink 2s infinite;}
+.kv .v.g::before{content:'â—';animation:blink 2s infinite;}
 
 footer{padding:20px 80px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
 .footer-logo{font-family:var(--font-display);font-size:12px;font-weight:900;color:var(--cyan);letter-spacing:4px;text-shadow:0 0 20px rgba(0,245,255,0.3);}
 .footer-text{font-family:var(--font-mono);font-size: 11px;letter-spacing:2px;color:var(--muted);}
 .footer-build{font-family:var(--font-mono);font-size: 11px;color:rgba(0,245,255,0.3);letter-spacing:1px;}
 
-/* ── REVEAL ANIMATIONS ── */
+/* â”€â”€ REVEAL ANIMATIONS â”€â”€ */
 .reveal{opacity:0;transform:translateY(28px);transition:opacity 0.7s cubic-bezier(0.16,1,0.3,1),transform 0.7s cubic-bezier(0.16,1,0.3,1);}
 .reveal.in{opacity:1;transform:none;}
 .rd1{transition-delay:0.08s;}.rd2{transition-delay:0.16s;}.rd3{transition-delay:0.24s;}.rd4{transition-delay:0.32s;}
 
-/* ── HERO INITIAL ANIMATION ── */
+/* â”€â”€ HERO INITIAL ANIMATION â”€â”€ */
 .hero-content > *{opacity:0;transform:translateY(20px);animation:heroIn 0.7s cubic-bezier(0.16,1,0.3,1) forwards;}
 .hero-eyebrow{animation-delay:0.2s;}
 .hero-pre{animation-delay:0.3s;}
@@ -419,7 +430,7 @@ footer{padding:20px 80px;border-top:1px solid var(--border);display:flex;align-i
 
 <!-- NAV -->
 <nav id="nav">
-  <a href="#" class="nav-logo">ROBOAI</a>
+  <a href="#" class="nav-logo">VECTRASIM</a>
   <div class="nav-sep"></div>
   <div class="nav-links">
     <a href="#engines">ENGINES</a>
@@ -431,9 +442,9 @@ footer{padding:20px 80px;border-top:1px solid var(--border);display:flex;align-i
     <a href="#" onclick="authGate('aero.html');return false;" class="mint" style="color:var(--mint)">AERO</a>
   </div>
   <div class="nav-r">
-    <a href="#" class="btn btn-ghost btn-sm" id="btnDonate" style="color:var(--amber);border-color:rgba(245,158,11,0.3);margin-right:8px;">⚡ DONATE</a>
+    <a href="#" class="btn btn-ghost btn-sm" id="btnDonate" style="color:var(--amber);border-color:rgba(245,158,11,0.3);margin-right:8px;">âš¡ DONATE</a>
     <a href="#" class="btn btn-ghost btn-sm" id="nav-signin">SIGN IN</a>
-    <a href="#" class="btn btn-cyan btn-sm" id="nav-enter">▶ ENTER HUB</a>
+    <a href="#" class="btn btn-cyan btn-sm" id="nav-enter">â–¶ ENTER HUB</a>
   </div>
 </nav>
 
@@ -441,20 +452,20 @@ footer{padding:20px 80px;border-top:1px solid var(--border);display:flex;align-i
 <div id="donateModal" style="position:fixed;inset:0;z-index:9500;display:none;align-items:center;justify-content:center;background:rgba(2,5,9,0.85);backdrop-filter:blur(16px);opacity:0;transition:opacity 0.3s ease;">
   <div style="background:linear-gradient(145deg,rgba(11,15,26,0.98),rgba(6,9,15,0.99));border:1px solid rgba(245,158,11,0.3);width:100%;max-width:400px;padding:32px;position:relative;text-align:center;box-shadow:var(--amber-glow);transform:scale(0.9);transition:transform 0.3s ease;">
     <button id="donateClose" style="position:absolute;top:14px;right:16px;background:none;border:1px solid rgba(255,255,255,0.1);color:var(--muted);width:28px;height:28px;cursor:pointer;font-size:13px;display:flex;align-items:center;justify-content:center;transition:all 0.2s;">&times;</button>
-    <div style="font-family:var(--font-display);font-size:20px;font-weight:900;color:var(--amber);letter-spacing:4px;text-shadow:var(--amber-glow);margin-bottom:6px;">SUPPORT ROBOAI</div>
+    <div style="font-family:var(--font-display);font-size:20px;font-weight:900;color:var(--amber);letter-spacing:4px;text-shadow:var(--amber-glow);margin-bottom:6px;">SUPPORT VECTRASIM</div>
     <div style="font-family:var(--font-mono);font-size:11px;letter-spacing:2px;color:var(--muted);margin-bottom:20px;">SCAN QR TO DONATE</div>
     <div style="margin:0 auto 20px;width:220px;height:220px;border:1px solid rgba(245,158,11,0.2);padding:10px;background:rgba(0,0,0,0.4);display:flex;align-items:center;justify-content:center;">
-      <img src="./donate.jpeg" alt="Donate QR Code" style="max-width:100%;max-height:100%;object-fit:contain;border:1px solid rgba(255,255,255,0.05);">
+      <img src="./public/donate.jpeg" alt="Donate QR Code" style="max-width:100%;max-height:100%;object-fit:contain;border:1px solid rgba(255,255,255,0.05);">
     </div>
-    <p style="font-family:var(--font-body);font-size:13px;line-height:1.6;color:rgba(224,230,237,0.6);margin-bottom:0;">Your support helps keep RoboAI Suite running and updated with new features and simulation engines!</p>
+    <p style="font-family:var(--font-body);font-size:13px;line-height:1.6;color:rgba(224,230,237,0.6);margin-bottom:0;">Your support helps keep VectraSim Suite running and updated with new features and simulation engines!</p>
   </div>
 </div>
 
 <!-- TICKER -->
 <div id="ticker-bar">
   <span id="ticker-inner">
-    ◆ ROBOAI SUITE ONLINE &nbsp;|&nbsp; 4 SIMULATION ENGINES ACTIVE &nbsp;|&nbsp; AERO DRONE SWARM FLIGHT &nbsp;|&nbsp; SLAM LIDAR MAPPING &nbsp;|&nbsp; NEXUS 6-DOF ARM KINEMATICS &nbsp;|&nbsp; HIVE SWARM LOGISTICS &nbsp;|&nbsp; 22 ALGORITHM MODULES &nbsp;|&nbsp; REYNOLDS FLOCKING APF &nbsp;|&nbsp; VITE 7.3.1 BUILD &nbsp;|&nbsp; PLAYWRIGHT E2E TESTED &nbsp;&nbsp;&nbsp;&nbsp;
-    ◆ ROBOAI SUITE ONLINE &nbsp;|&nbsp; 4 SIMULATION ENGINES ACTIVE &nbsp;|&nbsp; AERO DRONE SWARM FLIGHT &nbsp;|&nbsp; SLAM LIDAR MAPPING &nbsp;|&nbsp; NEXUS 6-DOF ARM KINEMATICS &nbsp;|&nbsp; HIVE SWARM LOGISTICS &nbsp;|&nbsp; 22 ALGORITHM MODULES &nbsp;|&nbsp; REYNOLDS FLOCKING APF &nbsp;|&nbsp; VITE 7.3.1 BUILD &nbsp;|&nbsp; PLAYWRIGHT E2E TESTED &nbsp;&nbsp;&nbsp;&nbsp;
+    â—† VECTRASIM SUITE ONLINE &nbsp;|&nbsp; 4 SIMULATION ENGINES ACTIVE &nbsp;|&nbsp; AERO DRONE SWARM FLIGHT &nbsp;|&nbsp; SLAM LIDAR MAPPING &nbsp;|&nbsp; NEXUS 6-DOF ARM KINEMATICS &nbsp;|&nbsp; HIVE SWARM LOGISTICS &nbsp;|&nbsp; 22 ALGORITHM MODULES &nbsp;|&nbsp; REYNOLDS FLOCKING APF &nbsp;|&nbsp; VITE 7.3.1 BUILD &nbsp;|&nbsp; PLAYWRIGHT E2E TESTED &nbsp;&nbsp;&nbsp;&nbsp;
+    â—† VECTRASIM SUITE ONLINE &nbsp;|&nbsp; 4 SIMULATION ENGINES ACTIVE &nbsp;|&nbsp; AERO DRONE SWARM FLIGHT &nbsp;|&nbsp; SLAM LIDAR MAPPING &nbsp;|&nbsp; NEXUS 6-DOF ARM KINEMATICS &nbsp;|&nbsp; HIVE SWARM LOGISTICS &nbsp;|&nbsp; 22 ALGORITHM MODULES &nbsp;|&nbsp; REYNOLDS FLOCKING APF &nbsp;|&nbsp; VITE 7.3.1 BUILD &nbsp;|&nbsp; PLAYWRIGHT E2E TESTED &nbsp;&nbsp;&nbsp;&nbsp;
   </span>
 </div>
 
@@ -463,16 +474,15 @@ footer{padding:20px 80px;border-top:1px solid var(--border);display:flex;align-i
   <div class="orb orb1"></div><div class="orb orb2"></div><div class="orb orb3"></div>
 
   <div class="hero-content">
-    <div class="hero-eyebrow"><span class="eyebrow-line"></span><span class="eyebrow-text">MESWCOE — AUTOMATION & ROBOTICS ENGINEERING — SEM VI</span></div>
     <div class="hero-pre">UNIFIED PLATFORM</div>
     <div class="glitch-wrap">
-      <div class="hero-title" data-text="ROBOAI">ROBOAI</div>
+      <div class="hero-title" data-text="VECTRASIM">VECTRASIM</div>
     </div>
-    <div class="hero-tagline">Suite — Four Engines. One Platform.</div>
-    <p class="hero-desc">A browser-based robotics simulation suite featuring 3D drone swarm flight, SLAM mapping with LiDAR, 6-DOF arm kinematics, and multi-robot warehouse logistics. Built with Vanilla JS, Three.js, and HTML5 Canvas — no framework required.</p>
+    <div class="hero-tagline">Suite â€” Four Engines. One Platform.</div>
+    <p class="hero-desc">A browser-based robotics simulation suite featuring 3D drone swarm flight, SLAM mapping with LiDAR, 6-DOF arm kinematics, and multi-robot warehouse logistics. Built with Vanilla JS, Three.js, and HTML5 Canvas â€” no framework required.</p>
     <div class="hero-btns">
-      <a href="#" class="btn btn-cyan" id="hero-enter-btn" onclick="(function(e){e.preventDefault();var s=typeof getSession==='function'&&getSession();if(s)openHub(s);else openLogin();})(event)">▶ ENTER HUB</a>
-      <a href="#engines" class="btn btn-ghost">↓ EXPLORE ENGINES</a>
+      <a href="#" class="btn btn-cyan" id="hero-enter-btn" onclick="(function(e){e.preventDefault();var s=typeof getSession==='function'&&getSession();if(s)openHub(s);else openLogin();})(event)">â–¶ ENTER HUB</a>
+      <a href="#engines" class="btn btn-ghost">â†“ EXPLORE ENGINES</a>
     </div>
     <div class="hero-pills">
       <span class="pill"><span class="dot dot-green"></span>4 ENGINES LIVE</span>
@@ -491,14 +501,14 @@ footer{padding:20px 80px;border-top:1px solid var(--border);display:flex;align-i
       SYS: ONLINE<br>
       AGENTS: 12 ACTIVE<br>
       FPS: 60.0<br>
-      MAP: 512×512<br>
+      MAP: 512Ã—512<br>
       BUILD: v3.0.0
     </div>
     <div class="hero-hud-r">
-      SLAM ■ ACTIVE<br>
-      NEXUS ■ ACTIVE<br>
-      HIVE ■ ACTIVE<br>
-      AUTH: MOCK<br>
+      SLAM â–  ACTIVE<br>
+      NEXUS â–  ACTIVE<br>
+      HIVE â–  ACTIVE<br>
+      AUTH: SESSION<br>
       ENV: BROWSER
     </div>
     <div class="hero-scan-line"></div>
@@ -511,7 +521,7 @@ footer{padding:20px 80px;border-top:1px solid var(--border);display:flex;align-i
 
 <!-- STATS -->
 <section id="stats">
-  <div class="stat-item"><div class="stat-val c" data-target="3">0</div><div class="stat-lbl">SIM ENGINES</div></div>
+  <div class="stat-item"><div class="stat-val c" data-target="4">0</div><div class="stat-lbl">SIM ENGINES</div></div>
   <div class="stat-item"><div class="stat-val b" data-target="21">0</div><div class="stat-lbl">ALGORITHM MODULES</div></div>
   <div class="stat-item"><div class="stat-val v" data-target="6">0</div><div class="stat-lbl">DOF ARM</div></div>
   <div class="stat-item"><div class="stat-val a" data-target="4">0</div><div class="stat-lbl">SWARM ROBOTS</div></div>
@@ -522,7 +532,7 @@ footer{padding:20px 80px;border-top:1px solid var(--border);display:flex;align-i
 <section id="engines">
   <div class="section-header reveal">
     <div class="sh-accent">SIMULATION ENGINES</div>
-    <h2>THREE WORLDS TO EXPLORE</h2>
+    <h2>FOUR WORLDS TO EXPLORE</h2>
     <p>EACH ENGINE IS A FULLY SELF-CONTAINED SIMULATION ENVIRONMENT</p>
     <div class="sh-rule"></div>
   </div>
@@ -539,7 +549,7 @@ footer{padding:20px 80px;border-top:1px solid var(--border);display:flex;align-i
         <div class="ec-num">ENGINE 01</div>
         <div class="ec-name">SLAM</div>
         <div class="ec-sub">LiDAR Mapping Simulator</div>
-        <p class="ec-desc">Simultaneous Localization and Mapping with 360° LiDAR raycasting, Bayesian occupancy grids, particle filter MCL, and autonomous frontier exploration. Three drive models, three pathfinding algorithms.</p>
+        <p class="ec-desc">Simultaneous Localization and Mapping with 360Â° LiDAR raycasting, Bayesian occupancy grids, particle filter MCL, and autonomous frontier exploration. Three drive models, three pathfinding algorithms.</p>
         <div class="ec-tags">
           <span class="ec-tag">A* PATHFINDING</span>
           <span class="ec-tag">PARTICLE FILTER</span>
@@ -548,7 +558,7 @@ footer{padding:20px 80px;border-top:1px solid var(--border);display:flex;align-i
           <span class="ec-tag">MCL</span>
         </div>
         <div class="ec-launch">
-          <a href="#" onclick="authGate('src/slam_landing.html');return false;" class="ec-launch-btn">▶ LAUNCH SLAM</a>
+          <a href="#" onclick="authGate('src/slam_landing.html');return false;" class="ec-launch-btn">â–¶ LAUNCH SLAM</a>
           <span class="ec-status">LOGIN REQUIRED</span>
         </div>
       </div>
@@ -574,7 +584,7 @@ footer{padding:20px 80px;border-top:1px solid var(--border);display:flex;align-i
           <span class="ec-tag">THREE.JS</span>
         </div>
         <div class="ec-launch">
-          <a href="#" onclick="authGate('src/nexus_landing.html');return false;" class="ec-launch-btn">▶ LAUNCH NEXUS</a>
+          <a href="#" onclick="authGate('src/nexus_landing.html');return false;" class="ec-launch-btn">â–¶ LAUNCH NEXUS</a>
           <span class="ec-status">LOGIN REQUIRED</span>
         </div>
       </div>
@@ -591,7 +601,7 @@ footer{padding:20px 80px;border-top:1px solid var(--border);display:flex;align-i
         <div class="ec-num">ENGINE 03</div>
         <div class="ec-name">HIVE</div>
         <div class="ec-sub">Swarm Logistics Simulator</div>
-        <p class="ec-desc">Multi-robot warehouse with 4 autonomous agents across 3 industrial scenarios — Warehouse, Assembly, and Mapping. Isometric 2.5D engine, battery management, collision avoidance, live analytics.</p>
+        <p class="ec-desc">Multi-robot warehouse with 4 autonomous agents across 3 industrial scenarios â€” Warehouse, Assembly, and Mapping. Isometric 2.5D engine, battery management, collision avoidance, live analytics.</p>
         <div class="ec-tags">
           <span class="ec-tag">ISOMETRIC 2.5D</span>
           <span class="ec-tag">BATTERY SIM</span>
@@ -600,7 +610,7 @@ footer{padding:20px 80px;border-top:1px solid var(--border);display:flex;align-i
           <span class="ec-tag">HEATMAP</span>
         </div>
         <div class="ec-launch">
-          <a href="#" onclick="authGate('src/hive_landing.html');return false;" class="ec-launch-btn">▶ LAUNCH HIVE</a>
+          <a href="#" onclick="authGate('src/hive_landing.html');return false;" class="ec-launch-btn">â–¶ LAUNCH HIVE</a>
           <span class="ec-status">LOGIN REQUIRED</span>
         </div>
       </div>
@@ -626,7 +636,7 @@ footer{padding:20px 80px;border-top:1px solid var(--border);display:flex;align-i
           <span class="ec-tag">TELEMETRY</span>
         </div>
         <div class="ec-launch">
-          <a href="#" onclick="authGate('aero.html');return false;" class="ec-launch-btn">▶ LAUNCH AERO</a>
+          <a href="#" onclick="authGate('aero.html');return false;" class="ec-launch-btn">â–¶ LAUNCH AERO</a>
           <span class="ec-status">LOGIN REQUIRED</span>
         </div>
       </div>
@@ -644,20 +654,20 @@ footer{padding:20px 80px;border-top:1px solid var(--border);display:flex;align-i
   </div>
 
   <div class="algo-grid">
-    <div class="algo-card ac-blue reveal"><span class="ac-icon">🎯</span><div class="ac-name">A* PATHFINDING</div><p class="ac-desc">TypedArray-optimized with wall proximity penalties and diagonal movement.</p><span class="ac-loc">AStar.js + hive.html</span></div>
-    <div class="algo-card ac-blue reveal rd1"><span class="ac-icon">🔀</span><div class="ac-name">DIJKSTRA'S</div><p class="ac-desc">Optimal shortest path without heuristic for guaranteed minimum cost.</p><span class="ac-loc">Dijkstra.js</span></div>
-    <div class="algo-card ac-blue reveal rd2"><span class="ac-icon">🐛</span><div class="ac-name">BUG2 ALGORITHM</div><p class="ac-desc">Reactive wall-following navigation for obstacle-dense environments.</p><span class="ac-loc">BugAlgorithm.js</span></div>
-    <div class="algo-card ac-blue reveal rd3"><span class="ac-icon">🗺</span><div class="ac-name">FRONTIER EXPLORE</div><p class="ac-desc">Autonomous frontier cell detection for complete unknown area mapping.</p><span class="ac-loc">FrontierExplorer.js</span></div>
-    <div class="algo-card ac-cyan reveal"><span class="ac-icon">🧪</span><div class="ac-name">BAYESIAN GRID</div><p class="ac-desc">Log-odds occupancy mapping with Bresenham ray voting for SLAM.</p><span class="ac-loc">Mapper.js</span></div>
-    <div class="algo-card ac-cyan reveal rd1"><span class="ac-icon">🎲</span><div class="ac-name">PARTICLE FILTER</div><p class="ac-desc">Monte Carlo Localization with 50–500 configurable particles.</p><span class="ac-loc">ParticleFilter.js</span></div>
-    <div class="algo-card ac-cyan reveal rd2"><span class="ac-icon">🔁</span><div class="ac-name">LOOP CLOSURE</div><p class="ac-desc">Scan-matching keyframe system for drift correction over long traversals.</p><span class="ac-loc">LoopClosureDetector.js</span></div>
-    <div class="algo-card ac-cyan reveal rd3"><span class="ac-icon">📡</span><div class="ac-name">LIDAR RAYCASTING</div><p class="ac-desc">2D raycasting with 30–360 rays, Gaussian noise, and ray visualization.</p><span class="ac-loc">Lidar.js</span></div>
-    <div class="algo-card ac-violet reveal"><span class="ac-icon">🦾</span><div class="ac-name">FORWARD KINEMATICS</div><p class="ac-desc">DH parameter chain evaluation for 2–6 configurable joint configurations.</p><span class="ac-loc">nexus.html</span></div>
-    <div class="algo-card ac-violet reveal rd1"><span class="ac-icon">🎯</span><div class="ac-name">INVERSE KINEMATICS</div><p class="ac-desc">Numerical Jacobian IK solver for end-effector position targeting.</p><span class="ac-loc">nexus.html</span></div>
-    <div class="algo-card ac-violet reveal rd2"><span class="ac-icon">📈</span><div class="ac-name">LSPB TRAJECTORY</div><p class="ac-desc">Linear Segment with Parabolic Blend for smooth joint trajectory planning.</p><span class="ac-loc">nexus.html</span></div>
-    <div class="algo-card ac-amber reveal rd3"><span class="ac-icon">🐦</span><div class="ac-name">REYNOLDS BOIDS</div><p class="ac-desc">Emergent swarm intelligence via 3D separation, alignment, and cohesion rules.</p><span class="ac-loc">aero.html</span></div>
-    <div class="algo-card ac-cyan reveal rd4"><span class="ac-icon">🧲</span><div class="ac-name">ARTIFICIAL POTENTIAL FIELDS</div><p class="ac-desc">3D path navigation using attractive forces to goals and repulsive forces from obstacles.</p><span class="ac-loc">aero.html</span></div>
-    <div class="algo-card ac-mint reveal"><span class="ac-icon">🎛</span><div class="ac-name">PID CONTROLLER</div><p class="ac-desc">Closed-loop feedback controller for drone swarm altitude and position stability.</p><span class="ac-loc">aero.html</span></div>
+    <div class="algo-card ac-blue reveal"><span class="ac-icon">ðŸŽ¯</span><div class="ac-name">A* PATHFINDING</div><p class="ac-desc">TypedArray-optimized with wall proximity penalties and diagonal movement.</p><span class="ac-loc">AStar.js + hive.html</span></div>
+    <div class="algo-card ac-blue reveal rd1"><span class="ac-icon">ðŸ”€</span><div class="ac-name">DIJKSTRA'S</div><p class="ac-desc">Optimal shortest path without heuristic for guaranteed minimum cost.</p><span class="ac-loc">Dijkstra.js</span></div>
+    <div class="algo-card ac-blue reveal rd2"><span class="ac-icon">ðŸ›</span><div class="ac-name">BUG2 ALGORITHM</div><p class="ac-desc">Reactive wall-following navigation for obstacle-dense environments.</p><span class="ac-loc">BugAlgorithm.js</span></div>
+    <div class="algo-card ac-blue reveal rd3"><span class="ac-icon">ðŸ—º</span><div class="ac-name">FRONTIER EXPLORE</div><p class="ac-desc">Autonomous frontier cell detection for complete unknown area mapping.</p><span class="ac-loc">FrontierExplorer.js</span></div>
+    <div class="algo-card ac-cyan reveal"><span class="ac-icon">ðŸ§ª</span><div class="ac-name">BAYESIAN GRID</div><p class="ac-desc">Log-odds occupancy mapping with Bresenham ray voting for SLAM.</p><span class="ac-loc">Mapper.js</span></div>
+    <div class="algo-card ac-cyan reveal rd1"><span class="ac-icon">ðŸŽ²</span><div class="ac-name">PARTICLE FILTER</div><p class="ac-desc">Monte Carlo Localization with 50â€“500 configurable particles.</p><span class="ac-loc">ParticleFilter.js</span></div>
+    <div class="algo-card ac-cyan reveal rd2"><span class="ac-icon">ðŸ”</span><div class="ac-name">LOOP CLOSURE</div><p class="ac-desc">Scan-matching keyframe system for drift correction over long traversals.</p><span class="ac-loc">LoopClosureDetector.js</span></div>
+    <div class="algo-card ac-cyan reveal rd3"><span class="ac-icon">ðŸ“¡</span><div class="ac-name">LIDAR RAYCASTING</div><p class="ac-desc">2D raycasting with 30â€“360 rays, Gaussian noise, and ray visualization.</p><span class="ac-loc">Lidar.js</span></div>
+    <div class="algo-card ac-violet reveal"><span class="ac-icon">ðŸ¦¾</span><div class="ac-name">FORWARD KINEMATICS</div><p class="ac-desc">DH parameter chain evaluation for 2â€“6 configurable joint configurations.</p><span class="ac-loc">nexus.html</span></div>
+    <div class="algo-card ac-violet reveal rd1"><span class="ac-icon">ðŸŽ¯</span><div class="ac-name">INVERSE KINEMATICS</div><p class="ac-desc">Numerical Jacobian IK solver for end-effector position targeting.</p><span class="ac-loc">nexus.html</span></div>
+    <div class="algo-card ac-violet reveal rd2"><span class="ac-icon">ðŸ“ˆ</span><div class="ac-name">LSPB TRAJECTORY</div><p class="ac-desc">Linear Segment with Parabolic Blend for smooth joint trajectory planning.</p><span class="ac-loc">nexus.html</span></div>
+    <div class="algo-card ac-amber reveal rd3"><span class="ac-icon">ðŸ¦</span><div class="ac-name">REYNOLDS BOIDS</div><p class="ac-desc">Emergent swarm intelligence via 3D separation, alignment, and cohesion rules.</p><span class="ac-loc">aero.html</span></div>
+    <div class="algo-card ac-cyan reveal rd4"><span class="ac-icon">ðŸ§²</span><div class="ac-name">ARTIFICIAL POTENTIAL FIELDS</div><p class="ac-desc">3D path navigation using attractive forces to goals and repulsive forces from obstacles.</p><span class="ac-loc">aero.html</span></div>
+    <div class="algo-card ac-mint reveal"><span class="ac-icon">ðŸŽ›</span><div class="ac-name">PID CONTROLLER</div><p class="ac-desc">Closed-loop feedback controller for drone swarm altitude and position stability.</p><span class="ac-loc">aero.html</span></div>
   </div>
 </section>
 
@@ -670,20 +680,20 @@ footer{padding:20px 80px;border-top:1px solid var(--border);display:flex;align-i
   </div>
 
   <div class="stack-row reveal">
-    <span class="stack-chip"><span class="si">🌐</span>HTML5</span>
-    <span class="stack-chip"><span class="si">🎨</span>CSS3</span>
-    <span class="stack-chip"><span class="si">⚡</span>Vanilla JS</span>
-    <span class="stack-chip"><span class="si">🎮</span>Canvas 2D API</span>
-    <span class="stack-chip"><span class="si">🧊</span>Three.js r183</span>
-    <span class="stack-chip"><span class="si">📊</span>Chart.js 3.9.1</span>
+    <span class="stack-chip"><span class="si">ðŸŒ</span>HTML5</span>
+    <span class="stack-chip"><span class="si">ðŸŽ¨</span>CSS3</span>
+    <span class="stack-chip"><span class="si">âš¡</span>Vanilla JS</span>
+    <span class="stack-chip"><span class="si">ðŸŽ®</span>Canvas 2D API</span>
+    <span class="stack-chip"><span class="si">ðŸ§Š</span>Three.js r183</span>
+    <span class="stack-chip"><span class="si">ðŸ“Š</span>Chart.js 3.9.1</span>
   </div>
   <div class="stack-row reveal rd1">
-    <span class="stack-chip"><span class="si">⚙</span>Vite 7.3.1</span>
-    <span class="stack-chip"><span class="si">🎬</span>GSAP 3.12.2</span>
-    <span class="stack-chip"><span class="si">🕹</span>nipplejs</span>
-    <span class="stack-chip"><span class="si">🔊</span>Web Audio API</span>
-    <span class="stack-chip"><span class="si">🧪</span>Playwright E2E</span>
-    <span class="stack-chip"><span class="si">🚀</span>Vercel Deploy</span>
+    <span class="stack-chip"><span class="si">âš™</span>Vite 7.3.1</span>
+    <span class="stack-chip"><span class="si">ðŸŽ¬</span>GSAP 3.12.2</span>
+    <span class="stack-chip"><span class="si">ðŸ•¹</span>nipplejs</span>
+    <span class="stack-chip"><span class="si">ðŸ”Š</span>Web Audio API</span>
+    <span class="stack-chip"><span class="si">ðŸ§ª</span>Playwright E2E</span>
+    <span class="stack-chip"><span class="si">ðŸš€</span>Vercel Deploy</span>
   </div>
 
   <div class="circuit reveal rd2">
@@ -699,19 +709,17 @@ footer{padding:20px 80px;border-top:1px solid var(--border);display:flex;align-i
 <section id="meta">
   <div class="meta-left reveal">
     <h2>READY<br>TO RUN?</h2>
-    <p>Open the Hub, authenticate with any credentials, and choose your simulation engine. No setup required — the entire platform runs in your browser.</p>
+    <p>Open the Hub, authenticate with any credentials, and choose your simulation engine. No setup required â€” the entire platform runs in your browser.</p>
     <div class="meta-links">
-      <a href="#" class="meta-link">▶ LAUNCH HUB</a>
-      <a href="https://github.com/Yashs2024/Slam-lidar-simulator" class="meta-link" target="_blank">⌥ GITHUB</a>
-      <a href="https://www.linkedin.com/in/yash-surve-3b6a72253" class="meta-link" target="_blank">↗ LINKEDIN</a>
+      <a href="#" class="meta-link">â–¶ LAUNCH HUB</a>
+      <a href="https://github.com/Yashs2024/Slam-lidar-simulator" class="meta-link" target="_blank">âŒ¥ GITHUB</a>
+      <a href="https://www.linkedin.com/in/yash-surve-3b6a72253" class="meta-link" target="_blank">â†— LINKEDIN</a>
     </div>
-    <div class="meta-note">Any email + password · Session stored locally · Zero backend</div>
+    <div class="meta-note">Any email + password Â· Session stored locally Â· Zero backend</div>
   </div>
   <div class="info-card reveal rd1">
     <div class="ic-title">PROJECT MANIFEST</div>
-    <div class="kv"><span class="k">Platform</span><span class="v c">RoboAI Suite v3.0</span></div>
-    <div class="kv"><span class="k">Type</span><span class="v">Sem VI Mini Project</span></div>
-    <div class="kv"><span class="k">Institution</span><span class="v">MESWCOE / SPPU</span></div>
+    <div class="kv"><span class="k">Platform</span><span class="v c">VectraSim Suite v3.0</span></div>
     <div class="kv"><span class="k">Engine 01</span><span class="v b">SLAM Simulator</span></div>
     <div class="kv"><span class="k">Engine 02</span><span class="v vi">NEXUS Arm Engine</span></div>
     <div class="kv"><span class="k">Engine 03</span><span class="v a">HIVE Logistics</span></div>
@@ -729,9 +737,9 @@ footer{padding:20px 80px;border-top:1px solid var(--border);display:flex;align-i
   <div class="login-box">
     <div class="login-corner tl"></div><div class="login-corner tr"></div>
     <div class="login-corner bl"></div><div class="login-corner br"></div>
-    <button class="login-close" id="login-close-btn">✕</button>
+    <button class="login-close" id="login-close-btn">âœ•</button>
 
-    <div class="login-logo">ROBOAI</div>
+    <div class="login-logo">VECTRASIM</div>
 
     <!-- Tabs -->
     <div class="auth-tabs" role="tablist">
@@ -749,11 +757,16 @@ footer{padding:20px 80px;border-top:1px solid var(--border);display:flex;align-i
       </div>
       <div class="login-field">
         <label>PASSWORD</label>
-        <input type="password" id="si-pass" placeholder="Your password" autocomplete="current-password">
+        <div class="pw-wrap">
+          <input type="password" id="si-pass" placeholder="Your password" autocomplete="current-password">
+          <button type="button" class="pw-toggle" onclick="togglePwVis('si-pass',this)" aria-label="Show password" tabindex="-1">
+            <svg id="eye-si-pass" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+          </button>
+        </div>
       </div>
       <div class="login-err" id="si-err"></div>
-      <button class="login-btn" id="si-submit">▶ SIGN IN</button>
-      <div class="login-note">No account? <span class="auth-switch-link" onclick="switchTab('signup')">Create one →</span></div>
+      <button class="login-btn" id="si-submit">â–¶ SIGN IN</button>
+      <div class="login-note">No account? <span class="auth-switch-link" onclick="switchTab('signup')">Create one â†’</span></div>
     </div>
 
     <!-- Sign Up Form -->
@@ -769,15 +782,25 @@ footer{padding:20px 80px;border-top:1px solid var(--border);display:flex;align-i
       </div>
       <div class="login-field">
         <label>PASSWORD</label>
-        <input type="password" id="su-pass" placeholder="Min 6 characters" autocomplete="new-password">
+        <div class="pw-wrap">
+          <input type="password" id="su-pass" placeholder="Min 6 characters" autocomplete="new-password">
+          <button type="button" class="pw-toggle" onclick="togglePwVis('su-pass',this)" aria-label="Show password" tabindex="-1">
+            <svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+          </button>
+        </div>
       </div>
       <div class="login-field">
         <label>CONFIRM PASSWORD</label>
-        <input type="password" id="su-pass2" placeholder="Repeat password" autocomplete="new-password">
+        <div class="pw-wrap">
+          <input type="password" id="su-pass2" placeholder="Repeat password" autocomplete="new-password">
+          <button type="button" class="pw-toggle" onclick="togglePwVis('su-pass2',this)" aria-label="Show password" tabindex="-1">
+            <svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+          </button>
+        </div>
       </div>
       <div class="login-err" id="su-err"></div>
-      <button class="login-btn" id="su-submit">▶ CREATE ACCOUNT</button>
-      <div class="login-note">Already registered? <span class="auth-switch-link" onclick="switchTab('signin')">Sign in →</span></div>
+      <button class="login-btn" id="su-submit">â–¶ CREATE ACCOUNT</button>
+      <div class="login-note">Already registered? <span class="auth-switch-link" onclick="switchTab('signin')">Sign in â†’</span></div>
     </div>
   </div>
 </div>
@@ -793,38 +816,38 @@ footer{padding:20px 80px;border-top:1px solid var(--border);display:flex;align-i
     <div class="hub-cards">
       <a href="src/slam_landing.html" class="hub-card hc-slam">
         <div class="hc-bar"></div>
-        <div class="hc-icon">🗺</div>
+        <div class="hc-icon">ðŸ—º</div>
         <div class="hc-num">ENGINE 01</div>
         <div class="hc-name">SLAM</div>
         <p class="hc-desc">LiDAR mapping, Monte Carlo localization, frontier exploration, and three pathfinding algorithms.</p>
-        <span class="hc-go">▶ LAUNCH SLAM</span>
+        <span class="hc-go">â–¶ LAUNCH SLAM</span>
       </a>
       <a href="src/nexus_landing.html" class="hub-card hc-nexus">
         <div class="hc-bar"></div>
-        <div class="hc-icon">🦾</div>
+        <div class="hc-icon">ðŸ¦¾</div>
         <div class="hc-num">ENGINE 02</div>
         <div class="hc-name">NEXUS</div>
         <p class="hc-desc">6-DOF robot arm with forward/inverse kinematics, LSPB trajectory planning, and Teach Mode.</p>
-        <span class="hc-go">▶ LAUNCH NEXUS</span>
+        <span class="hc-go">â–¶ LAUNCH NEXUS</span>
       </a>
       <a href="src/hive_landing.html" class="hub-card hc-hive">
         <div class="hc-bar"></div>
-        <div class="hc-icon">🏭</div>
+        <div class="hc-icon">ðŸ­</div>
         <div class="hc-num">ENGINE 03</div>
         <div class="hc-name">HIVE</div>
         <p class="hc-desc">Multi-robot warehouse logistics with isometric 2.5D rendering, battery sim, and task scheduling.</p>
-        <span class="hc-go">▶ LAUNCH HIVE</span>
+        <span class="hc-go">â–¶ LAUNCH HIVE</span>
       </a>
       <a href="aero.html" class="hub-card hc-aero">
         <div class="hc-bar"></div>
-        <div class="hc-icon">🛸</div>
+        <div class="hc-icon">ðŸ›¸</div>
         <div class="hc-num">ENGINE 04</div>
         <div class="hc-name">AERO</div>
         <p class="hc-desc">Drone Swarm simulator with Reynolds flocking, APF pathfinding, PID control, battery auto-docking, and live telemetry tracking.</p>
-        <span class="hc-go">▶ LAUNCH AERO</span>
+        <span class="hc-go">â–¶ LAUNCH AERO</span>
       </a>
     </div>
-    <button class="hub-signout" id="hub-signout">⎋ SIGN OUT</button>
+    <button class="hub-signout" id="hub-signout">âŽ‹ SIGN OUT</button>
   </div>
 </div>
 
@@ -863,10 +886,6 @@ footer{padding:20px 80px;border-top:1px solid var(--border);display:flex;align-i
         </div>
       </a>
     </div>
-
-    <div style="font-family:var(--font-mono);font-size: 11px;letter-spacing:2px;color:var(--muted);">
-      MESWCOE · AUTOMATION &amp; ROBOTICS ENGINEERING · SPPU · SEM VI
-    </div>
   </div>
 </section>
 
@@ -883,22 +902,22 @@ footer{padding:20px 80px;border-top:1px solid var(--border);display:flex;align-i
 </style>
 
 <footer style="padding:20px 80px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:var(--bg2);">
-  <span style="font-family:var(--font-display);font-size:12px;font-weight:900;color:var(--cyan);letter-spacing:4px;text-shadow:0 0 20px rgba(0,245,255,0.3);">ROBOAI</span>
+  <span style="font-family:var(--font-display);font-size:12px;font-weight:900;color:var(--cyan);letter-spacing:4px;text-shadow:0 0 20px rgba(0,245,255,0.3);">VECTRASIM</span>
   <div style="display:flex;gap:20px;align-items:center;">
     <a href="https://github.com/Yashs2024" target="_blank" style="font-family:var(--font-mono);font-size: 11px;letter-spacing:2px;color:var(--muted);text-decoration:none;transition:color 0.2s;" onmouseover="this.style.color='var(--cyan)'" onmouseout="this.style.color='var(--muted)'">GITHUB</a>
     <a href="https://www.linkedin.com/in/yash-surve-3b6a72253" target="_blank" style="font-family:var(--font-mono);font-size: 11px;letter-spacing:2px;color:var(--muted);text-decoration:none;transition:color 0.2s;" onmouseover="this.style.color='var(--blue)'" onmouseout="this.style.color='var(--muted)'">LINKEDIN</a>
     <a href="mailto:yashusurve2005@gmail.com" style="font-family:var(--font-mono);font-size: 11px;letter-spacing:2px;color:var(--muted);text-decoration:none;transition:color 0.2s;" onmouseover="this.style.color='var(--violet)'" onmouseout="this.style.color='var(--muted)'">CONTACT</a>
   </div>
-  <span style="font-family:var(--font-mono);font-size: 11px;color:rgba(0,245,255,0.3);letter-spacing:1px;">BUILD v3.0.0 · VITE + VERCEL</span>
+  <span style="font-family:var(--font-mono);font-size: 11px;color:rgba(0,245,255,0.3);letter-spacing:1px;">BUILD v3.0.0 Â· VITE + VERCEL</span>
 </footer>
 
 <script>
-// ══════════════════════════
-// ROBOAI AUTH SYSTEM v2.0
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// VECTRASIM AUTH SYSTEM v2.0
 // Storage: localStorage
 // File: public/users.json (structure reference)
-// ══════════════════════════
-const SESSION_KEY = 'roboai_session';
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+const SESSION_KEY = 'vectrasim_session';
 
 function getSession() {
   try { return JSON.parse(localStorage.getItem(SESSION_KEY)); }
@@ -929,22 +948,24 @@ function closeHub() { document.getElementById('hub-overlay').classList.remove('o
 function updateNavForLoggedIn(user) {
   const btn = document.getElementById('nav-enter');
   const si = document.getElementById('nav-signin');
-  if(btn) { btn.textContent = '⬡ HUB'; btn.onclick = (e) => { e.preventDefault(); openHub(user); }; }
-  if(si) { si.textContent = '⎋ SIGN OUT'; si.onclick = (e) => { e.preventDefault(); doSignOut(); }; }
+  if(btn) { btn.textContent = 'â¬¡ HUB'; btn.onclick = (e) => { e.preventDefault(); openHub(user); }; }
+  if(si) { si.textContent = 'âŽ‹ SIGN OUT'; si.onclick = (e) => { e.preventDefault(); doSignOut(); }; }
 }
 async function doSignOut() {
   try {
-    await supabase.auth.signOut();
+    if (window.supabase) {
+      supabase.auth.signOut().catch(e => console.log("Signout error:", e));
+    }
   } catch(e) {}
   clearSession();
   const btn = document.getElementById('nav-enter');
   const si = document.getElementById('nav-signin');
-  if(btn) { btn.textContent = '▶ ENTER HUB'; btn.onclick = null; }
+  if(btn) { btn.textContent = 'â–¶ ENTER HUB'; btn.onclick = null; }
   if(si) { si.textContent = 'SIGN IN'; si.onclick = null; }
   closeHub();
 }
 
-// Auth gate — call before navigating to any simulator
+// Auth gate â€” call before navigating to any simulator
 window.authGate = function(url) {
   const session = getSession();
   if(session) {
@@ -953,6 +974,19 @@ window.authGate = function(url) {
     window._authTarget = url;
     openLogin(url);
   }
+};
+
+
+// â”€â”€ Show/Hide password toggle â”€â”€
+window.togglePwVis = function(inputId, btn) {
+  const input = document.getElementById(inputId);
+  const isHidden = input.type === 'password';
+  input.type = isHidden ? 'text' : 'password';
+  btn.setAttribute('aria-label', isHidden ? 'Hide password' : 'Show password');
+  // Swap SVG between eye and eye-off
+  const eyeSvg = `<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>`;
+  const eyeOffSvg = `<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/>`;
+  btn.querySelector('svg').innerHTML = isHidden ? eyeOffSvg : eyeSvg;
 };
 
 // Tab switcher
@@ -976,10 +1010,10 @@ document.getElementById('si-submit').addEventListener('click', async () => {
   const email = document.getElementById('si-email').value.trim().toLowerCase();
   const pass  = document.getElementById('si-pass').value;
   const err   = document.getElementById('si-err');
-  if (!email) { err.textContent = '⚠ EMAIL REQUIRED'; return; }
-  if (!pass)  { err.textContent = '⚠ PASSWORD REQUIRED'; return; }
+  if (!email) { err.textContent = 'âš  EMAIL REQUIRED'; return; }
+  if (!pass)  { err.textContent = 'âš  PASSWORD REQUIRED'; return; }
   
-  err.textContent = '⚡ AUTHENTICATING...';
+  err.textContent = 'âš¡ AUTHENTICATING...';
   err.style.color = '';
   
   try {
@@ -1006,7 +1040,7 @@ document.getElementById('si-submit').addEventListener('click', async () => {
         }
         return;
       }
-      err.textContent = `⚠ ${error.message.toUpperCase()}`;
+      err.textContent = `âš  ${error.message.toUpperCase()}`;
       return;
     }
     
@@ -1042,7 +1076,7 @@ document.getElementById('si-submit').addEventListener('click', async () => {
       }
       return;
     }
-    err.textContent = `⚠ EXCEPTION: ${e.message.toUpperCase()}`;
+    err.textContent = `âš  EXCEPTION: ${e.message.toUpperCase()}`;
   }
 });
 
@@ -1054,13 +1088,13 @@ document.getElementById('su-submit').addEventListener('click', async () => {
   const pass2 = document.getElementById('su-pass2').value;
   const err   = document.getElementById('su-err');
   console.log("Signup button clicked with email:", email);
-  if (!name)             { err.textContent = '⚠ NAME REQUIRED'; console.log("Validation error: name required"); return; }
-  if (!email)            { err.textContent = '⚠ EMAIL REQUIRED'; console.log("Validation error: email required"); return; }
-  if (!/^[^@]+@[^@]+\.[^@]+$/.test(email)) { err.textContent = '⚠ INVALID EMAIL FORMAT'; console.log("Validation error: invalid email format"); return; }
-  if (pass.length < 6)   { err.textContent = '⚠ PASSWORD MIN 6 CHARACTERS'; console.log("Validation error: password too short"); return; }
-  if (pass !== pass2)    { err.textContent = '⚠ PASSWORDS DO NOT MATCH'; console.log("Validation error: passwords do not match"); return; }
+  if (!name)             { err.textContent = 'âš  NAME REQUIRED'; console.log("Validation error: name required"); return; }
+  if (!email)            { err.textContent = 'âš  EMAIL REQUIRED'; console.log("Validation error: email required"); return; }
+  if (!/^[^@]+@[^@]+\.[^@]+$/.test(email)) { err.textContent = 'âš  INVALID EMAIL FORMAT'; console.log("Validation error: invalid email format"); return; }
+  if (pass.length < 6)   { err.textContent = 'âš  PASSWORD MIN 6 CHARACTERS'; console.log("Validation error: password too short"); return; }
+  if (pass !== pass2)    { err.textContent = 'âš  PASSWORDS DO NOT MATCH'; console.log("Validation error: passwords do not match"); return; }
   
-  err.textContent = '⚡ CREATING ACCOUNT...';
+  err.textContent = 'âš¡ CREATING ACCOUNT...';
   err.style.color = '';
   
   try {
@@ -1084,7 +1118,7 @@ document.getElementById('su-submit').addEventListener('click', async () => {
         };
         saveSession(user, 'mock-bypass-token');
         err.style.color = 'var(--green)';
-        err.textContent = '✔ ACCOUNT CREATED — SIGNING IN...';
+        err.textContent = 'âœ” ACCOUNT CREATED â€” SIGNING IN...';
         setTimeout(() => {
           err.style.color = '';
           const target = window._authTarget;
@@ -1099,7 +1133,7 @@ document.getElementById('su-submit').addEventListener('click', async () => {
         }, 900);
         return;
       }
-      err.textContent = `⚠ ${error.message.toUpperCase()}`;
+      err.textContent = `âš  ${error.message.toUpperCase()}`;
       return;
     }
     
@@ -1111,7 +1145,7 @@ document.getElementById('su-submit').addEventListener('click', async () => {
       };
       saveSession(user, data.session?.access_token);
       err.style.color = 'var(--green)';
-      err.textContent = '✔ ACCOUNT CREATED — SIGNING IN...';
+      err.textContent = 'âœ” ACCOUNT CREATED â€” SIGNING IN...';
       setTimeout(() => {
         err.style.color = '';
         const target = window._authTarget;
@@ -1132,7 +1166,7 @@ document.getElementById('su-submit').addEventListener('click', async () => {
       };
       saveSession(user, 'mock-bypass-token');
       err.style.color = 'var(--green)';
-      err.textContent = '✔ ACCOUNT CREATED — SIGNING IN...';
+      err.textContent = 'âœ” ACCOUNT CREATED â€” SIGNING IN...';
       setTimeout(() => {
         err.style.color = '';
         const target = window._authTarget;
@@ -1157,7 +1191,7 @@ document.getElementById('su-submit').addEventListener('click', async () => {
       };
       saveSession(user, 'mock-bypass-token');
       err.style.color = 'var(--green)';
-      err.textContent = '✔ ACCOUNT CREATED — SIGNING IN...';
+      err.textContent = 'âœ” ACCOUNT CREATED â€” SIGNING IN...';
       setTimeout(() => {
         err.style.color = '';
         const target = window._authTarget;
@@ -1172,7 +1206,7 @@ document.getElementById('su-submit').addEventListener('click', async () => {
       }, 900);
       return;
     }
-    err.textContent = `⚠ EXCEPTION: ${e.message.toUpperCase()}`;
+    err.textContent = `âš  EXCEPTION: ${e.message.toUpperCase()}`;
   }
 });
 
@@ -1190,26 +1224,32 @@ document.getElementById('login-close-btn').addEventListener('click', closeLogin)
 // Hub sign out
 document.getElementById('hub-signout').addEventListener('click', doSignOut);
 
-// Auto-login check on load
+// Auto-login check on load â€” waits for window.supabase (ES module) to be ready
 (async function initAuth() {
+  // Wait up to 3 seconds for the Supabase module to hydrate window.supabase
+  for (let i = 0; i < 30 && !window.supabase; i++) {
+    await new Promise(r => setTimeout(r, 100));
+  }
   try {
     // 1. Check if we have a valid mock/local session saved in localStorage
     const localSess = getSession();
     if (localSess) {
       console.log("Restoring session from localStorage on load:", localSess);
-      openHub(localSess);
+      // We update the nav but we DO NOT call openHub(localSess) so that the app starts on the main landing page
       updateNavForLoggedIn(localSess);
       
       // In background, refresh Supabase if possible
       try {
-        const { data: { session } } = await supabase.auth.getSession();
-        if (session && session.user) {
-          const user = {
-            id: session.user.id,
-            email: session.user.email,
-            name: session.user.user_metadata?.name || session.user.email.split('@')[0]
-          };
-          saveSession(user, session?.access_token);
+        if (window.supabase) {
+          const { data: { session } } = await supabase.auth.getSession();
+          if (session && session.user) {
+            const user = {
+              id: session.user.id,
+              email: session.user.email,
+              name: session.user.user_metadata?.name || session.user.email.split('@')[0]
+            };
+            saveSession(user, session?.access_token);
+          }
         }
       } catch(e) {
         console.log("Background Supabase session check failed:", e.message);
@@ -1218,31 +1258,33 @@ document.getElementById('hub-signout').addEventListener('click', doSignOut);
     }
 
     // 2. Otherwise query Supabase active session
-    const { data: { session }, error } = await supabase.auth.getSession();
-    if (session && session.user) {
-      const user = {
-        id: session.user.id,
-        email: session.user.email,
-        name: session.user.user_metadata?.name || session.user.email.split('@')[0]
-      };
-      saveSession(user, session?.access_token);
-      openHub(user);
-      updateNavForLoggedIn(user);
-    } else {
-      clearSession();
-      // Check if redirected from a landing page due to missing auth
-      const urlParams = new URLSearchParams(window.location.search);
-      const redirect = urlParams.get('r');
-      if (redirect) {
-        let target = '';
-        if (redirect === 'slam_landing') target = 'src/slam_landing.html';
-        else if (redirect === 'hive_landing') target = 'src/hive_landing.html';
-        else if (redirect === 'nexus_landing') target = 'src/nexus_landing.html';
-        else if (redirect === 'nexus') target = 'src/nexus_landing.html';
-        else if (redirect === 'aero') target = 'aero.html';
-        
-        if (target) {
-          setTimeout(() => openLogin(target), 300);
+    if (window.supabase) {
+      const { data: { session }, error } = await supabase.auth.getSession();
+      if (session && session.user) {
+        const user = {
+          id: session.user.id,
+          email: session.user.email,
+          name: session.user.user_metadata?.name || session.user.email.split('@')[0]
+        };
+        saveSession(user, session?.access_token);
+        // We update the nav but we DO NOT call openHub(user) so that the app starts on the main landing page
+        updateNavForLoggedIn(user);
+      } else {
+        clearSession();
+        // Check if redirected from a landing page due to missing auth
+        const urlParams = new URLSearchParams(window.location.search);
+        const redirect = urlParams.get('r');
+        if (redirect) {
+          let target = '';
+          if (redirect === 'slam_landing') target = 'src/slam_landing.html';
+          else if (redirect === 'hive_landing') target = 'src/hive_landing.html';
+          else if (redirect === 'nexus_landing') target = 'src/nexus_landing.html';
+          else if (redirect === 'nexus') target = 'src/nexus_landing.html';
+          else if (redirect === 'aero') target = 'aero.html';
+          
+          if (target) {
+            setTimeout(() => openLogin(target), 300);
+          }
         }
       }
     }
@@ -1251,13 +1293,13 @@ document.getElementById('hub-signout').addEventListener('click', doSignOut);
     // If Supabase throws (e.g. offline/blocked), do not clearSession if it exists
     const localSess = getSession();
     if (localSess) {
-      openHub(localSess);
+      // We update the nav but we DO NOT call openHub(localSess) so that the app starts on the main landing page
       updateNavForLoggedIn(localSess);
     }
   }
 })();
 
-// Wire ENTER HUB / SIGN IN nav buttons (initial state — not logged in)
+// Wire ENTER HUB / SIGN IN nav buttons (initial state â€” not logged in)
 document.getElementById('nav-enter').addEventListener('click', e => {
   e.preventDefault();
   const s = getSession();
@@ -1304,7 +1346,7 @@ document.querySelectorAll('.meta-link').forEach(el => {
   }
 });
 
-// ── CURSOR ──
+// â”€â”€ CURSOR â”€â”€
 const cursor=document.getElementById('cursor');
 const ring=document.getElementById('cursor-ring');
 let mx=0,my=0,rx=0,ry=0;
@@ -1315,7 +1357,7 @@ document.querySelectorAll('a,button,.engine-card,.algo-card,.stack-chip').forEac
   el.addEventListener('mouseleave',()=>{cursor.style.transform='translate(-50%,-50%) scale(1)';ring.style.transform='translate(-50%,-50%) scale(1)';ring.style.borderColor='rgba(0,245,255,0.5)';});
 });
 
-// ── NAV SHOW ON SCROLL ──
+// â”€â”€ NAV SHOW ON SCROLL â”€â”€
 // Nav starts visible. When hero is fully in view (at top), we dim it via hidden-nav so it
 // doesn't compete visually with the hero title. It becomes fully opaque once user scrolls past.
 const nav=document.getElementById('nav');
@@ -1331,14 +1373,14 @@ new IntersectionObserver(entries=>{
   }
 },{threshold:0.1}).observe(heroEl);
 
-// ── REVEAL OBSERVER ──
+// â”€â”€ REVEAL OBSERVER â”€â”€
 const revEls=document.querySelectorAll('.reveal');
 const revObs=new IntersectionObserver(entries=>{
   entries.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');revObs.unobserve(e.target);}});
 },{threshold:0.12});
 revEls.forEach(el=>revObs.observe(el));
 
-// ── STAT COUNTERS ──
+// â”€â”€ STAT COUNTERS â”€â”€
 const statVals=document.querySelectorAll('.stat-val[data-target]');
 const stObs=new IntersectionObserver(entries=>{
   entries.forEach(e=>{
@@ -1357,9 +1399,9 @@ const stObs=new IntersectionObserver(entries=>{
 },{threshold:0.5});
 statVals.forEach(el=>stObs.observe(el));
 
-// ══════════════════════════
-//  HERO CANVAS — tri-panel
-// ══════════════════════════
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+//  HERO CANVAS â€” tri-panel
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 (function(){
   const cv=document.getElementById('heroCanvas');
   const ctx=cv.getContext('2d');
@@ -1447,7 +1489,7 @@ statVals.forEach(el=>stObs.observe(el));
     // Label
     ctx.font=`8px 'Share Tech Mono'`;ctx.fillStyle='rgba(59,130,246,0.7)';ctx.textAlign='left';
     ctx.fillText('SLAM ENGINE',ox+8,oy+14);
-    ctx.fillStyle='rgba(59,130,246,0.4)';ctx.fillText('LIDAR • MCL • A*',ox+8,oy+24);
+    ctx.fillStyle='rgba(59,130,246,0.4)';ctx.fillText('LIDAR â€¢ MCL â€¢ A*',ox+8,oy+24);
   }
 
   function drawNEXUS(ox,oy,pw,ph){
@@ -1491,7 +1533,7 @@ statVals.forEach(el=>stObs.observe(el));
     
     ctx.font=`8px 'Share Tech Mono'`;ctx.fillStyle='rgba(155,93,229,0.7)';ctx.textAlign='left';
     ctx.fillText('NEXUS ENGINE',ox+8,oy+14);
-    ctx.fillStyle='rgba(155,93,229,0.4)';ctx.fillText('FK • IK • BOIDS',ox+8,oy+24);
+    ctx.fillStyle='rgba(155,93,229,0.4)';ctx.fillText('FK â€¢ IK â€¢ BOIDS',ox+8,oy+24);
   }
 
   function drawHIVE(ox,oy,pw,ph){
@@ -1526,7 +1568,7 @@ statVals.forEach(el=>stObs.observe(el));
     
     ctx.font=`8px 'Share Tech Mono'`;ctx.fillStyle='rgba(245,158,11,0.7)';ctx.textAlign='left';
     ctx.fillText('HIVE ENGINE',ox+8,oy+14);
-    ctx.fillStyle='rgba(245,158,11,0.4)';ctx.fillText('A* • SWARM • ISO',ox+8,oy+24);
+    ctx.fillStyle='rgba(245,158,11,0.4)';ctx.fillText('A* â€¢ SWARM â€¢ ISO',ox+8,oy+24);
   }
 
   // AERO drones
@@ -1638,7 +1680,7 @@ statVals.forEach(el=>stObs.observe(el));
     ctx.textAlign = 'left';
     ctx.fillText('AERO ENGINE', ox + 8, oy + 14);
     ctx.fillStyle = 'rgba(0, 255, 178, 0.4)';
-    ctx.fillText('APF • BOIDS • PID', ox + 8, oy + 24);
+    ctx.fillText('APF â€¢ BOIDS â€¢ PID', ox + 8, oy + 24);
   }
 
   function frame(ts){
@@ -1668,106 +1710,404 @@ statVals.forEach(el=>stObs.observe(el));
     vg.addColorStop(0,'transparent');vg.addColorStop(1,'rgba(2,5,9,0.6)');
     ctx.fillStyle=vg;ctx.fillRect(0,0,W,H);
     
-    requestAnimationFrame(frame);
+    animId = requestAnimationFrame(frame);
   }
-  requestAnimationFrame(frame);
+  
+  let animId = null;
+  const heroObs = new IntersectionObserver(entries => {
+    if (entries[0].isIntersecting) {
+      if (!animId) animId = requestAnimationFrame(frame);
+    } else {
+      if (animId) { cancelAnimationFrame(animId); animId = null; }
+    }
+  });
+  heroObs.observe(cv);
 })();
 
-// ══════════════════════════════════
-// ENGINE CARD MINI CANVASES
-// ══════════════════════════════════
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// ENGINE CARD MINI CANVASES â€” Enhanced
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+
+/* â”€â”€ SLAM ENGINE â”€â”€ */
 (function slamMini(){
-  const cv=document.getElementById('slamCanvas');
-  if(!cv)return;
-  const ctx=cv.getContext('2d'),W=cv.width,H=cv.height;
-  const rays=[];for(let i=0;i<48;i++)rays.push({a:i/48*Math.PI*2,len:30+Math.random()*50});
-  const trail=[];let t=0,bx=W/2,by=H/2;
-  const cells=new Map();
-  function frame(){
-    t+=0.016;bx=W/2+Math.sin(t*0.5)*W*0.28;by=H/2+Math.cos(t*0.4)*H*0.28;
-    ctx.fillStyle='rgba(2,4,8,0.25)';ctx.fillRect(0,0,W,H);
-    // Map cells
-    if(Math.random()<0.2){const cx=Math.floor(bx/12)*12,cy=Math.floor(by/12)*12;for(let dx=-3;dx<=3;dx++)for(let dy=-3;dy<=3;dy++)cells.set(`${cx+dx*12},${cy+dy*12}`,0.5);}
-    cells.forEach((v,k)=>{const [x,y]=k.split(',').map(Number);if(x>=0&&x<W&&y>=0&&y<H){ctx.fillStyle=`rgba(59,130,246,${v*0.18})`;ctx.fillRect(x,y,11,11);}});
-    rays.forEach(r=>{r.a+=0.005;const ex=bx+Math.cos(r.a)*r.len,ey=by+Math.sin(r.a)*r.len;if(ex<0||ex>W||ey<0||ey>H)return;ctx.beginPath();ctx.moveTo(bx,by);ctx.lineTo(ex,ey);ctx.strokeStyle='rgba(59,130,246,0.2)';ctx.lineWidth=0.8;ctx.stroke();ctx.beginPath();ctx.arc(ex,ey,1.5,0,Math.PI*2);ctx.fillStyle='rgba(59,130,246,0.8)';ctx.fill();});
-    trail.push({x:bx,y:by});if(trail.length>35)trail.shift();
-    if(trail.length>1){ctx.beginPath();ctx.moveTo(trail[0].x,trail[0].y);trail.forEach(p=>ctx.lineTo(p.x,p.y));ctx.strokeStyle='rgba(0,245,255,0.25)';ctx.lineWidth=1.5;ctx.setLineDash([3,4]);ctx.stroke();ctx.setLineDash([]);}
-    ctx.beginPath();ctx.arc(bx,by,6,0,Math.PI*2);ctx.fillStyle='#3b82f6';ctx.shadowBlur=18;ctx.shadowColor='#3b82f6';ctx.fill();ctx.shadowBlur=0;
-    requestAnimationFrame(frame);
-  }
-  frame();
-})();
+  const cv = document.getElementById('slamCanvas');
+  if (!cv) return;
+  const ctx = cv.getContext('2d');
+  cv.width = cv.offsetWidth || 400; cv.height = 180;
+  const W = cv.width, H = cv.height;
 
-(function nexusMini(){
-  const cv=document.getElementById('nexusCanvas');
-  if(!cv)return;
-  const ctx=cv.getContext('2d'),W=cv.width,H=cv.height;
-  const js=[{a:0,s:0.009,l:42},{a:0.4,s:-0.013,l:36},{a:-0.3,s:0.01,l:28},{a:0.7,s:-0.008,l:20},{a:-0.2,s:0.012,l:13},{a:0.3,s:-0.009,l:8}];
-  let t=0;
-  function frame(){t+=0.016;
-    ctx.fillStyle='rgba(3,2,9,0.3)';ctx.fillRect(0,0,W,H);
-    for(let x=0;x<W;x+=20)for(let y=0;y<H;y+=20){ctx.fillStyle='rgba(155,93,229,0.025)';ctx.fillRect(x,y,1,1);}
-    js.forEach(j=>j.a+=j.s);
-    let ax=W/2,ay=H*0.8,ca=-Math.PI/2;
-    js.forEach((j,i)=>{ca+=j.a+Math.sin(t*0.6+i)*0.25;const ex=ax+Math.cos(ca)*j.l,ey=ay+Math.sin(ca)*j.l;ctx.beginPath();ctx.moveTo(ax,ay);ctx.lineTo(ex,ey);ctx.strokeStyle=`rgba(155,93,229,${0.9-i*0.1})`;ctx.lineWidth=4.5-i*0.5;ctx.shadowBlur=10;ctx.shadowColor='#9B5DE5';ctx.stroke();ctx.shadowBlur=0;ctx.beginPath();ctx.arc(ax,ay,3.5-i*0.3,0,Math.PI*2);ctx.fillStyle='#9B5DE5';ctx.shadowBlur=14;ctx.shadowColor='#9B5DE5';ctx.fill();ctx.shadowBlur=0;ax=ex;ay=ey;});
-    ctx.beginPath();ctx.arc(ax,ay,5,0,Math.PI*2);ctx.fillStyle='#00F5FF';ctx.shadowBlur=18;ctx.shadowColor='#00F5FF';ctx.fill();ctx.shadowBlur=0;
-    requestAnimationFrame(frame);
-  }
-  frame();
-})();
+  const BLUE = '#3b82f6';
+  const CYAN = '#00f5ff';
+  let t = 0, sweep = 0;
+  const trail = [];
+  const cells = new Map();
+  const particles = [];
+  const RAY_COUNT = 64;
 
-(function hiveMini(){
-  const cv=document.getElementById('hiveCanvas');
-  if(!cv)return;
-  const ctx=cv.getContext('2d'),W=cv.width,H=cv.height;
-  const TW=22,TH=11,GC=12,GR=8;
-  const iox=W/2,ioy=H*0.18;
-  function iso(gx,gy){return{x:iox+(gx-gy)*(TW/2),y:ioy+(gx+gy)*(TH/2)};}
-  const bots=[{x:1,y:1,tx:8,ty:5,c:'#1E90FF',tr:[]},{x:10,y:1,tx:3,ty:6,c:'#00E676',tr:[]},{x:1,y:6,tx:9,ty:2,c:'#FF6B35',tr:[]},{x:9,y:6,tx:2,ty:3,c:'#B44FFF',tr:[]}];
-  function frame(){
-    ctx.fillStyle='rgba(2,5,10,0.3)';ctx.fillRect(0,0,W,H);
-    for(let x=0;x<GC;x++)for(let y=0;y<GR;y++){const s=iso(x,y),hw=TW/2,hh=TH/2;ctx.beginPath();ctx.moveTo(s.x,s.y-hh);ctx.lineTo(s.x+hw,s.y);ctx.lineTo(s.x,s.y+hh);ctx.lineTo(s.x-hw,s.y);ctx.closePath();ctx.fillStyle='rgba(15,25,12,0.6)';ctx.strokeStyle='rgba(245,158,11,0.07)';ctx.lineWidth=0.5;ctx.fill();ctx.stroke();}
-    bots.forEach(b=>{const dx=b.tx-b.x,dy=b.ty-b.y,d=Math.sqrt(dx*dx+dy*dy);if(d<0.12){b.tx=Math.floor(Math.random()*GC);b.ty=Math.floor(Math.random()*GR);}else{b.x+=dx/d*0.07;b.y+=dy/d*0.07;}const s=iso(b.x,b.y);b.tr.push({x:s.x,y:s.y});if(b.tr.length>18)b.tr.shift();if(b.tr.length>1){ctx.beginPath();ctx.moveTo(b.tr[0].x,b.tr[0].y);b.tr.forEach(p=>ctx.lineTo(p.x,p.y));ctx.strokeStyle=b.c+'55';ctx.lineWidth=1.2;ctx.setLineDash([2,3]);ctx.stroke();ctx.setLineDash([]);}ctx.beginPath();ctx.arc(s.x,s.y-3,5,0,Math.PI*2);ctx.fillStyle=b.c;ctx.shadowBlur=14;ctx.shadowColor=b.c;ctx.fill();ctx.shadowBlur=0;});
-    requestAnimationFrame(frame);
-  }
-  frame();
-})();
+  function easeInOut(x){ return x < 0.5 ? 2*x*x : 1-Math.pow(-2*x+2,2)/2; }
 
-(function aeroMini(){
-  const cv=document.getElementById('aeroCanvas');
-  if(!cv)return;
-  const ctx=cv.getContext('2d'),W=cv.width,H=cv.height;
-  const drones=[];
-  for(let i=0;i<5;i++)drones.push({x:Math.random(),y:Math.random(),vx:(Math.random()-0.5)*0.015,vy:(Math.random()-0.5)*0.015,tr:[]});
-  let t=0;
+  function botX(){ return W*0.5 + Math.sin(t*0.45)*W*0.3 + Math.cos(t*0.28)*W*0.1; }
+  function botY(){ return H*0.5 + Math.cos(t*0.37)*H*0.28 + Math.sin(t*0.21)*H*0.08; }
+
   function frame(){
-    t+=0.016;
-    ctx.fillStyle='rgba(2,6,8,0.3)';ctx.fillRect(0,0,W,H);
-    const tx=W/2+Math.cos(t*0.7)*W*0.25;
-    const ty=H/2+Math.sin(t*0.6)*H*0.25;
-    
-    ctx.beginPath();ctx.arc(tx,ty,4,0,Math.PI*2);ctx.strokeStyle='rgba(0,255,178,0.35)';ctx.stroke();
-    
-    drones.forEach((d,i)=>{
-      const dx=tx-d.x*W,dy=ty-d.y*H,dist=Math.sqrt(dx*dx+dy*dy);
-      let ax=(dx/(dist || 0.1))*0.0004;
-      let ay=(dy/(dist || 0.1))*0.0004;
-      drones.forEach((o,j)=>{
-        if(i===j)return;
-        const s_dx=(d.x-o.x)*W,s_dy=(d.y-o.y)*H,s_dist=Math.sqrt(s_dx*s_dx+s_dy*s_dy);
-        if(s_dist<12&&s_dist>0){ax+=(s_dx/s_dist)*0.0008;ay+=(s_dy/s_dist)*0.0008;}
-      });
-      d.vx+=ax;d.vy+=ay;
-      const speed=Math.sqrt(d.vx*d.vx+d.vy*d.vy);
-      if(speed>0.007){d.vx=(d.vx/speed)*0.007;d.vy=(d.vy/speed)*0.007;}
-      d.x+=d.vx;d.y+=d.vy;
-      const sx=d.x*W,sy=d.y*H;
-      const b=d;
-      b.tr.push({x:sx,y:sy});if(b.tr.length>15)b.tr.shift();
-      if(b.tr.length>1){ctx.beginPath();ctx.moveTo(b.tr[0].x,b.tr[0].y);b.tr.forEach(p=>ctx.lineTo(p.x,p.y));ctx.strokeStyle='rgba(0,255,178,0.18)';ctx.lineWidth=1;ctx.stroke();}
-      ctx.beginPath();ctx.moveTo(sx-3,sy);ctx.lineTo(sx+3,sy);ctx.moveTo(sx,sy-3);ctx.lineTo(sx,sy+3);ctx.strokeStyle='rgba(0,255,178,0.7)';ctx.lineWidth=1;ctx.stroke();
-      ctx.beginPath();ctx.arc(sx,sy,1.5,0,Math.PI*2);ctx.fillStyle='#00FFB2';ctx.fill();
+    t += 0.014; sweep += 0.025;
+    const bx = botX(), by = botY();
+
+    // Fade trail
+    ctx.fillStyle = 'rgba(2,6,14,0.18)';
+    ctx.fillRect(0,0,W,H);
+
+    // Grid cells (mapped area)
+    cells.forEach((alpha, k) => {
+      const [cx,cy] = k.split(',').map(Number);
+      if(cx < 0 || cy < 0 || cx >= W || cy >= H) return;
+      ctx.fillStyle = `rgba(59,130,246,${alpha * 0.13})`;
+      ctx.fillRect(cx, cy, 11, 11);
+      cells.set(k, alpha * 0.998); // fade
     });
+
+    // Add cells near bot
+    if(Math.random() < 0.35){
+      const gx = Math.floor(bx/12)*12, gy = Math.floor(by/12)*12;
+      for(let dx=-3;dx<=3;dx++) for(let dy=-3;dy<=3;dy++){
+        const key = `${gx+dx*12},${gy+dy*12}`;
+        cells.set(key, (cells.get(key)||0)*0.5 + 0.9);
+      }
+    }
+
+    // Rotating lidar sweep (full rays)
+    for(let i = 0; i < RAY_COUNT; i++){
+      const angle = (i / RAY_COUNT) * Math.PI * 2 + sweep;
+      const len = 28 + Math.sin(angle * 3.7 + t) * 18;
+      const ex = bx + Math.cos(angle) * len;
+      const ey = by + Math.sin(angle) * len;
+      const alpha = 0.08 + 0.12 * Math.sin(angle - sweep);
+      ctx.beginPath(); ctx.moveTo(bx, by); ctx.lineTo(ex, ey);
+      ctx.strokeStyle = `rgba(59,130,246,${alpha})`; ctx.lineWidth = 0.7; ctx.stroke();
+      // endpoint dot
+      if(ex > 0 && ex < W && ey > 0 && ey < H){
+        ctx.beginPath(); ctx.arc(ex, ey, 1.2, 0, Math.PI*2);
+        ctx.fillStyle = `rgba(59,130,246,${alpha*5})`; ctx.fill();
+      }
+    }
+
+    // Sweep arc glow
+    ctx.save();
+    ctx.translate(bx, by);
+    const grad = ctx.createConicalGradient ? null : null;
+    ctx.beginPath();
+    ctx.moveTo(0,0);
+    ctx.arc(0,0,55,sweep-0.55,sweep+0.02);
+    ctx.closePath();
+    ctx.fillStyle = 'rgba(59,130,246,0.06)';
+    ctx.fill();
+    ctx.restore();
+
+    // Motion trail of bot
+    trail.push({x:bx, y:by});
+    if(trail.length > 45) trail.shift();
+    if(trail.length > 2){
+      ctx.beginPath(); ctx.moveTo(trail[0].x, trail[0].y);
+      trail.forEach(p => ctx.lineTo(p.x, p.y));
+      ctx.strokeStyle = 'rgba(0,245,255,0.18)'; ctx.lineWidth = 1.5;
+      ctx.setLineDash([3,5]); ctx.stroke(); ctx.setLineDash([]);
+    }
+
+    // Occasional particle burst
+    if(Math.random() < 0.06){
+      for(let p=0;p<3;p++) particles.push({x:bx,y:by,vx:(Math.random()-0.5)*2.5,vy:(Math.random()-0.5)*2.5,life:1});
+    }
+    for(let i=particles.length-1;i>=0;i--){
+      const p = particles[i]; p.x+=p.vx; p.y+=p.vy; p.vx*=0.93; p.vy*=0.93; p.life-=0.035;
+      if(p.life<=0){particles.splice(i,1);continue;}
+      ctx.beginPath(); ctx.arc(p.x,p.y,1.4*p.life,0,Math.PI*2);
+      ctx.fillStyle=`rgba(0,245,255,${p.life*0.6})`; ctx.fill();
+    }
+
+    // Robot glowing dot
+    const grd = ctx.createRadialGradient(bx,by,0,bx,by,14);
+    grd.addColorStop(0, 'rgba(59,130,246,0.45)');
+    grd.addColorStop(1, 'rgba(59,130,246,0)');
+    ctx.beginPath(); ctx.arc(bx,by,14,0,Math.PI*2); ctx.fillStyle=grd; ctx.fill();
+    ctx.beginPath(); ctx.arc(bx,by,5,0,Math.PI*2);
+    ctx.fillStyle = BLUE; ctx.shadowBlur=22; ctx.shadowColor=BLUE; ctx.fill();
+    ctx.beginPath(); ctx.arc(bx,by,2.5,0,Math.PI*2);
+    ctx.fillStyle='#fff'; ctx.shadowBlur=0; ctx.fill(); ctx.shadowBlur=0;
+
+    requestAnimationFrame(frame);
+  }
+  frame();
+})();
+
+/* â”€â”€ NEXUS ENGINE â€” 6-DOF Arm â”€â”€ */
+(function nexusMini(){
+  const cv = document.getElementById('nexusCanvas');
+  if(!cv) return;
+  const ctx = cv.getContext('2d');
+  cv.width = cv.offsetWidth || 400; cv.height = 180;
+  const W = cv.width, H = cv.height;
+  const VIOLET = '#9B5DE5', CYAN = '#00F5FF';
+
+  let t = 0;
+  const particles = [];
+  // 6 joints: angle offset, speed, length
+  const joints = [
+    {a:0,   s:0.009,  l:40},
+    {a:0.4, s:-0.013, l:34},
+    {a:-0.3,s:0.010,  l:26},
+    {a:0.7, s:-0.008, l:18},
+    {a:-0.2,s:0.012,  l:12},
+    {a:0.3, s:-0.009, l:8 }
+  ];
+  const JOINT_COLORS = ['#c084fc','#a855f7','#9B5DE5','#7c3aed','#6d28d9','#5b21b6'];
+
+  function frame(){
+    t += 0.014;
+    // Dim fade
+    ctx.fillStyle = 'rgba(3,2,12,0.22)'; ctx.fillRect(0,0,W,H);
+
+    // Background dot grid
+    for(let x=0;x<W;x+=22) for(let y=0;y<H;y+=22){
+      ctx.fillStyle='rgba(155,93,229,0.04)'; ctx.fillRect(x,y,1,1);
+    }
+
+    joints.forEach(j => j.a += j.s);
+
+    // Base circle glow
+    const bx = W/2, by = H*0.82;
+    const bGrad = ctx.createRadialGradient(bx,by,0,bx,by,18);
+    bGrad.addColorStop(0,'rgba(155,93,229,0.3)');
+    bGrad.addColorStop(1,'rgba(155,93,229,0)');
+    ctx.beginPath(); ctx.arc(bx,by,18,0,Math.PI*2); ctx.fillStyle=bGrad; ctx.fill();
+    ctx.beginPath(); ctx.arc(bx,by,5,0,Math.PI*2);
+    ctx.fillStyle=VIOLET; ctx.shadowBlur=16; ctx.shadowColor=VIOLET; ctx.fill(); ctx.shadowBlur=0;
+
+    // Draw arm segments
+    let ax = bx, ay = by, ca = -Math.PI/2;
+    const pts = [{x:ax,y:ay}];
+    joints.forEach((j,i) => {
+      ca += j.a + Math.sin(t*0.55 + i*0.8)*0.3;
+      const ex = ax + Math.cos(ca)*j.l;
+      const ey = ay + Math.sin(ca)*j.l;
+      const alpha = 1 - i*0.08;
+      const lw = 5 - i*0.55;
+      ctx.beginPath(); ctx.moveTo(ax,ay); ctx.lineTo(ex,ey);
+      ctx.strokeStyle = JOINT_COLORS[i];
+      ctx.lineWidth = lw; ctx.shadowBlur=12; ctx.shadowColor=JOINT_COLORS[i];
+      ctx.stroke(); ctx.shadowBlur=0;
+      pts.push({x:ex,y:ey});
+      ax=ex; ay=ey;
+    });
+
+    // Joint dots
+    pts.forEach((p,i) => {
+      const r = 4.5 - i*0.5;
+      ctx.beginPath(); ctx.arc(p.x,p.y,Math.max(r,1.5),0,Math.PI*2);
+      ctx.fillStyle=i<pts.length-1 ? VIOLET : CYAN;
+      ctx.shadowBlur=14; ctx.shadowColor=i<pts.length-1?VIOLET:CYAN; ctx.fill(); ctx.shadowBlur=0;
+    });
+
+    // End-effector plasma particles
+    if(Math.random()<0.12){
+      for(let k=0;k<4;k++) particles.push({x:ax,y:ay,vx:(Math.random()-0.5)*3,vy:(Math.random()-0.5)*3,life:1,cyan:Math.random()<0.5});
+    }
+    for(let i=particles.length-1;i>=0;i--){
+      const p=particles[i]; p.x+=p.vx; p.y+=p.vy; p.vx*=0.9; p.vy*=0.9; p.life-=0.04;
+      if(p.life<=0){particles.splice(i,1);continue;}
+      const col = p.cyan ? `rgba(0,245,255,${p.life*0.8})` : `rgba(196,132,252,${p.life*0.7})`;
+      ctx.beginPath(); ctx.arc(p.x,p.y,2*p.life,0,Math.PI*2); ctx.fillStyle=col; ctx.fill();
+    }
+
+    requestAnimationFrame(frame);
+  }
+  frame();
+})();
+
+/* â”€â”€ HIVE ENGINE â€” Swarm Bots â”€â”€ */
+(function hiveMini(){
+  const cv = document.getElementById('hiveCanvas');
+  if(!cv) return;
+  const ctx = cv.getContext('2d');
+  cv.width = cv.offsetWidth || 400; cv.height = 180;
+  const W = cv.width, H = cv.height;
+  const AMBER = '#f59e0b';
+  const TW=24, TH=12, GC=13, GR=9;
+  const iox = W/2, ioy = H*0.14;
+  function iso(gx,gy){ return {x: iox+(gx-gy)*(TW/2), y: ioy+(gx+gy)*(TH/2)}; }
+
+  const bots = [
+    {x:1, y:1, tx:9, ty:5, c:'#1E90FF', tr:[], pulse:0},
+    {x:11,y:1, tx:3, ty:6, c:'#00E676', tr:[], pulse:0.5},
+    {x:1, y:7, tx:10,ty:2, c:'#FF6B35', tr:[], pulse:1.0},
+    {x:10,y:7, tx:2, ty:3, c:'#B44FFF', tr:[], pulse:1.5}
+  ];
+  let t = 0, shimmer = 0;
+  // Grid brightness map
+  const gmap = Array.from({length:GC}, ()=>Array(GR).fill(0));
+
+  function frame(){
+    t+=0.016; shimmer+=0.03;
+    ctx.fillStyle='rgba(2,6,12,0.22)'; ctx.fillRect(0,0,W,H);
+
+    // Draw isometric grid with shimmer
+    for(let x=0;x<GC;x++) for(let y=0;y<GR;y++){
+      const s=iso(x,y), hw=TW/2, hh=TH/2;
+      const gv = gmap[x][y];
+      gmap[x][y] *= 0.97; // decay
+      const bright = gv + 0.025 * (0.5+0.5*Math.sin(shimmer+(x+y)*0.4));
+      ctx.beginPath();
+      ctx.moveTo(s.x, s.y-hh); ctx.lineTo(s.x+hw, s.y);
+      ctx.lineTo(s.x, s.y+hh); ctx.lineTo(s.x-hw, s.y);
+      ctx.closePath();
+      ctx.fillStyle=`rgba(10,22,10,${0.6+gv*0.3})`;
+      ctx.strokeStyle=`rgba(245,158,11,${0.06+bright*0.3})`;
+      ctx.lineWidth=0.6; ctx.fill(); ctx.stroke();
+    }
+
+    // Update bots
+    bots.forEach(b => {
+      b.pulse += 0.07;
+      const dx=b.tx-b.x, dy=b.ty-b.y, d=Math.sqrt(dx*dx+dy*dy);
+      if(d < 0.15){
+        b.tx=Math.floor(Math.random()*(GC-2))+1;
+        b.ty=Math.floor(Math.random()*(GR-2))+1;
+      } else {
+        b.x += dx/d*0.065; b.y += dy/d*0.065;
+      }
+      const s = iso(b.x, b.y);
+      // Light up nearby grid cells
+      const gx=Math.round(b.x), gy=Math.round(b.y);
+      for(let dx2=-1;dx2<=1;dx2++) for(let dy2=-1;dy2<=1;dy2++){
+        const nx=gx+dx2, ny=gy+dy2;
+        if(nx>=0&&nx<GC&&ny>=0&&ny<GR) gmap[nx][ny]=Math.min(gmap[nx][ny]+0.4,1);
+      }
+      // Trail
+      b.tr.push({x:s.x,y:s.y});
+      if(b.tr.length>22) b.tr.shift();
+      if(b.tr.length>2){
+        ctx.beginPath(); ctx.moveTo(b.tr[0].x,b.tr[0].y);
+        b.tr.forEach(p=>ctx.lineTo(p.x,p.y));
+        ctx.strokeStyle=b.c+'44'; ctx.lineWidth=1.4;
+        ctx.setLineDash([2,4]); ctx.stroke(); ctx.setLineDash([]);
+      }
+      // Bot body â€” elevated dot
+      const pulsed = 5 + 1.5*Math.sin(b.pulse);
+      const bGrad = ctx.createRadialGradient(s.x,s.y-4,0,s.x,s.y-4,pulsed+5);
+      bGrad.addColorStop(0, b.c+'aa'); bGrad.addColorStop(1, b.c+'00');
+      ctx.beginPath(); ctx.arc(s.x,s.y-4,pulsed+5,0,Math.PI*2); ctx.fillStyle=bGrad; ctx.fill();
+      ctx.beginPath(); ctx.arc(s.x,s.y-4,pulsed,0,Math.PI*2);
+      ctx.fillStyle=b.c; ctx.shadowBlur=16; ctx.shadowColor=b.c; ctx.fill(); ctx.shadowBlur=0;
+    });
+
+    requestAnimationFrame(frame);
+  }
+  frame();
+})();
+
+/* â”€â”€ AERO ENGINE â€” Drone Swarm â”€â”€ */
+(function aeroMini(){
+  const cv = document.getElementById('aeroCanvas');
+  if(!cv) return;
+  const ctx = cv.getContext('2d');
+  cv.width = cv.offsetWidth || 400; cv.height = 180;
+  const W = cv.width, H = cv.height;
+  const MINT = '#00FFB2';
+
+  let t = 0;
+  const drones = [];
+  const stars = [];
+  const N = 7;
+
+  for(let i=0;i<N;i++) drones.push({
+    x: 0.3+Math.random()*0.4, y: 0.3+Math.random()*0.4,
+    vx: (Math.random()-0.5)*0.008, vy: (Math.random()-0.5)*0.008,
+    tr: [], pulse: Math.random()*Math.PI*2
+  });
+  for(let i=0;i<30;i++) stars.push({
+    x:Math.random()*W, y:Math.random()*H,
+    r:Math.random()*0.8+0.2, a:Math.random()
+  });
+
+  function frame(){
+    t+=0.014;
+    ctx.fillStyle='rgba(2,7,10,0.2)'; ctx.fillRect(0,0,W,H);
+
+    // Subtle star field
+    stars.forEach(s => {
+      s.a = 0.3 + 0.3*Math.sin(t*0.8+s.x);
+      ctx.beginPath(); ctx.arc(s.x,s.y,s.r,0,Math.PI*2);
+      ctx.fillStyle=`rgba(0,255,178,${s.a*0.25})`; ctx.fill();
+    });
+
+    // Moving leader target
+    const lx = W*0.5 + Math.cos(t*0.55)*W*0.3;
+    const ly = H*0.5 + Math.sin(t*0.42)*H*0.28;
+
+    // Target ring (pulsing)
+    const rp = 0.5+0.5*Math.sin(t*2.5);
+    ctx.beginPath(); ctx.arc(lx,ly,8+rp*4,0,Math.PI*2);
+    ctx.strokeStyle=`rgba(0,255,178,${0.2+rp*0.25})`; ctx.lineWidth=1; ctx.stroke();
+    ctx.beginPath(); ctx.arc(lx,ly,3,0,Math.PI*2);
+    ctx.fillStyle=`rgba(0,255,178,0.6)`; ctx.fill();
+
+    // Boids physics
+    drones.forEach((d,i) => {
+      d.pulse += 0.06;
+      const dx=lx-d.x*W, dy=ly-d.y*H, dist=Math.sqrt(dx*dx+dy*dy);
+      let ax=(dx/(dist||1))*0.00045, ay=(dy/(dist||1))*0.00045;
+      drones.forEach((o,j)=>{
+        if(i===j) return;
+        const sx=(d.x-o.x)*W, sy=(d.y-o.y)*H, sd=Math.sqrt(sx*sx+sy*sy);
+        if(sd<14&&sd>0){ax+=(sx/sd)*0.0009;ay+=(sy/sd)*0.0009;}
+        // mild cohesion
+        if(sd<60&&sd>14){ax-=(sx/sd)*0.00018;ay-=(sy/sd)*0.00018;}
+      });
+      d.vx+=ax; d.vy+=ay;
+      const spd=Math.sqrt(d.vx*d.vx+d.vy*d.vy);
+      if(spd>0.008){d.vx=(d.vx/spd)*0.008;d.vy=(d.vy/spd)*0.008;}
+      d.x+=d.vx; d.y+=d.vy;
+      d.x=Math.max(0.01,Math.min(0.99,d.x));
+      d.y=Math.max(0.01,Math.min(0.99,d.y));
+      const sx=d.x*W, sy=d.y*H;
+
+      // Trail
+      d.tr.push({x:sx,y:sy});
+      if(d.tr.length>20) d.tr.shift();
+      if(d.tr.length>2){
+        ctx.beginPath(); ctx.moveTo(d.tr[0].x,d.tr[0].y);
+        d.tr.forEach(p=>ctx.lineTo(p.x,p.y));
+        ctx.strokeStyle='rgba(0,255,178,0.14)'; ctx.lineWidth=1.1; ctx.stroke();
+      }
+
+      // Inter-drone connection lines
+      drones.forEach((o,j)=>{
+        if(j<=i) return;
+        const ox2=o.x*W,oy2=o.y*H, dd=Math.sqrt((sx-ox2)**2+(sy-oy2)**2);
+        if(dd<55){
+          ctx.beginPath(); ctx.moveTo(sx,sy); ctx.lineTo(ox2,oy2);
+          ctx.strokeStyle=`rgba(0,255,178,${0.08*(1-dd/55)})`; ctx.lineWidth=0.7; ctx.stroke();
+        }
+      });
+
+      // Drone body â€” crosshair + glow
+      const ps = 0.5+0.5*Math.sin(d.pulse);
+      const rng = ctx.createRadialGradient(sx,sy,0,sx,sy,10);
+      rng.addColorStop(0,`rgba(0,255,178,${0.35*ps})`);
+      rng.addColorStop(1,'rgba(0,255,178,0)');
+      ctx.beginPath(); ctx.arc(sx,sy,10,0,Math.PI*2); ctx.fillStyle=rng; ctx.fill();
+
+      // Cross arms
+      const arm=3.5+0.8*ps;
+      ctx.beginPath();
+      ctx.moveTo(sx-arm,sy); ctx.lineTo(sx+arm,sy);
+      ctx.moveTo(sx,sy-arm); ctx.lineTo(sx,sy+arm);
+      ctx.strokeStyle=`rgba(0,255,178,${0.65+0.35*ps})`; ctx.lineWidth=1.2;
+      ctx.shadowBlur=8; ctx.shadowColor=MINT; ctx.stroke(); ctx.shadowBlur=0;
+
+      ctx.beginPath(); ctx.arc(sx,sy,1.8,0,Math.PI*2);
+      ctx.fillStyle=MINT; ctx.shadowBlur=10; ctx.shadowColor=MINT; ctx.fill(); ctx.shadowBlur=0;
+    });
+
     requestAnimationFrame(frame);
   }
   frame();

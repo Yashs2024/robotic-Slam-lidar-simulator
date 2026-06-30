@@ -176,10 +176,10 @@ footer{padding:16px 80px;border-top:1px solid var(--border);display:flex;align-i
 </style>
 </head>
 <script>
-// ── ROBOAI AUTH GUARD ──
+// ── VECTRASIM AUTH GUARD ──
 (function(){
   try {
-    var s = JSON.parse(localStorage.getItem('roboai_session'));
+    var s = JSON.parse(localStorage.getItem('vectrasim_session'));
     if (!s || !s.email || !s.id) { window.location.replace('../index.html?r=slam_landing'); }
   } catch(e) { window.location.replace('../index.html?r=slam_landing'); }
 })();

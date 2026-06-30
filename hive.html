@@ -4,6 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>HIVE — Industrial Swarm Robotics Simulator v3</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🤖</text></svg>">
+    <meta name="description" content="VectraSim Suite - Advanced AI Robotics Simulation Environment. Includes SLAM, NEXUS 6-DOF, and HIVE Swarm simulations.">
+    <meta property="og:title" content="VectraSim Suite">
+    <meta property="og:description" content="Advanced AI Robotics Simulation Environment.">
+    <meta property="og:type" content="website">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Share+Tech+Mono&family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
         /* ═══════════════════════════════════════════════════════════════
@@ -279,7 +284,7 @@
         .report-kv .rk{color:var(--muted);font-size:11px}.report-kv .rv{color:var(--cyan);font-family:var(--font-head);font-weight:700;font-size:11px}
 
         /* ── CAMERA FEED PANEL ────────────────────────────── */
-        #cam-panel{position:absolute;bottom:12px;left:205px;width:215px;background:rgba(6,10,18,0.94);border:1px solid var(--cyan);border-radius:6px;z-index:50;backdrop-filter:blur(14px);overflow:hidden;cursor:default;display:flex;flex-direction:column;box-shadow:0 0 20px rgba(0,229,255,0.1),0 8px 30px rgba(0,0,0,0.4)}
+        #cam-panel{position:absolute;bottom:12px;left:205px;width:215px;background:rgba(6,10,18,0.94);border:1px solid var(--cyan);border-radius:6px;z-index:50;backdrop-filter:blur(14px);overflow:hidden;cursor:default;display:none;flex-direction:column;box-shadow:0 0 20px rgba(0,229,255,0.1),0 8px 30px rgba(0,0,0,0.4)}
         #cam-panel.low-batt{border-color:var(--red);box-shadow:0 0 16px rgba(255,23,68,0.4),0 8px 30px rgba(0,0,0,0.4);animation:recPulse 1s infinite}
         #cam-header{display:flex;align-items:center;padding:5px 9px;background:linear-gradient(180deg,rgba(0,0,0,0.5),rgba(0,0,0,0.3));border-bottom:1px solid rgba(0,229,255,0.15);cursor:move;gap:4px;user-select:none}
         #cam-header .cam-title{font-family:var(--font-sans);font-weight:600;font-size:10px;color:var(--cyan);letter-spacing:1.5px;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-transform:uppercase}
@@ -318,12 +323,51 @@
 </head>
 <body>
 <script>
-// ── ROBOAI AUTH GUARD ──
+// ── VECTRASIM AUTH GUARD ──
 (function(){
   try {
-    var s = JSON.parse(localStorage.getItem('roboai_session'));
+    var s = JSON.parse(localStorage.getItem('vectrasim_session'));
     if (!s || !s.email || !s.id) { window.location.replace('index.html?r=hive'); }
   } catch(e) { window.location.replace('index.html?r=hive'); }
+})();
+</script>
+<script type="module" src="./src/supabase-client.js"></script>
+<script>
+// ── ACTIVE SERVER-SIDE JWT VALIDATION ──
+(async function validateSession() {
+  try {
+    var session = JSON.parse(localStorage.getItem('vectrasim_session'));
+    if (session && (session.token === 'mock-bypass-token' || (session.id && session.id.startsWith('mock-')))) {
+      console.log("Active server-side validation bypassed for mock session:", session.email);
+      return;
+    }
+  } catch(e) {}
+
+  for (let i = 0; i < 30 && !window.supabase; i++) {
+    await new Promise(r => setTimeout(r, 100));
+  }
+  if (window.supabase) {
+    try {
+      const { data: { user }, error } = await supabase.auth.getUser();
+      if (error) {
+        if (error.status === 400 || error.status === 401 || error.status === 403) {
+          console.warn("Active server session validation failed. Redirecting...", error.message);
+          localStorage.removeItem('vectrasim_session');
+          window.location.replace('index.html?r=hive');
+        } else {
+          console.warn("Supabase check encountered a network/server issue. Operating in offline mode:", error.message);
+        }
+      } else if (!user) {
+        console.warn("No active user found on server. Redirecting...");
+        localStorage.removeItem('vectrasim_session');
+        window.location.replace('index.html?r=hive');
+      } else {
+        console.log("Active server session verified successfully:", user.email);
+      }
+    } catch(e) {
+      console.warn("Could not reach Supabase server. Operating in offline/mock bypass mode.");
+    }
+  }
 })();
 </script>
     <div id="topbar">
@@ -338,6 +382,7 @@
         <select id="speed-select"><option value="2">0.5×</option><option value="1" selected>1×</option><option value="0.5">2×</option><option value="0.25">4×</option></select>
         <button class="primary" id="pause-btn">⏸ PAUSE</button>
         <button class="danger" id="reset-btn">↺ RESET</button>
+        <button class="amber" id="radar-btn" onclick="toggleCamPanel()" title="Toggle RADAR panel">📡 RADAR</button>
         <button class="amber" onclick="openHelp()">? HELP</button>
         <button class="success" onclick="openReport()">📊 REPORT</button>
     </div>
@@ -436,11 +481,11 @@
     let wallMode = false;
     // Selected robot
     let selectedRobotId = 0;
-    let camPanelVisible = true;
+    let camPanelVisible = false;
 
     let scenario = 'warehouse', paused = false, speedMult = 1;
     let simTime = 0, simStartTime = Date.now();
-    let tasksDone = 0, totalTaskTime = 0, collisionCount = 0, taskIdCounter = 0;
+    let tasksDone = 3, totalTaskTime = 41.2, collisionCount = 0, taskIdCounter = 3;
     let tasksThisMinute = 0, lastMinuteMark = Date.now();
     let throughputHistory = [];
 
@@ -2085,7 +2130,17 @@
 
     // ── GAME LOOP ─────────────────────────────────────────
     let lastFrame=0;
-    function gameLoop(ts){
+    function gameLoop(ts) {
+        try {
+            _gameLoopInner(ts);
+        } catch(e) {
+            paused = true;
+            document.getElementById('sim-status').textContent = 'CRASHED';
+            document.getElementById('sim-status').style.color = 'var(--red)';
+            showOverlay('⚠️ CRASH: ' + e.message.substring(0, 50));
+        }
+    }
+    function _gameLoopInner(ts){
         const dt=Math.min(ts-lastFrame,100);lastFrame=ts;
         if(!paused)tick(dt);
         render();

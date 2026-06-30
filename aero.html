@@ -3,11 +3,12 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>AERO | RoboAI Suite</title>
+  <title>AERO | VectraSim Suite</title>
   <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=Share+Tech+Mono&family=Rajdhani:wght@400;600;700&family=JetBrains+Mono:wght@300;400;500;700&display=swap" rel="stylesheet">
   
   <!-- Inline SVG Drone Favicon -->
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjMDBkNGZmIiBzdHJva2Utd2lkdGg9IjIiPjxwYXRoIGQ9Ik0zIDlsNi02bTYgNm0tNi02djEyTTMgMTVsNiA2bTYtNiIvPjxjaXJjbGUgY3g9IjEyIiBjeT0iMTIiIHI9IjMiLz48L3N2Zz4=">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
 
   <style>
     /* ── SYSTEM VARIABLES (Cyberpunk Dark Mode) ── */
@@ -504,26 +505,52 @@
     .log-line.err { color: var(--red); }
     .log-line.success { color: var(--green); }
 
-    /* Selected Inspector */
+    /* Selected Inspector Upgrade */
     #inspector-details {
       display: flex;
       flex-direction: column;
-      gap: 6px;
-      font-family: var(--font-code);
+      gap: 8px;
+      font-family: var(--font-mono);
       font-size: 11px;
+      background: rgba(0, 0, 0, 0.25);
+      border: 1px solid rgba(0, 212, 255, 0.05);
+      padding: 12px;
+      border-radius: 6px;
+      margin-top: 4px;
     }
 
     .inspector-row {
       display: flex;
       justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px dashed rgba(255, 255, 255, 0.03);
+      padding-bottom: 4px;
+    }
+    
+    .inspector-row:last-child {
+      border-bottom: none;
+      padding-bottom: 0;
     }
 
     .inspector-lbl {
       color: var(--grey);
+      text-transform: uppercase;
+      font-size: 9.5px;
+      letter-spacing: 0.5px;
     }
 
     .inspector-val {
-      color: var(--text);
+      color: var(--cyan);
+      font-weight: 700;
+      text-shadow: 0 0 3px rgba(0, 212, 255, 0.2);
+    }
+
+    #inspector-battery-bar {
+      height: 6px !important;
+      border: 1px solid rgba(255, 255, 255, 0.05) !important;
+      background: rgba(0,0,0,0.4) !important;
+      box-shadow: inset 0 1px 3px rgba(0,0,0,0.6);
+      margin-top: 4px;
     }
 
     /* ── BASE STATION CHARGING QUEUE DISPLAY ── */
@@ -565,13 +592,202 @@
       from { border-color: rgba(0, 212, 255, 0.4); }
       to { border-color: rgba(0, 212, 255, 1); box-shadow: 0 0 10px rgba(0, 212, 255, 0.5); }
     }
+
+    /* ── HIGH-FIDELITY GLASS PANEL UPGRADES ── */
+    .panel {
+      background: linear-gradient(135deg, rgba(10, 10, 18, 0.92) 0%, rgba(5, 5, 8, 0.97) 100%);
+      backdrop-filter: blur(20px);
+      box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.4);
+      border: 1px solid rgba(0, 212, 255, 0.08);
+    }
+
+    /* ── SWARM TELEMETRY DASHBOARD GRID ── */
+    .telemetry-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+    .tel-card {
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid rgba(0, 212, 255, 0.06);
+      border-radius: 6px;
+      padding: 10px;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      overflow: hidden;
+      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .tel-card::before {
+      content: "";
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 2px;
+      background: linear-gradient(90deg, transparent, var(--cyan), transparent);
+      opacity: 0.3;
+    }
+    .tel-card:hover {
+      background: rgba(0, 212, 255, 0.03);
+      border-color: rgba(0, 212, 255, 0.2);
+      box-shadow: 0 0 10px rgba(0, 212, 255, 0.1);
+      transform: translateY(-1px);
+    }
+    .tel-card-label {
+      font-family: var(--font-mono);
+      font-size: 9.5px;
+      color: var(--grey);
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+    .tel-card-val {
+      font-family: var(--font-display);
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--cyan);
+      margin-top: 4px;
+      text-shadow: 0 0 5px rgba(0, 212, 255, 0.3);
+    }
+    .tel-card-bar {
+      width: 100%;
+      height: 3px;
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 2px;
+      margin-top: 6px;
+      overflow: hidden;
+    }
+    .tel-card-fill {
+      height: 100%;
+      background: var(--cyan);
+      width: 0%;
+      transition: width 0.3s ease;
+    }
+
+    /* Card color variations */
+    .tel-card.orange { border-color: rgba(255, 107, 53, 0.08); }
+    .tel-card.orange::before { background: linear-gradient(90deg, transparent, var(--orange), transparent); }
+    .tel-card.orange:hover { border-color: rgba(255, 107, 53, 0.2); background: rgba(255, 107, 53, 0.02); box-shadow: 0 0 10px rgba(255, 107, 53, 0.1); }
+    .tel-card.orange .tel-card-val { color: var(--orange); text-shadow: 0 0 5px rgba(255, 107, 53, 0.3); }
+    .tel-card.orange .tel-card-fill { background: var(--orange); }
+
+    .tel-card.purple { border-color: rgba(124, 58, 237, 0.08); }
+    .tel-card.purple::before { background: linear-gradient(90deg, transparent, var(--purple), transparent); }
+    .tel-card.purple:hover { border-color: rgba(124, 58, 237, 0.2); background: rgba(124, 58, 237, 0.02); box-shadow: 0 0 10px rgba(124, 58, 237, 0.1); }
+    .tel-card.purple .tel-card-val { color: var(--purple); text-shadow: 0 0 5px rgba(124, 58, 237, 0.3); }
+    .tel-card.purple .tel-card-fill { background: var(--purple); }
+
+    .tel-card.red { border-color: rgba(239, 68, 68, 0.08); }
+    .tel-card.red::before { background: linear-gradient(90deg, transparent, var(--red), transparent); }
+    .tel-card.red:hover { border-color: rgba(239, 68, 68, 0.2); background: rgba(239, 68, 68, 0.02); box-shadow: 0 0 10px rgba(239, 68, 68, 0.1); }
+    .tel-card.red .tel-card-val { color: var(--red); text-shadow: 0 0 5px rgba(239, 68, 68, 0.3); }
+    .tel-card.red .tel-card-fill { background: var(--red); }
+    .tel-card.red.pulse { animation: card-alert-pulse 1s infinite alternate; }
+
+    @keyframes card-alert-pulse {
+      from { border-color: rgba(239, 68, 68, 0.15); box-shadow: 0 0 4px rgba(239, 68, 68, 0.1); }
+      to { border-color: rgba(239, 68, 68, 0.5); box-shadow: 0 0 12px rgba(239, 68, 68, 0.3); background: rgba(239, 68, 68, 0.03); }
+    }
+
+    /* ── RANGE SLIDER UPGRADES ── */
+    input[type="range"] {
+      height: 5px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.02);
+      border-radius: 4px;
+    }
+    input[type="range"]::-webkit-slider-thumb {
+      width: 14px;
+      height: 14px;
+      background: var(--cyan);
+      box-shadow: 0 0 8px var(--cyan);
+      border: 2px solid #ffffff;
+      border-radius: 50%;
+      transition: all 0.2s;
+    }
+    input[type="range"]::-webkit-slider-thumb:hover {
+      transform: scale(1.25);
+      box-shadow: 0 0 12px var(--cyan), 0 0 20px rgba(0, 212, 255, 0.8);
+    }
+
+    /* ── CANVAS HUD OVERLAY WIDGET ── */
+    .canvas-hud-overlay {
+      position: absolute;
+      bottom: 12px;
+      right: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      z-index: 100;
+      background: rgba(5, 5, 8, 0.85);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(0, 212, 255, 0.18);
+      border-radius: 6px;
+      padding: 6px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+      pointer-events: auto;
+    }
+    .hud-btn {
+      width: 28px;
+      height: 28px;
+      background: rgba(0, 0, 0, 0.4);
+      border: 1px solid rgba(0, 212, 255, 0.1);
+      color: var(--text-muted);
+      border-radius: 4px;
+      font-family: var(--font-mono);
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+      outline: none;
+    }
+    .hud-btn:hover {
+      border-color: var(--cyan);
+      color: var(--cyan);
+      background: rgba(0, 212, 255, 0.1);
+      box-shadow: 0 0 8px rgba(0, 212, 255, 0.4);
+    }
+    .hud-btn.active {
+      border-color: var(--cyan);
+      color: var(--cyan);
+      background: rgba(0, 212, 255, 0.15);
+      text-shadow: var(--cyan-glow);
+    }
+
+    /* System pulse state indicator */
+    .status-indicator {
+      display: inline-block;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--green);
+      box-shadow: 0 0 8px var(--green);
+      margin-left: 6px;
+      vertical-align: middle;
+      animation: indicator-pulse 1.5s infinite alternate;
+    }
+    .status-indicator.paused {
+      background: var(--orange);
+      box-shadow: 0 0 8px var(--orange);
+    }
+    .status-indicator.fault {
+      background: var(--red);
+      box-shadow: 0 0 8px var(--red);
+    }
+    @keyframes indicator-pulse {
+      from { opacity: 0.4; }
+      to { opacity: 1.0; }
+    }
   </style>
+  <script type="module" src="./src/supabase-client.js"></script>
 </head>
 <body>
 
   <!-- TOP NAV BAR -->
   <nav id="nav">
-    <a href="./index.html" class="nav-logo">ROBOAI SUITE</a>
+    <a href="./index.html" class="nav-logo">VECTRASIM SUITE</a>
     <div class="nav-sep"></div>
     <div class="nav-links">
       <a href="slam.html">SLAM</a>
@@ -604,6 +820,21 @@
           <div class="control-row">
             <div class="control-label">Neighbor Radius <span class="control-val" id="valRadius">120px</span></div>
             <input type="range" id="sliderRadius" min="50" max="200" step="5" value="120">
+          </div>
+        </div>
+
+        <!-- ALTITUDE CONTROL -->
+        <div>
+          <div class="panel-header-title">Altitude Control</div>
+          <div class="panel-header-line"></div>
+          <div class="control-row" style="flex-direction: row; gap: 8px; margin-bottom: 8px;">
+            <button class="btn btn-cyan" id="btnTakeoff" style="flex: 1; font-size: 10px; padding: 8px 4px;">🛫 TAKEOFF</button>
+            <button class="btn btn-danger" id="btnLand" style="flex: 1; font-size: 10px; padding: 8px 4px;">🛬 LAND</button>
+            <button class="btn btn-amber" id="btnHover" style="flex: 1; font-size: 10px; padding: 8px 4px;">⚓ HOVER</button>
+          </div>
+          <div class="control-row">
+            <div class="control-label">Hover Altitude <span class="control-val" id="valHoverAlt">50m</span></div>
+            <input type="range" id="sliderHoverAlt" min="10" max="100" step="5" value="50">
           </div>
         </div>
 
@@ -646,6 +877,28 @@
           </div>
         </div>
 
+        <!-- PID SWARM TUNER -->
+        <div>
+          <div class="panel-header-title">PID Swarm Tuner</div>
+          <div class="panel-header-line"></div>
+          <div class="control-row">
+            <div class="control-label">Position Kp <span class="control-val" id="valKpPos">0.22</span></div>
+            <input type="range" id="sliderKpPos" min="0.05" max="0.80" step="0.01" value="0.22">
+          </div>
+          <div class="control-row">
+            <div class="control-label">Position Kd <span class="control-val" id="valKdPos">0.35</span></div>
+            <input type="range" id="sliderKdPos" min="0.05" max="0.80" step="0.01" value="0.35">
+          </div>
+          <div class="control-row">
+            <div class="control-label">Velocity Kp <span class="control-val" id="valKpVel">0.75</span></div>
+            <input type="range" id="sliderKpVel" min="0.10" max="1.50" step="0.05" value="0.75">
+          </div>
+          <div class="control-row">
+            <div class="control-label">Velocity Kd <span class="control-val" id="valKdVel">0.18</span></div>
+            <input type="range" id="sliderKdVel" min="0.05" max="0.80" step="0.01" value="0.18">
+          </div>
+        </div>
+
         <!-- FORMATIONS -->
         <div>
           <div class="panel-header-title">Formation Mode</div>
@@ -656,6 +909,13 @@
               <option value="V-FORMATION">📐 V-FORMATION</option>
               <option value="GRID">⬜ GRID LAYOUT</option>
               <option value="RING">🌀 CIRCULAR RING</option>
+            </select>
+          </div>
+          <div class="control-row">
+            <div class="control-label">Waypoint Mode</div>
+            <select id="waypointModeSelect">
+              <option value="SINGLE">🎯 SINGLE TARGET</option>
+              <option value="SEQUENTIAL">🔁 PATROL LOOP</option>
             </select>
           </div>
           <button class="btn btn-cyan" id="btnApplyFormation" style="width:100%;">APPLY FORMATION</button>
@@ -743,6 +1003,14 @@
         <div class="frame-corner bl"></div>
         <div class="frame-corner br"></div>
         <canvas id="aeroCanvas" width="800" height="600"></canvas>
+        
+        <!-- Floating Canvas HUD Controls Overlay -->
+        <div class="canvas-hud-overlay">
+          <button class="hud-btn" id="hudBtnZoomIn" title="Zoom In">+</button>
+          <button class="hud-btn" id="hudBtnZoomOut" title="Zoom Out">−</button>
+          <button class="hud-btn" id="hudBtnResetView" title="Reset View">⌖</button>
+          <button class="hud-btn active" id="hudBtnToggleGrid" title="Toggle Grid">▦</button>
+        </div>
       </div>
 
       <!-- Controls Toolbar below Canvas -->
@@ -770,16 +1038,43 @@
         
         <!-- SWARM TELEMETRY -->
         <div>
-          <div class="panel-header-title">Swarm Telemetry</div>
+          <div class="panel-header-title">Swarm Telemetry <span class="status-indicator" id="simStatusLight"></span></div>
           <div class="panel-header-line"></div>
           
-          <div class="telemetry-row"><span class="telemetry-label">Avg Battery</span><span class="telemetry-val" id="telAvgBatt">0%</span></div>
-          <div class="telemetry-row"><span class="telemetry-label">Min Battery</span><span class="telemetry-val" id="telMinBatt">0%</span></div>
-          <div class="telemetry-row"><span class="telemetry-label">On Mission</span><span class="telemetry-val" id="telMissionCount">0</span></div>
-          <div class="telemetry-row"><span class="telemetry-label">Returning (RTB)</span><span class="telemetry-val" id="telRtbCount">0</span></div>
-          <div class="telemetry-row"><span class="telemetry-label">Fault / Collision</span><span class="telemetry-val" id="telFaultCount">0</span></div>
-          <div class="telemetry-row"><span class="telemetry-label">Cohesion Index</span><span class="telemetry-val" id="telCohesion">0px</span></div>
-          <div class="telemetry-row"><span class="telemetry-label">Swarm Centroid</span><span class="telemetry-val" id="telCentroid">0, 0</span></div>
+          <div class="telemetry-grid">
+            <div class="tel-card">
+              <span class="tel-card-label">AVG BATTERY</span>
+              <span class="tel-card-val" id="telAvgBatt">0%</span>
+              <div class="tel-card-bar"><div class="tel-card-fill" id="telAvgBattFill" style="width: 0%;"></div></div>
+            </div>
+            <div class="tel-card">
+              <span class="tel-card-label">MIN BATTERY</span>
+              <span class="tel-card-val" id="telMinBatt">0%</span>
+              <div class="tel-card-bar"><div class="tel-card-fill" id="telMinBattFill" style="width: 0%;"></div></div>
+            </div>
+            <div class="tel-card orange">
+              <span class="tel-card-label">ON MISSION</span>
+              <span class="tel-card-val" id="telMissionCount">0</span>
+              <div class="tel-card-bar"><div class="tel-card-fill" id="telMissionFill" style="width: 0%;"></div></div>
+            </div>
+            <div class="tel-card purple">
+              <span class="tel-card-label">RETURN (RTB)</span>
+              <span class="tel-card-val" id="telRtbCount">0</span>
+              <div class="tel-card-bar"><div class="tel-card-fill" id="telRtbFill" style="width: 0%;"></div></div>
+            </div>
+            <div class="tel-card red" id="telFaultCard">
+              <span class="tel-card-label">FAULT STRIKES</span>
+              <span class="tel-card-val" id="telFaultCount">0</span>
+              <div class="tel-card-bar"><div class="tel-card-fill" id="telFaultFill" style="width: 0%;"></div></div>
+            </div>
+            <div class="tel-card">
+              <span class="tel-card-label">COHESION</span>
+              <span class="tel-card-val" id="telCohesion">0px</span>
+              <div class="tel-card-bar"><div class="tel-card-fill" id="telCohesionFill" style="width: 0%;"></div></div>
+            </div>
+          </div>
+          
+          <div class="telemetry-row" style="border-top: 1px solid rgba(255,255,255,0.02);"><span class="telemetry-label">Swarm Centroid</span><span class="telemetry-val" id="telCentroid">0, 0</span></div>
         </div>
 
         <!-- LOGS -->
@@ -817,6 +1112,15 @@
           </div>
         </div>
 
+        <!-- DYNAMIC RESPONSE CHART -->
+        <div>
+          <div class="panel-header-title">Dynamic Response</div>
+          <div class="panel-header-line"></div>
+          <div style="background: rgba(0,0,0,0.4); border: 1px solid rgba(0,212,255,0.1); padding: 8px; border-radius: 4px; height: 160px; position: relative;">
+            <canvas id="pidChart" style="width: 100%; height: 100%;"></canvas>
+          </div>
+        </div>
+
       </div>
     </div>
 
@@ -824,15 +1128,52 @@
 
   <!-- ── SIMULATION ENGINE JAVASCRIPT ── -->
   <script>
-    // ── ROBOAI AUTH GUARD (Ensures suite integration) ──
+    // ── VECTRASIM AUTH GUARD (Ensures suite integration) ──
     (function(){
       try {
-        var s = JSON.parse(localStorage.getItem('roboai_session'));
+        var s = JSON.parse(localStorage.getItem('vectrasim_session'));
         if (!s || !s.email || !s.id) { 
           window.location.replace('index.html?r=aero'); 
         }
       } catch(e) { 
         window.location.replace('index.html?r=aero'); 
+      }
+    })();
+
+    // ── ACTIVE SERVER-SIDE JWT VALIDATION ──
+    (async function validateSession() {
+      try {
+        var session = JSON.parse(localStorage.getItem('vectrasim_session'));
+        if (session && (session.token === 'mock-bypass-token' || (session.id && session.id.startsWith('mock-')))) {
+          console.log("Active server-side validation bypassed for mock session:", session.email);
+          return;
+        }
+      } catch(e) {}
+
+      for (let i = 0; i < 30 && !window.supabase; i++) {
+        await new Promise(r => setTimeout(r, 100));
+      }
+      if (window.supabase) {
+        try {
+          const { data: { user }, error } = await supabase.auth.getUser();
+          if (error) {
+            if (error.status === 400 || error.status === 401 || error.status === 403) {
+              console.warn("Active server session validation failed. Redirecting...", error.message);
+              localStorage.removeItem('vectrasim_session');
+              window.location.replace('index.html?r=aero');
+            } else {
+              console.warn("Supabase check encountered a network/server issue. Operating in offline mode:", error.message);
+            }
+          } else if (!user) {
+            console.warn("No active user found on server. Redirecting...");
+            localStorage.removeItem('vectrasim_session');
+            window.location.replace('index.html?r=aero');
+          } else {
+            console.log("Active server session verified successfully:", user.email);
+          }
+        } catch(e) {
+          console.warn("Could not reach Supabase server. Operating in offline/mock bypass mode.");
+        }
       }
     })();
 
@@ -851,6 +1192,41 @@
     // ── LEADER STATE VARIABLES ──
     const keysPressed = new Set();
     let cameraOffset = { x: 0, y: 0 };
+    let cameraZoom = 1.0;
+    let isPanning = false;
+    let startPanX = 0;
+    let startPanY = 0;
+    let hasMovedSinceDown = false;
+    let mouseDownX = 0;
+    let mouseDownY = 0;
+    let showGrid = true;
+
+    // ── ISOMETRIC 2.5D PROJECTION HELPER FUNCTIONS ──
+    const scaleX = 0.8;
+    const scaleY = 0.45;
+    const cx = 400; // canvas.width / 2
+    const cy = 210; // offset towards top to make room for base station at bottom
+
+    function isoProject(x, y, z = 0) {
+      let dx = x - 400;
+      let dy = y - 300;
+      let screenX = cx + (dx - dy) * 0.866025 * scaleX;
+      let screenY = cy + (dx + dy) * 0.5 * scaleY - z;
+      return { x: screenX, y: screenY };
+    }
+
+    function screenToWorld(sx, sy) {
+      let cos30 = 0.866025;
+      let sin30 = 0.5;
+      let X_term = (sx - cx) / (cos30 * scaleX);
+      let Y_term = (sy - cy) / (sin30 * scaleY);
+      let dx = (Y_term + X_term) / 2;
+      let dy = (Y_term - X_term) / 2;
+      return {
+        x: dx + 400,
+        y: dy + 300
+      };
+    }
 
     // Telemetry log history helper
     const logBox = document.getElementById('mission-log-box');
@@ -870,13 +1246,13 @@
     }
 
     // ── CASCADED PID CONSTANTS ──
-    const Kp_pos = 0.22;
-    const Ki_pos = 0.001;
-    const Kd_pos = 0.35;
+    let Kp_pos = 0.22;
+    let Ki_pos = 0.001;
+    let Kd_pos = 0.35;
 
-    const Kp_vel = 0.75;
-    const Ki_vel = 0.008;
-    const Kd_vel = 0.18;
+    let Kp_vel = 0.75;
+    let Ki_vel = 0.008;
+    let Kd_vel = 0.18;
 
     // ── A* GRID & PATHFINDING ──
     function planPathAStar(startX, startY, targetX, targetY, grid) {
@@ -1008,10 +1384,12 @@
         ctx.save();
         ctx.strokeStyle = 'rgba(0, 212, 255, 0.09)';
         ctx.lineWidth = 1;
-        ctx.beginPath();
-        ctx.moveTo(this.x, this.y);
+        let p1 = isoProject(this.x, this.y, 50);
         let rad = env.windAngle * Math.PI / 180;
-        ctx.lineTo(this.x - Math.cos(rad) * this.length, this.y - Math.sin(rad) * this.length);
+        let p2 = isoProject(this.x - Math.cos(rad) * this.length, this.y - Math.sin(rad) * this.length, 50);
+        ctx.beginPath();
+        ctx.moveTo(p1.x, p1.y);
+        ctx.lineTo(p2.x, p2.y);
         ctx.stroke();
         ctx.restore();
       }
@@ -1037,6 +1415,11 @@
         this.slotY = null;
         this.currentWaypoint = null;
         
+        // Z-axis Altitude & Physics
+        this.z = 50; // starts at default hover altitude
+        this.targetZ = 50;
+        this.takeoffState = 'HOVER'; // 'GROUND', 'TAKEOFF', 'HOVER', 'LANDING'
+
         // A* Path properties
         this.path = [];
         this.pathIndex = 0;
@@ -1086,6 +1469,26 @@
         if (this.status === 'CHARGING') {
           this.vx = 0;
           this.vy = 0;
+          this.z = 0;
+          this.targetZ = 0;
+          this.takeoffState = 'GROUND';
+          this.trail = [];
+          return;
+        }
+
+        // Z-axis Altitude interpolation
+        this.z += (this.targetZ - this.z) * 0.1 * dt;
+        if (this.z < 0) this.z = 0;
+
+        if (this.takeoffState === 'LANDING' && this.z <= 0.8) {
+          this.takeoffState = 'GROUND';
+          this.targetZ = 0;
+          this.z = 0;
+        }
+
+        if (this.takeoffState === 'GROUND') {
+          this.vx = 0;
+          this.vy = 0;
           this.trail = [];
           return;
         }
@@ -1105,6 +1508,28 @@
           this.recalculatePath(swarmManager, env);
           addLog(`DRONE-${String(this.id).padStart(2,'0')} battery low (${this.battery.toFixed(0)}%). RTB path planned.`, 'warn');
           return;
+        }
+
+        // Fail-Safe check: nearest neighbor distance
+        if (this.isolatedTime === undefined) this.isolatedTime = 0;
+        let nearestNeighborDist = Infinity;
+        swarmManager.drones.forEach(other => {
+          if (other.id !== this.id && other.status !== 'CHARGING' && other.takeoffState !== 'GROUND') {
+            let d = Math.sqrt((this.x - other.x)**2 + (this.y - other.y)**2);
+            if (d < nearestNeighborDist) nearestNeighborDist = d;
+          }
+        });
+
+        let linkThreshold = swarmManager.neighborRadius + 50;
+        if (nearestNeighborDist > linkThreshold && this.status !== 'CHARGING' && this.takeoffState !== 'GROUND' && this.status !== 'RTB') {
+          this.isolatedTime += dt;
+          if (this.isolatedTime > 180) { // 3 seconds at 60fps
+            this.setStatus('RTB');
+            this.recalculatePath(swarmManager, env);
+            addLog(`FAIL-SAFE ENGAGED: DRONE-${String(this.id).padStart(2,'0')} lost connection. Initiating RTB.`, 'err');
+          }
+        } else {
+          this.isolatedTime = 0;
         }
 
         // ───────────────── LEADER BRANCH ─────────────────
@@ -1225,12 +1650,37 @@
             } else {
               // Reached final waypoint
               if (this.status === 'MISSION') {
-                if (this.currentWaypoint) {
-                  missionController.completeWaypoint(this.currentWaypoint);
+                let isSeq = document.getElementById('waypointModeSelect').value === 'SEQUENTIAL';
+                if (isSeq) {
+                  missionsCompleted++;
+                  let wps = missionController.waypoints;
+                  if (wps.length > 0) {
+                    if (this.waypointIndex === undefined || this.waypointIndex === null) {
+                      this.waypointIndex = 0;
+                    }
+                    this.waypointIndex = (this.waypointIndex + 1) % wps.length;
+                    let nextWp = wps[this.waypointIndex];
+                    this.currentWaypoint = nextWp;
+                    this.path = planPathAStar(this.x, this.y, nextWp.x, nextWp.y, env.getGrid());
+                    this.pathIndex = 0;
+                    if (this.path.length > 0) {
+                      this.targetX = this.path[0].x;
+                      this.targetY = this.path[0].y;
+                    }
+                  } else {
+                    this.currentWaypoint = null;
+                    this.waypointIndex = null;
+                    this.path = [];
+                    this.setStatus('PATROL');
+                  }
+                } else {
+                  if (this.currentWaypoint) {
+                    missionController.completeWaypoint(this.currentWaypoint);
+                  }
+                  this.currentWaypoint = null;
+                  this.path = [];
+                  this.setStatus('PATROL');
                 }
-                this.currentWaypoint = null;
-                this.path = [];
-                this.setStatus('PATROL');
               } else if (this.status === 'RTB') {
                 swarmManager.baseStation.dock(this);
                 this.path = [];
@@ -1300,6 +1750,24 @@
           targetVy = flockAcc.y * 2.0;
         }
 
+        // Avoid other drones via Artificial Potential Fields
+        swarmManager.drones.forEach(other => {
+          if (other.id === this.id || other.status === 'CHARGING' || other.takeoffState === 'GROUND') return;
+          let zDist = Math.abs(this.z - other.z);
+          if (zDist > 20) return; // pass over safely at different heights
+
+          let dx = this.x - other.x;
+          let dy = this.y - other.y;
+          let dist = Math.sqrt(dx * dx + dy * dy);
+          let repulsionRadius = 35; 
+          if (dist < repulsionRadius && dist > 0) {
+            let force = 18.0 * (1.0 / dist - 1.0 / repulsionRadius) / (dist * dist);
+            force = Math.min(force, 4.0);
+            targetVx += (dx / dist) * force * 5.0;
+            targetVy += (dy / dist) * force * 5.0;
+          }
+        });
+
         // Avoid Threat Obstacles via Potential Fields
         env.threats.forEach(t => {
           let dx = this.x - t.x;
@@ -1357,6 +1825,16 @@
         this.vx += ax * dt;
         this.vy += ay * dt;
 
+        // Apply quadratic velocity air drag
+        let speed = Math.sqrt(this.vx * this.vx + this.vy * this.vy);
+        if (speed > 0.01) {
+          let dragCoeff = 0.04;
+          let dragForceX = -dragCoeff * speed * this.vx;
+          let dragForceY = -dragCoeff * speed * this.vy;
+          this.vx += dragForceX * dt;
+          this.vy += dragForceY * dt;
+        }
+
         // Follower dynamically adjusts speed limit to catch up
         let speedLimit = maxSpeed;
         if (this.status === 'FOLLOW' && swarmManager.leaderDroneId !== null) {
@@ -1368,7 +1846,7 @@
         }
 
         // Clamp speed
-        let speed = Math.sqrt(this.vx*this.vx + this.vy*this.vy);
+        speed = Math.sqrt(this.vx*this.vx + this.vy*this.vy);
         if (speed > speedLimit) {
           this.vx = (this.vx / speed) * speedLimit;
           this.vy = (this.vy / speed) * speedLimit;
@@ -1468,9 +1946,11 @@
         if (this.path && this.path.length > 0 && this.pathIndex < this.path.length) {
           ctx.save();
           ctx.beginPath();
-          ctx.moveTo(this.x, this.y);
+          let pStart = isoProject(this.x, this.y, this.z);
+          ctx.moveTo(pStart.x, pStart.y);
           for (let j = this.pathIndex; j < this.path.length; j++) {
-            ctx.lineTo(this.path[j].x, this.path[j].y);
+            let pNode = isoProject(this.path[j].x, this.path[j].y, 0);
+            ctx.lineTo(pNode.x, pNode.y);
           }
           ctx.strokeStyle = this.status === 'MISSION' ? 'rgba(0, 212, 255, 0.45)' : 'rgba(124, 58, 237, 0.45)';
           ctx.lineWidth = 1;
@@ -1479,13 +1959,15 @@
           ctx.restore();
         }
 
-        // 1. Draw trails
+        // 1. Draw trails in air (projected height)
         if (this.trail.length > 1) {
           if (this.status === 'LEADER') {
             for (let i = 1; i < this.trail.length; i++) {
+              let p1 = isoProject(this.trail[i-1].x, this.trail[i-1].y, this.z);
+              let p2 = isoProject(this.trail[i].x, this.trail[i].y, this.z);
               ctx.beginPath();
-              ctx.moveTo(this.trail[i-1].x, this.trail[i-1].y);
-              ctx.lineTo(this.trail[i].x, this.trail[i].y);
+              ctx.moveTo(p1.x, p1.y);
+              ctx.lineTo(p2.x, p2.y);
               let ratio = i / this.trail.length;
               ctx.strokeStyle = `rgba(0, 212, 255, ${ratio * 0.55})`;
               ctx.lineWidth = 3;
@@ -1493,9 +1975,11 @@
             }
           } else {
             ctx.beginPath();
-            ctx.moveTo(this.trail[0].x, this.trail[0].y);
+            let pStartTrail = isoProject(this.trail[0].x, this.trail[0].y, this.z);
+            ctx.moveTo(pStartTrail.x, pStartTrail.y);
             for (let i = 1; i < this.trail.length; i++) {
-              ctx.lineTo(this.trail[i].x, this.trail[i].y);
+              let pTrail = isoProject(this.trail[i].x, this.trail[i].y, this.z);
+              ctx.lineTo(pTrail.x, pTrail.y);
             }
             ctx.lineWidth = 1.5;
             ctx.strokeStyle = this.status === 'MISSION' ? 'rgba(255, 107, 53, 0.4)' : 'rgba(0, 212, 255, 0.25)';
@@ -1513,8 +1997,52 @@
         else if (this.status === 'FOLLOW') color = 'var(--cyan)';
 
         // 2. Drone Silhouette (Rotors & Cross Struts)
+        
+        // Draw drop shadow on ground plane (z = 0)
+        if (this.z > 0) {
+          ctx.save();
+          let pShadow = isoProject(this.x, this.y, 0);
+          ctx.translate(pShadow.x, pShadow.y);
+          ctx.rotate(this.heading);
+          
+          let shadowScale = 1.0 - (this.z / 300);
+          ctx.scale(shadowScale * scaleX, shadowScale * scaleY);
+          
+          let shadowAlpha = Math.max(0.05, 0.45 - (this.z / 200));
+          ctx.strokeStyle = `rgba(0, 0, 0, ${shadowAlpha})`;
+          ctx.fillStyle = `rgba(0, 0, 0, ${shadowAlpha})`;
+          
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.moveTo(-10, -10); ctx.lineTo(10, 10);
+          ctx.moveTo(-10, 10); ctx.lineTo(10, -10);
+          ctx.stroke();
+          
+          ctx.beginPath();
+          ctx.arc(0, 0, 5, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.restore();
+        }
+
+        // Draw vertical altitude indicator link line from shadow to air
+        if (this.z > 0) {
+          ctx.save();
+          let pGnd = isoProject(this.x, this.y, 0);
+          let pAir = isoProject(this.x, this.y, this.z);
+          ctx.beginPath();
+          ctx.moveTo(pGnd.x, pGnd.y);
+          ctx.lineTo(pAir.x, pAir.y);
+          ctx.strokeStyle = 'rgba(0, 212, 255, 0.15)';
+          ctx.lineWidth = 1;
+          ctx.setLineDash([2, 4]);
+          ctx.stroke();
+          ctx.restore();
+        }
+
+        // Draw drone silhouette at air height
         ctx.save();
-        ctx.translate(this.x, this.y);
+        let pDrone = isoProject(this.x, this.y, this.z);
+        ctx.translate(pDrone.x, pDrone.y);
 
         // Draw crown above leader drone (non-rotated)
         if (this.status === 'LEADER') {
@@ -1523,7 +2051,6 @@
           ctx.shadowBlur = 8;
           ctx.shadowColor = 'var(--cyan)';
           ctx.beginPath();
-          // Small triangle crown pointing up: apex at (0, -22), bottom left at (-6, -15), bottom right at (6, -15)
           ctx.moveTo(0, -22);
           ctx.lineTo(-6, -15);
           ctx.lineTo(6, -15);
@@ -1534,10 +2061,16 @@
 
         ctx.rotate(this.heading);
 
-        // Scale up leader silhouette
+        // Scale up leader silhouette & apply altitude scale
+        let altScale = 1.0 + (this.z / 180);
         if (this.status === 'LEADER') {
-          ctx.scale(1.5, 1.5);
+          ctx.scale(1.5 * altScale, 1.5 * altScale);
+        } else {
+          ctx.scale(altScale, altScale);
         }
+
+        // Apply isometric skew to the drawn cross and rotors
+        ctx.scale(1, 0.5);
 
         // Cross struts
         ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
@@ -1596,8 +2129,11 @@
         // Faint neighborhood range overlay if selected
         if (isSelected && swarmManager) {
           ctx.save();
+          let pGnd = isoProject(this.x, this.y, 0);
+          ctx.translate(pGnd.x, pGnd.y);
+          ctx.scale(1, 0.5); // iso circle skew
           ctx.beginPath();
-          ctx.arc(this.x, this.y, swarmManager.neighborRadius, 0, Math.PI * 2);
+          ctx.arc(0, 0, swarmManager.neighborRadius, 0, Math.PI * 2);
           ctx.strokeStyle = 'rgba(0, 212, 255, 0.1)';
           ctx.lineWidth = 1;
           ctx.setLineDash([4, 6]);
@@ -1648,9 +2184,11 @@
             });
 
             ctx.save();
+            let pStartRay = isoProject(this.x, this.y, this.z);
+            let pEndRay = isoProject(hitX, hitY, this.z);
             ctx.beginPath();
-            ctx.moveTo(this.x, this.y);
-            ctx.lineTo(hitX, hitY);
+            ctx.moveTo(pStartRay.x, pStartRay.y);
+            ctx.lineTo(pEndRay.x, pEndRay.y);
             
             if (hitType === 'threat') {
               if (closestHitDist < 35) {
@@ -1668,8 +2206,9 @@
               ctx.stroke();
 
               // Intersection warning dot
+              let pWarningDot = isoProject(hitX, hitY, this.z);
               ctx.beginPath();
-              ctx.arc(hitX, hitY, 3, 0, Math.PI * 2);
+              ctx.arc(pWarningDot.x, pWarningDot.y, 3, 0, Math.PI * 2);
               ctx.fillStyle = ctx.strokeStyle;
               ctx.fill();
             } else {
@@ -1683,11 +2222,16 @@
 
         // Draw status ripple animation
         if (this.rippleOpacity > 0) {
+          ctx.save();
+          let pGnd = isoProject(this.x, this.y, 0);
+          ctx.translate(pGnd.x, pGnd.y);
+          ctx.scale(1, 0.5); // skew
           ctx.strokeStyle = `rgba(255, 255, 255, ${this.rippleOpacity})`;
           ctx.lineWidth = 1.5;
           ctx.beginPath();
-          ctx.arc(this.x, this.y, this.rippleRadius, 0, Math.PI * 2);
+          ctx.arc(0, 0, this.rippleRadius, 0, Math.PI * 2);
           ctx.stroke();
+          ctx.restore();
         }
       }
     }
@@ -1747,8 +2291,9 @@
           let angle = (i * Math.PI) / 3 + simTime * 0.003;
           let hx = this.x + this.radius * Math.cos(angle);
           let hy = this.y + this.radius * Math.sin(angle);
-          if (i === 0) ctx.moveTo(hx, hy);
-          else ctx.lineTo(hx, hy);
+          let p = isoProject(hx, hy, 0);
+          if (i === 0) ctx.moveTo(p.x, p.y);
+          else ctx.lineTo(p.x, p.y);
         }
         ctx.closePath();
         ctx.strokeStyle = 'var(--purple)';
@@ -1761,26 +2306,36 @@
         ctx.fill();
         ctx.shadowBlur = 0;
 
-        // Draw rotating dashed base perimeter ring
+        // Draw rotating dashed base perimeter ring (isometric skewed circle)
         ctx.beginPath();
-        ctx.arc(this.x, this.y, this.radius + 15, 0, Math.PI * 2);
+        for (let i = 0; i <= 32; i++) {
+          let angle = (i * Math.PI) / 16 + simTime * 0.005;
+          let rx = this.x + (this.radius + 15) * Math.cos(angle);
+          let ry = this.y + (this.radius + 15) * Math.sin(angle);
+          let p = isoProject(rx, ry, 0);
+          if (i === 0) ctx.moveTo(p.x, p.y);
+          else ctx.lineTo(p.x, p.y);
+        }
         ctx.strokeStyle = 'rgba(124, 58, 237, 0.25)';
         ctx.lineWidth = 1;
         ctx.setLineDash([6, 8]);
         ctx.stroke();
         ctx.setLineDash([]);
 
-        // Base text label
+        // Base text label (projected)
+        let pt = isoProject(this.x, this.y, 0);
         ctx.fillStyle = '#fff';
         ctx.font = "8px 'Orbitron', sans-serif";
         ctx.textAlign = 'center';
-        ctx.fillText("BASE-PAD", this.x, this.y + 4);
+        ctx.fillText("BASE-PAD", pt.x, pt.y + 4);
 
-        // Draw glowing laser connection beams to docked charging pads
+        // Draw glowing laser connection beams to docked charging pads (projected)
         this.chargeQueue.forEach(d => {
+          let pStart = isoProject(this.x, this.y, 0);
+          let pEnd = isoProject(d.x, d.y, 0);
           ctx.beginPath();
-          ctx.moveTo(this.x, this.y);
-          ctx.lineTo(d.x, d.y);
+          ctx.moveTo(pStart.x, pStart.y);
+          ctx.lineTo(pEnd.x, pEnd.y);
           ctx.strokeStyle = 'rgba(124, 58, 237, ' + (0.5 + Math.sin(simTime * 0.2) * 0.3) + ')';
           ctx.lineWidth = 1.5;
           ctx.shadowBlur = 8;
@@ -1853,10 +2408,14 @@
         this.threats.forEach(t => {
           let scale = 1.0 + Math.sin(simTime * 0.08) * 0.06; // pulse effect
           let r = t.radius * scale;
+          let pCenter = isoProject(t.x, t.y, 0);
 
           ctx.save();
+          ctx.translate(pCenter.x, pCenter.y);
+          ctx.scale(1, 0.5); // isometric circle skew
+          
           ctx.beginPath();
-          ctx.arc(t.x, t.y, r, 0, Math.PI * 2);
+          ctx.arc(0, 0, r, 0, Math.PI * 2);
           ctx.strokeStyle = 'rgba(239, 68, 68, 0.35)';
           ctx.lineWidth = 2;
           ctx.stroke();
@@ -1865,16 +2424,17 @@
           ctx.fill();
 
           ctx.beginPath();
-          ctx.arc(t.x, t.y, t.radius, 0, Math.PI * 2);
+          ctx.arc(0, 0, t.radius, 0, Math.PI * 2);
           ctx.strokeStyle = 'rgba(239, 68, 68, 0.1)';
           ctx.lineWidth = 1;
           ctx.stroke();
+          ctx.restore();
 
+          ctx.save();
           ctx.fillStyle = 'var(--red)';
           ctx.font = "8px 'Orbitron', sans-serif";
           ctx.textAlign = 'center';
-          ctx.fillText("THREAT ZONE", t.x, t.y + 3);
-
+          ctx.fillText("THREAT ZONE", pCenter.x, pCenter.y + 3);
           ctx.restore();
         });
 
@@ -1934,6 +2494,36 @@
       }
 
       dispatch(swarmManager, env) {
+        let isSeq = document.getElementById('waypointModeSelect').value === 'SEQUENTIAL';
+        if (isSeq) {
+          if (this.waypoints.length === 0) {
+            addLog("Dispatch Failed: Please place at least one waypoint first.", "warn");
+            return;
+          }
+          let dispatchedCount = 0;
+          swarmManager.drones.forEach(d => {
+            if (d.status === 'PATROL' || d.status === 'IDLE') {
+              d.waypointIndex = 0;
+              let wp = this.waypoints[0];
+              d.currentWaypoint = wp;
+              d.path = planPathAStar(d.x, d.y, wp.x, wp.y, env.getGrid());
+              d.pathIndex = 0;
+              d.setStatus('MISSION');
+              if (d.path.length > 0) {
+                d.targetX = d.path[0].x;
+                d.targetY = d.path[0].y;
+              }
+              dispatchedCount++;
+            }
+          });
+          if (dispatchedCount > 0) {
+            addLog(`Dispatched ${dispatchedCount} drones to SEQUENTIAL PATROL loop.`, 'orange');
+          } else {
+            addLog("Dispatch Failed: No idle or patrol drones available.", "warn");
+          }
+          return;
+        }
+
         let wp = this.waypoints.find(w => !w.assigned && !w.complete);
         if (!wp) {
           addLog("Dispatch Failed: All waypoints already assigned.", "warn");
@@ -1956,7 +2546,6 @@
         if (bestDrone) {
           wp.assigned = true;
           bestDrone.currentWaypoint = wp;
-          // Set global A* path for routing around threat circles
           bestDrone.path = planPathAStar(bestDrone.x, bestDrone.y, wp.x, wp.y, env.getGrid());
           bestDrone.pathIndex = 0;
           bestDrone.setStatus('MISSION');
@@ -1977,6 +2566,9 @@
       }
 
       update(dt) {
+        let isSeq = document.getElementById('waypointModeSelect').value === 'SEQUENTIAL';
+        if (isSeq) return; // loop waypoints are persistent
+        
         this.waypoints.forEach((wp, index) => {
           if (wp.complete) {
             wp.flashTimer -= dt;
@@ -1986,26 +2578,55 @@
       }
 
       draw(ctx) {
+        let isSeq = document.getElementById('waypointModeSelect').value === 'SEQUENTIAL';
+        if (isSeq && this.waypoints.length > 1) {
+          ctx.save();
+          ctx.strokeStyle = 'rgba(0, 212, 255, 0.25)';
+          ctx.lineWidth = 1;
+          ctx.setLineDash([4, 4]);
+          ctx.beginPath();
+          let pStart = isoProject(this.waypoints[0].x, this.waypoints[0].y, 0);
+          ctx.moveTo(pStart.x, pStart.y);
+          for (let i = 1; i < this.waypoints.length; i++) {
+            let pNode = isoProject(this.waypoints[i].x, this.waypoints[i].y, 0);
+            ctx.lineTo(pNode.x, pNode.y);
+          }
+          ctx.closePath();
+          ctx.stroke();
+          ctx.restore();
+        }
+
         this.waypoints.forEach(wp => {
           ctx.save();
-          if (wp.complete) {
+          let pCenter = isoProject(wp.x, wp.y, 0);
+          
+          if (wp.complete && !isSeq) {
             ctx.strokeStyle = 'var(--green)';
             ctx.fillStyle = 'rgba(16, 185, 129, 0.2)';
+            
+            ctx.save();
+            ctx.translate(pCenter.x, pCenter.y);
+            ctx.scale(1, 0.5);
             ctx.beginPath();
-            ctx.arc(wp.x, wp.y, 14, 0, Math.PI * 2);
+            ctx.arc(0, 0, 14, 0, Math.PI * 2);
             ctx.stroke();
             ctx.fill();
+            ctx.restore();
           } else {
             ctx.strokeStyle = 'var(--cyan)';
             ctx.lineWidth = 1.5;
             
+            ctx.save();
+            ctx.translate(pCenter.x, pCenter.y);
+            ctx.scale(1, 0.5);
             ctx.beginPath();
-            ctx.arc(wp.x, wp.y, 8, 0, Math.PI * 2);
+            ctx.arc(0, 0, 8, 0, Math.PI * 2);
             ctx.stroke();
+            ctx.restore();
 
             ctx.beginPath();
-            ctx.moveTo(wp.x - 12, wp.y); ctx.lineTo(wp.x + 12, wp.y);
-            ctx.moveTo(wp.x, wp.y - 12); ctx.lineTo(wp.x, wp.y + 12);
+            ctx.moveTo(pCenter.x - 12, pCenter.y); ctx.lineTo(pCenter.x + 12, pCenter.y);
+            ctx.moveTo(pCenter.x, pCenter.y - 6); ctx.lineTo(pCenter.x, pCenter.y + 6);
             ctx.stroke();
           }
           ctx.restore();
@@ -2250,15 +2871,37 @@
             let d1 = this.drones[i];
             let d2 = this.drones[j];
             if (d1.status === 'CHARGING' || d2.status === 'CHARGING') continue;
+            if (d1.takeoffState === 'GROUND' || d2.takeoffState === 'GROUND') continue;
 
-            let dist = Math.sqrt((d1.x - d2.x)**2 + (d1.y - d2.y)**2);
-            if (dist < 10) {
+            let dx = d1.x - d2.x;
+            let dy = d1.y - d2.y;
+            let dist = Math.sqrt(dx * dx + dy * dy);
+            let zDist = Math.abs(d1.z - d2.z);
+            let minDist = 18;
+
+            if (dist < minDist && zDist < 15) {
+              // Position projection to resolve overlap completely (no-collision guarantee)
+              let overlap = minDist - dist;
+              let pushX = (dx / (dist || 0.1)) * (overlap * 0.5);
+              let pushY = (dy / (dist || 0.1)) * (overlap * 0.5);
+
+              d1.x += pushX;
+              d1.y += pushY;
+              d1.vx += pushX * 0.2;
+              d1.vy += pushY * 0.2;
+
+              d2.x -= pushX;
+              d2.y -= pushY;
+              d2.vx -= pushX * 0.2;
+              d2.vy -= pushY * 0.2;
+
+              // Log safety threat zone violation when too close
               let now = Date.now();
               if (now - d1.lastCollisionLog > 3000 && now - d2.lastCollisionLog > 3000) {
                 d1.lastCollisionLog = now;
                 d2.lastCollisionLog = now;
                 faultsCount++;
-                addLog(`FAULT: Minor Collision avoided between DRONE-${String(d1.id).padStart(2,'0')} & DRONE-${String(d2.id).padStart(2,'0')}`, 'err');
+                addLog(`FAULT: Proximity violation! Safety collision avoidance resolved between DRONE-${String(d1.id).padStart(2,'0')} & DRONE-${String(d2.id).padStart(2,'0')}`, 'err');
                 d1.setStatus('FAULT');
                 d2.setStatus('FAULT');
                 setTimeout(() => {
@@ -2287,7 +2930,64 @@
         this.mission = missionController;
         this.env = env;
         
+        this.initChart();
         this.bindEvents();
+      }
+
+      initChart() {
+        const ctxChart = document.getElementById('pidChart').getContext('2d');
+        this.chartData = {
+          labels: Array.from({length: 30}, (_, i) => i - 29),
+          datasets: [
+            {
+              label: 'Target Speed',
+              borderColor: '#ff6b35',
+              borderWidth: 1.5,
+              data: Array(30).fill(0),
+              fill: false,
+              tension: 0.2,
+              pointRadius: 0
+            },
+            {
+              label: 'Actual Speed',
+              borderColor: '#00d4ff',
+              borderWidth: 1.5,
+              data: Array(30).fill(0),
+              fill: false,
+              tension: 0.2,
+              pointRadius: 0
+            }
+          ]
+        };
+        this.chart = new Chart(ctxChart, {
+          type: 'line',
+          data: this.chartData,
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: {
+                display: true,
+                labels: {
+                  color: '#e2e8f0',
+                  font: { family: 'Share Tech Mono', size: 9 }
+                }
+              }
+            },
+            scales: {
+              x: {
+                grid: { color: 'rgba(255,255,255,0.03)' },
+                ticks: { color: '#64748b', font: { family: 'Share Tech Mono', size: 8 } }
+              },
+              y: {
+                min: 0,
+                max: 6,
+                grid: { color: 'rgba(255,255,255,0.03)' },
+                ticks: { color: '#64748b', font: { family: 'Share Tech Mono', size: 8 } }
+              }
+            }
+          }
+        });
       }
 
       bindEvents() {
@@ -2405,8 +3105,16 @@
           let rect = canvas.getBoundingClientRect();
           let screenX = (e.clientX - rect.left) * (canvas.width / rect.width);
           let screenY = (e.clientY - rect.top) * (canvas.height / rect.height);
-          let x = screenX - cameraOffset.x;
-          let y = screenY - cameraOffset.y;
+          
+          let px = canvas.width / 2 + (screenX - canvas.width / 2) / cameraZoom - cameraOffset.x;
+          let py = canvas.height / 2 + (screenY - canvas.height / 2) / cameraZoom - cameraOffset.y;
+          let worldPt = screenToWorld(px, py);
+          let x = worldPt.x;
+          let y = worldPt.y;
+
+          mouseDownX = e.clientX;
+          mouseDownY = e.clientY;
+          hasMovedSinceDown = false;
           
           // 1. Check for waypoint drags (easier to grab)
           let wpIdx = this.mission.waypoints.findIndex(wp => Math.sqrt((wp.x - x)**2 + (wp.y - y)**2) < 15);
@@ -2424,13 +3132,22 @@
             return;
           }
 
-          // Left click selects drone or spawns waypoint
+          // Left click selects drone
           if (e.button === 0) {
             let clickedDrone = null;
             this.swarm.drones.forEach(d => {
               if (d.status !== 'CHARGING') {
-                let dist = Math.sqrt((d.x - x)**2 + (d.y - y)**2);
-                if (dist < 18) {
+                let pDrone = isoProject(d.x, d.y, d.z);
+                let sDx = canvas.width / 2 + (pDrone.x + cameraOffset.x - canvas.width / 2) * cameraZoom;
+                let sDy = canvas.height / 2 + (pDrone.y + cameraOffset.y - canvas.height / 2) * cameraZoom;
+                let distScreen = Math.sqrt((screenX - sDx)**2 + (screenY - sDy)**2);
+                
+                let pShadow = isoProject(d.x, d.y, 0);
+                let sSx = canvas.width / 2 + (pShadow.x + cameraOffset.x - canvas.width / 2) * cameraZoom;
+                let sSy = canvas.height / 2 + (pShadow.y + cameraOffset.y - canvas.height / 2) * cameraZoom;
+                let distShadow = Math.sqrt((screenX - sSx)**2 + (screenY - sSy)**2);
+
+                if (distScreen < 20 || distShadow < 15) {
                   clickedDrone = d;
                 }
               }
@@ -2447,7 +3164,9 @@
                 addLog(`Inspecting DRONE-${String(clickedDrone.id).padStart(2,'0')}`, 'info');
               }
             } else {
-              this.mission.addWaypoint(x, y);
+              isPanning = true;
+              startPanX = e.clientX;
+              startPanY = e.clientY;
             }
           } 
           else if (e.button === 2) {
@@ -2460,11 +3179,36 @@
           let rect = canvas.getBoundingClientRect();
           let screenX = (e.clientX - rect.left) * (canvas.width / rect.width);
           let screenY = (e.clientY - rect.top) * (canvas.height / rect.height);
-          let x = screenX - cameraOffset.x;
-          let y = screenY - cameraOffset.y;
+          let px = canvas.width / 2 + (screenX - canvas.width / 2) / cameraZoom - cameraOffset.x;
+          let py = canvas.height / 2 + (screenY - canvas.height / 2) / cameraZoom - cameraOffset.y;
+          let worldPt = screenToWorld(px, py);
+          let x = worldPt.x;
+          let y = worldPt.y;
           
           mousePos.x = screenX;
           mousePos.y = screenY;
+
+          if (isPanning && !isDragging) {
+            let distMoved = Math.sqrt((e.clientX - mouseDownX)**2 + (e.clientY - mouseDownY)**2);
+            if (distMoved > 4) {
+              hasMovedSinceDown = true;
+            }
+            if (hasMovedSinceDown) {
+              let dx = e.clientX - startPanX;
+              let dy = e.clientY - startPanY;
+              cameraOffset.x += dx / cameraZoom;
+              cameraOffset.y += dy / cameraZoom;
+              startPanX = e.clientX;
+              startPanY = e.clientY;
+
+              if (this.swarm.cameraFollowLeader) {
+                this.swarm.cameraFollowLeader = false;
+                document.getElementById('chkCameraFollow').checked = false;
+                addLog("Camera follow disabled due to manual panning.", "info");
+              }
+              return;
+            }
+          }
 
           if (isDragging && draggedElement) {
             if (draggedElement.type === 'waypoint') {
@@ -2498,8 +3242,17 @@
           let hoverMatch = null;
           this.swarm.drones.forEach(d => {
             if (d.status !== 'CHARGING') {
-              let dist = Math.sqrt((d.x - x)**2 + (d.y - y)**2);
-              if (dist < 15) {
+              let pDrone = isoProject(d.x, d.y, d.z);
+              let sDx = canvas.width / 2 + (pDrone.x + cameraOffset.x - canvas.width / 2) * cameraZoom;
+              let sDy = canvas.height / 2 + (pDrone.y + cameraOffset.y - canvas.height / 2) * cameraZoom;
+              let distScreen = Math.sqrt((screenX - sDx)**2 + (screenY - sDy)**2);
+              
+              let pShadow = isoProject(d.x, d.y, 0);
+              let sSx = canvas.width / 2 + (pShadow.x + cameraOffset.x - canvas.width / 2) * cameraZoom;
+              let sSy = canvas.height / 2 + (pShadow.y + cameraOffset.y - canvas.height / 2) * cameraZoom;
+              let distShadow = Math.sqrt((screenX - sSx)**2 + (screenY - sSy)**2);
+
+              if (distScreen < 20 || distShadow < 15) {
                 hoverMatch = d.id;
               }
             }
@@ -2507,9 +3260,30 @@
           hoveredDroneId = hoverMatch;
         });
 
-        window.addEventListener('mouseup', () => {
+        window.addEventListener('mouseup', e => {
+          if (isPanning && !hasMovedSinceDown && e.button === 0) {
+            let rect = canvas.getBoundingClientRect();
+            let screenX = (e.clientX - rect.left) * (canvas.width / rect.width);
+            let screenY = (e.clientY - rect.top) * (canvas.height / rect.height);
+            let px = canvas.width / 2 + (screenX - canvas.width / 2) / cameraZoom - cameraOffset.x;
+            let py = canvas.height / 2 + (screenY - canvas.height / 2) / cameraZoom - cameraOffset.y;
+            let worldPt = screenToWorld(px, py);
+            this.mission.addWaypoint(worldPt.x, worldPt.y);
+          }
+          isPanning = false;
           isDragging = false;
           draggedElement = null;
+        });
+
+        canvas.addEventListener('wheel', e => {
+          e.preventDefault();
+          let zoomFactor = 1.1;
+          if (e.deltaY > 0) {
+            cameraZoom = Math.max(0.5, cameraZoom / zoomFactor);
+          } else {
+            cameraZoom = Math.min(2.5, cameraZoom * zoomFactor);
+          }
+          addLog(`Zoom level: ${(cameraZoom * 100).toFixed(0)}%`, 'info');
         });
 
         canvas.addEventListener('contextmenu', e => e.preventDefault());
@@ -2562,6 +3336,74 @@
           document.querySelectorAll('.key-cap').forEach(cap => cap.classList.remove('pressed'));
         });
 
+        // Altitude Control bindings
+        document.getElementById('btnTakeoff').addEventListener('click', () => {
+          let targetH = parseInt(document.getElementById('sliderHoverAlt').value);
+          this.swarm.drones.forEach(d => {
+            if (d.status !== 'CHARGING') {
+              d.targetZ = targetH;
+              d.takeoffState = 'TAKEOFF';
+            }
+          });
+          addLog(`Takeoff initiated. Swarm climbing to target altitude: ${targetH}m`, 'success');
+        });
+
+        document.getElementById('btnLand').addEventListener('click', () => {
+          this.swarm.drones.forEach(d => {
+            if (d.status !== 'CHARGING') {
+              d.targetZ = 0;
+              d.takeoffState = 'LANDING';
+            }
+          });
+          addLog("Landing sequence initiated. Swarm returning to ground level.", 'warn');
+        });
+
+        document.getElementById('btnHover').addEventListener('click', () => {
+          this.swarm.drones.forEach(d => {
+            if (d.status !== 'CHARGING' && d.takeoffState !== 'GROUND') {
+              d.targetZ = d.z;
+              d.takeoffState = 'HOVER';
+              d.vx = 0; d.vy = 0;
+            }
+          });
+          addLog("Hover mode engaged. Hold position lock active.", 'info');
+        });
+
+        document.getElementById('sliderHoverAlt').addEventListener('input', e => {
+          let val = parseInt(e.target.value);
+          document.getElementById('valHoverAlt').textContent = val + 'm';
+          this.swarm.drones.forEach(d => {
+            if (d.status !== 'CHARGING' && d.takeoffState !== 'GROUND') {
+              d.targetZ = val;
+            }
+          });
+        });
+
+        // PID Tuning bindings
+        document.getElementById('sliderKpPos').addEventListener('input', e => {
+          let val = parseFloat(e.target.value);
+          document.getElementById('valKpPos').textContent = val.toFixed(2);
+          Kp_pos = val;
+        });
+
+        document.getElementById('sliderKdPos').addEventListener('input', e => {
+          let val = parseFloat(e.target.value);
+          document.getElementById('valKdPos').textContent = val.toFixed(2);
+          Kd_pos = val;
+        });
+
+        document.getElementById('sliderKpVel').addEventListener('input', e => {
+          let val = parseFloat(e.target.value);
+          document.getElementById('valKpVel').textContent = val.toFixed(2);
+          Kp_vel = val;
+        });
+
+        document.getElementById('sliderKdVel').addEventListener('input', e => {
+          let val = parseFloat(e.target.value);
+          document.getElementById('valKdVel').textContent = val.toFixed(2);
+          Kd_vel = val;
+        });
+
         document.getElementById('btnStart').addEventListener('click', () => {
           isRunning = true;
           document.getElementById('btnStart').className = "btn btn-cyan";
@@ -2583,6 +3425,9 @@
           missionsCompleted = 0;
           faultsCount = 0;
           selectedDroneId = null;
+          cameraOffset.x = 0;
+          cameraOffset.y = 0;
+          cameraZoom = 1.0;
           addLog("Simulator reset complete.", "danger");
         });
 
@@ -2598,6 +3443,35 @@
             d.path = [];
           });
           addLog("Waypoints and threats cleared.", "info");
+        });
+
+        // Canvas HUD Overlay Bindings
+        document.getElementById('hudBtnZoomIn').addEventListener('click', () => {
+          cameraZoom = Math.min(2.5, cameraZoom * 1.25);
+          addLog(`Zoom In: ${(cameraZoom * 100).toFixed(0)}%`, 'info');
+        });
+
+        document.getElementById('hudBtnZoomOut').addEventListener('click', () => {
+          cameraZoom = Math.max(0.5, cameraZoom / 1.25);
+          addLog(`Zoom Out: ${(cameraZoom * 100).toFixed(0)}%`, 'info');
+        });
+
+        document.getElementById('hudBtnResetView').addEventListener('click', () => {
+          cameraOffset.x = 0;
+          cameraOffset.y = 0;
+          cameraZoom = 1.0;
+          addLog("Camera orientation reset.", "info");
+        });
+
+        document.getElementById('hudBtnToggleGrid').addEventListener('click', e => {
+          showGrid = !showGrid;
+          if (showGrid) {
+            e.currentTarget.classList.add('active');
+            addLog("Cyber grid enabled.", "info");
+          } else {
+            e.currentTarget.classList.remove('active');
+            addLog("Cyber grid disabled.", "info");
+          }
         });
       }
 
@@ -2621,6 +3495,34 @@
         document.getElementById('telRtbCount').textContent = onRtb;
         document.getElementById('telFaultCount').textContent = onFault;
 
+        // Update card fill widths
+        document.getElementById('telAvgBattFill').style.width = avgBatt.toFixed(0) + '%';
+        document.getElementById('telMinBattFill').style.width = minBatt.toFixed(0) + '%';
+        document.getElementById('telMissionFill').style.width = Math.min(100, (onMission / N * 100)) + '%';
+        document.getElementById('telRtbFill').style.width = Math.min(100, (onRtb / N * 100)) + '%';
+        document.getElementById('telFaultFill').style.width = Math.min(100, (onFault / N * 100)) + '%';
+
+        // Update status indicator light
+        const light = document.getElementById('simStatusLight');
+        if (light) {
+          light.className = 'status-indicator';
+          if (!isRunning) {
+            light.classList.add('paused');
+          } else if (onFault > 0 || faultsCount > 0) {
+            light.classList.add('fault');
+          }
+        }
+
+        // Pulse fault card if active faults
+        const faultCard = document.getElementById('telFaultCard');
+        if (faultCard) {
+          if (onFault > 0) {
+            faultCard.classList.add('pulse');
+          } else {
+            faultCard.classList.remove('pulse');
+          }
+        }
+
         document.getElementById('hudActive').textContent = drones.filter(d => d.status !== 'CHARGING').length;
         document.getElementById('hudMissions').textContent = missionsCompleted;
         document.getElementById('hudFaults').textContent = faultsCount;
@@ -2643,9 +3545,11 @@
           }
           let cohesion = pairs > 0 ? (totalDist / pairs) : 0;
           document.getElementById('telCohesion').textContent = cohesion.toFixed(0) + 'px';
+          document.getElementById('telCohesionFill').style.width = Math.min(100, (cohesion / 250 * 100)) + '%';
         } else {
           document.getElementById('telCentroid').textContent = "N/A";
           document.getElementById('telCohesion').textContent = "0px";
+          document.getElementById('telCohesionFill').style.width = '0%';
         }
 
         let queueIds = this.swarm.baseStation.chargeQueue.map(d => `DRONE-${String(d.id).padStart(2,'0')}`);
@@ -2687,6 +3591,29 @@
               task = "SAFETY MANEUVER";
             }
             document.getElementById('inspTask').textContent = task;
+
+            // Live Chart Telemetry updates
+            let actualSpeed = Math.sqrt(sDrone.vx * sDrone.vx + sDrone.vy * sDrone.vy);
+            let targetSpeed = 0;
+            if (sDrone.status === 'MISSION' || sDrone.status === 'RTB') {
+              targetSpeed = this.swarm.maxSpeed;
+            } else if (sDrone.status === 'FOLLOW') {
+              let leader = drones.find(d => d.id === this.swarm.leaderDroneId);
+              if (leader) {
+                targetSpeed = Math.sqrt(leader.vx * leader.vx + leader.vy * leader.vy);
+              }
+            } else if (sDrone.status === 'LEADER') {
+              targetSpeed = (keysPressed.has('W') || keysPressed.has('S')) ? this.swarm.maxSpeed : 0;
+            }
+
+            this.chartData.datasets[0].data.push(targetSpeed);
+            this.chartData.datasets[0].data.shift();
+            this.chartData.datasets[1].data.push(actualSpeed);
+            this.chartData.datasets[1].data.shift();
+
+            let maxVal = Math.max(...this.chartData.datasets[0].data, ...this.chartData.datasets[1].data);
+            this.chart.options.scales.y.max = Math.ceil(Math.max(6, maxVal + 1.0));
+            this.chart.update('none');
           }
         }
       }
@@ -2704,7 +3631,41 @@
 
     let lastTime = performance.now();
 
+    let hasCrashed = false;
     function loop(now) {
+      if (hasCrashed) return;
+      try {
+        _loopInner(now);
+      } catch (err) {
+        hasCrashed = true;
+        console.error("AERO Loop Crash:", err);
+        drawCrashOverlay(err);
+      }
+    }
+
+    function drawCrashOverlay(err) {
+      ctx.save();
+      ctx.fillStyle = 'rgba(10, 10, 15, 0.85)';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.strokeStyle = 'rgba(239, 68, 68, 0.4)';
+      ctx.lineWidth = 2;
+      ctx.strokeRect(10, 10, canvas.width - 20, canvas.height - 20);
+      
+      ctx.fillStyle = '#ef4444';
+      ctx.font = "bold 20px 'Orbitron', sans-serif";
+      ctx.textAlign = 'center';
+      ctx.fillText("⚠️ SIMULATOR CRASHED", canvas.width / 2, canvas.height / 2 - 40);
+      
+      ctx.fillStyle = '#e2e8f0';
+      ctx.font = "12px 'JetBrains Mono', monospace";
+      ctx.fillText(err.stack ? err.stack.split('\n')[0] : err.toString(), canvas.width / 2, canvas.height / 2);
+      ctx.font = "10px 'Share Tech Mono', monospace";
+      ctx.fillStyle = '#64748b';
+      ctx.fillText("Check console log for details.", canvas.width / 2, canvas.height / 2 + 40);
+      ctx.restore();
+    }
+
+    function _loopInner(now) {
       let dt = (now - lastTime) / 16.666;
       if (dt > 4) dt = 4;
       lastTime = now;
@@ -2733,22 +3694,20 @@
         if (leader) {
           cameraOffset.x = canvas.width / 2 - leader.x;
           cameraOffset.y = canvas.height / 2 - leader.y;
-        } else {
-          cameraOffset.x = 0;
-          cameraOffset.y = 0;
         }
-      } else {
-        cameraOffset.x = 0;
-        cameraOffset.y = 0;
       }
 
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       
-      // Draw world elements (translated)
+      // Draw world elements (translated and zoomed)
       ctx.save();
-      if (cameraFollow) {
-        ctx.translate(cameraOffset.x, cameraOffset.y);
-      }
+      
+      // Apply zoom centered at canvas midpoint
+      ctx.translate(canvas.width / 2, canvas.height / 2);
+      ctx.scale(cameraZoom, cameraZoom);
+      ctx.translate(-canvas.width / 2, -canvas.height / 2);
+      
+      ctx.translate(cameraOffset.x, cameraOffset.y);
 
       drawCyberGrid(ctx);
       
@@ -2758,7 +3717,17 @@
         ctx.strokeStyle = 'rgba(0, 212, 255, 0.2)';
         ctx.lineWidth = 1;
         ctx.setLineDash([6, 6]);
-        ctx.strokeRect(0, 0, canvas.width, canvas.height);
+        let corners = [
+          isoProject(0, 0, 0),
+          isoProject(canvas.width, 0, 0),
+          isoProject(canvas.width, canvas.height, 0),
+          isoProject(0, canvas.height, 0)
+        ];
+        ctx.beginPath();
+        ctx.moveTo(corners[0].x, corners[0].y);
+        for(let i=1; i<4; i++) ctx.lineTo(corners[i].x, corners[i].y);
+        ctx.closePath();
+        ctx.stroke();
         ctx.restore();
       }
 
@@ -2779,22 +3748,45 @@
     }
 
     function drawCyberGrid(ctx) {
+      if (!showGrid) return;
       ctx.save();
       ctx.strokeStyle = 'rgba(0, 212, 255, 0.04)';
       ctx.lineWidth = 0.5;
 
-      for (let x = 40; x < canvas.width; x += 40) {
+      // Draw grid lines in X direction
+      for (let x = 0; x <= canvas.width; x += 40) {
+        let p1 = isoProject(x, 0, 0);
+        let p2 = isoProject(x, canvas.height, 0);
         ctx.beginPath();
-        ctx.moveTo(x, 0);
-        ctx.lineTo(x, canvas.height);
+        ctx.moveTo(p1.x, p1.y);
+        ctx.lineTo(p2.x, p2.y);
         ctx.stroke();
       }
-      for (let y = 40; y < canvas.height; y += 40) {
+      // Draw grid lines in Y direction
+      for (let y = 0; y <= canvas.height; y += 40) {
+        let p1 = isoProject(0, y, 0);
+        let p2 = isoProject(canvas.width, y, 0);
         ctx.beginPath();
-        ctx.moveTo(0, y);
-        ctx.lineTo(canvas.width, y);
+        ctx.moveTo(p1.x, p1.y);
+        ctx.lineTo(p2.x, p2.y);
         ctx.stroke();
       }
+
+      // Draw a boundary box
+      ctx.strokeStyle = 'rgba(0, 212, 255, 0.15)';
+      ctx.lineWidth = 1.5;
+      let corners = [
+        isoProject(0, 0, 0),
+        isoProject(canvas.width, 0, 0),
+        isoProject(canvas.width, canvas.height, 0),
+        isoProject(0, canvas.height, 0)
+      ];
+      ctx.beginPath();
+      ctx.moveTo(corners[0].x, corners[0].y);
+      for(let i=1; i<4; i++) ctx.lineTo(corners[i].x, corners[i].y);
+      ctx.closePath();
+      ctx.stroke();
+
       ctx.restore();
     }
 
@@ -2807,11 +3799,15 @@
       let w = 120;
       let h = 45;
       
-      // Convert to screen space coordinates using cameraOffset
-      let tx = d.x + cameraOffset.x + 16;
-      let ty = d.y + cameraOffset.y - 45;
+      // Convert to screen space coordinates using cameraOffset and cameraZoom
+      let pDrone = isoProject(d.x, d.y, d.z);
+      let sDx = canvas.width / 2 + (pDrone.x + cameraOffset.x - canvas.width / 2) * cameraZoom;
+      let sDy = canvas.height / 2 + (pDrone.y + cameraOffset.y - canvas.height / 2) * cameraZoom;
 
-      if (tx + w > canvas.width) tx = d.x + cameraOffset.x - w - 16;
+      let tx = sDx + 16;
+      let ty = sDy - 45;
+
+      if (tx + w > canvas.width) tx = sDx - w - 16;
       if (ty < 5) ty = 5;
 
       ctx.fillStyle = 'rgba(5, 5, 8, 0.9)';

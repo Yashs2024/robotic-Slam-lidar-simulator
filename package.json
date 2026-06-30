@@ -16,7 +16,7 @@
   "dependencies": {
     "three": "^0.183.1"
   },
-  "description": "<div align=\"center\">",
+  "description": "VectraSim Suite - SLAM, NEXUS, and HIVE Simulators",
   "main": "index.js",
   "repository": {
     "type": "git",

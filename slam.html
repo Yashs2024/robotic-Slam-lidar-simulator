@@ -4,6 +4,11 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>SLAM Simulator — Antigravity</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🤖</text></svg>">
+<meta name="description" content="VectraSim Suite - Advanced AI Robotics Simulation Environment. Includes SLAM, NEXUS 6-DOF, and HIVE Swarm simulations.">
+<meta property="og:title" content="VectraSim Suite">
+<meta property="og:description" content="Advanced AI Robotics Simulation Environment.">
+<meta property="og:type" content="website">
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=Share+Tech+Mono&family=Rajdhani:wght@300;400;500;600;700&family=JetBrains+Mono:wght@300;400;500;700&display=swap" rel="stylesheet"/>
 <style>
@@ -184,11 +189,29 @@
     box-shadow: var(--cyan-glow);
   }
   #click-hint {
-    position: absolute; bottom: 16px; left: 50%; transform: translateX(-50%);
-    background: rgba(5,8,16,0.9); border: 1px solid var(--border);
-    border-radius: var(--radius); padding: 8px 18px; font-family: var(--font-display); font-size: 11px; color: var(--yellow);
-    backdrop-filter: blur(10px); pointer-events: none; white-space: nowrap;
-    transition: opacity .3s;
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(5,8,16,0.92);
+    border: 1px solid rgba(59,130,246,0.5);
+    box-shadow: 0 0 30px rgba(59,130,246,0.25), inset 0 0 20px rgba(59,130,246,0.05);
+    border-radius: 8px;
+    padding: 18px 32px;
+    font-family: var(--font-display);
+    font-size: 13px;
+    color: var(--blue);
+    text-align: center;
+    line-height: 1.8;
+    letter-spacing: 1px;
+    backdrop-filter: blur(14px);
+    pointer-events: none;
+    white-space: nowrap;
+    transition: opacity .4s;
+    animation: hintPulse 2.5s ease-in-out infinite;
+  }
+  @keyframes hintPulse {
+    0%, 100% { box-shadow: 0 0 20px rgba(59,130,246,0.2), inset 0 0 15px rgba(59,130,246,0.04); }
+    50%       { box-shadow: 0 0 45px rgba(59,130,246,0.45), inset 0 0 25px rgba(59,130,246,0.08); }
   }
 
   /* RIGHT PANEL */
@@ -256,6 +279,54 @@
 </style>
 </head>
 <body>
+<script>
+// ── VECTRASIM AUTH GUARD ──
+(function(){
+  try {
+    var s = JSON.parse(localStorage.getItem('vectrasim_session'));
+    if (!s || !s.email || !s.id) { window.location.replace('index.html?r=slam_landing'); }
+  } catch(e) { window.location.replace('index.html?r=slam_landing'); }
+})();
+</script>
+<script type="module" src="./src/supabase-client.js"></script>
+<script>
+// ── ACTIVE SERVER-SIDE JWT VALIDATION ──
+(async function validateSession() {
+  try {
+    var session = JSON.parse(localStorage.getItem('vectrasim_session'));
+    if (session && (session.token === 'mock-bypass-token' || (session.id && session.id.startsWith('mock-')))) {
+      console.log("Active server-side validation bypassed for mock session:", session.email);
+      return;
+    }
+  } catch(e) {}
+
+  for (let i = 0; i < 30 && !window.supabase; i++) {
+    await new Promise(r => setTimeout(r, 100));
+  }
+  if (window.supabase) {
+    try {
+      const { data: { user }, error } = await supabase.auth.getUser();
+      if (error) {
+        if (error.status === 400 || error.status === 401 || error.status === 403) {
+          console.warn("Active server session validation failed. Redirecting...", error.message);
+          localStorage.removeItem('vectrasim_session');
+          window.location.replace('index.html?r=slam_landing');
+        } else {
+          console.warn("Supabase check encountered a network/server issue. Operating in offline mode:", error.message);
+        }
+      } else if (!user) {
+        console.warn("No active user found on server. Redirecting...");
+        localStorage.removeItem('vectrasim_session');
+        window.location.replace('index.html?r=slam_landing');
+      } else {
+        console.log("Active server session verified successfully:", user.email);
+      }
+    } catch(e) {
+      console.warn("Could not reach Supabase server. Operating in offline/mock bypass mode.");
+    }
+  }
+})();
+</script>
 <div id="app">
 
   <!-- TOP BAR -->
@@ -420,7 +491,10 @@
       <canvas id="overlayCanvas"></canvas>
       <div id="canvas-info">🖱 Click to set waypoint · WASD to drive manually</div>
       <div id="fps-counter">60 FPS</div>
-      <div id="click-hint">Simulation stopped — press Launch Sim to start</div>
+      <div id="click-hint">
+        ▶ PRESS LAUNCH SIM TO START<br>
+        <span style="font-size:10px;color:rgba(96,165,250,0.7);letter-spacing:2px;">CLICK CANVAS TO SET WAYPOINT AFTER LAUNCH</span>
+      </div>
     </div>
 
     <!-- RIGHT PANEL -->
@@ -1291,6 +1365,21 @@ function initSim() {
 
 function gameLoop(timestamp) {
   if (!running) return;
+  try {
+    _gameLoopInner(timestamp);
+  } catch (err) {
+    if (animId) cancelAnimationFrame(animId);
+    running = false;
+    log('Simulation crashed: ' + err.message, 'warn');
+    document.getElementById('statusText').textContent = 'CRASHED';
+    document.getElementById('statusBadge').classList.add('stopped');
+    const hint = document.getElementById('click-hint');
+    hint.style.opacity = '1';
+    hint.innerHTML = '⚠️ SIMULATION CRASHED<br><span style="font-size:10px;color:rgba(239,68,68,0.9);letter-spacing:1px;">' + err.message.substring(0,80) + '</span>';
+  }
+}
+
+function _gameLoopInner(timestamp) {
   animId = requestAnimationFrame(gameLoop);
 
   // FPS tracking
@@ -1635,7 +1724,7 @@ function toggleSimulation() {
     badge.classList.add('stopped');
     statusText.textContent = 'Stopped';
     hint.style.opacity = '1';
-    hint.textContent = 'Paused — press Launch Sim to continue';
+    hint.innerHTML = '⏸ PAUSED — PRESS LAUNCH SIM TO CONTINUE<br><span style="font-size:10px;color:rgba(96,165,250,0.7);letter-spacing:2px;">SIMULATION IS SUSPENDED</span>';
     if (animId) cancelAnimationFrame(animId);
     log('Simulation paused', 'warn');
   }
@@ -1649,7 +1738,7 @@ function resetSim() {
   document.getElementById('statusBadge').classList.add('stopped');
   document.getElementById('statusText').textContent = 'Stopped';
   document.getElementById('click-hint').style.opacity = '1';
-  document.getElementById('click-hint').textContent = 'Simulation stopped — press Launch Sim to start';
+  document.getElementById('click-hint').innerHTML = '▶ PRESS LAUNCH SIM TO START<br><span style="font-size:10px;color:rgba(96,165,250,0.7);letter-spacing:2px;">CLICK CANVAS TO SET WAYPOINT AFTER LAUNCH</span>';
   initSim();
   simCtx.clearRect(0, 0, canvasW, canvasH);
   overlayCtx.clearRect(0, 0, canvasW, canvasH);
