@@ -976,6 +976,16 @@ window.authGate = function(url) {
   }
 };
 
+window.addEventListener('DOMContentLoaded', () => {
+  if (window.location.hash === '#hub') {
+    const session = getSession();
+    if (session) {
+      setTimeout(() => openHub(session), 100);
+    } else {
+      setTimeout(() => openLogin(), 100);
+    }
+  }
+});
 
 // ── Show/Hide password toggle ──
 window.togglePwVis = function(inputId, btn) {

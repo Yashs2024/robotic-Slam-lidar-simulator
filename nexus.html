@@ -12,6 +12,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=JetBrains+Mono:wght@300;400;700&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/TransformControls.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
     <!-- Supabase: credentials loaded from .env via Vite (not hardcoded) -->
@@ -1056,7 +1057,7 @@
 </script>
 
     <!-- Back to Hub -->
-    <a href="./index.html" id="back-hub" style="position:fixed;top:14px;left:14px;z-index:9999;background:rgba(5,8,16,0.85);border:1px solid rgba(0,245,255,0.18);backdrop-filter:blur(10px);color:var(--cyan);font-family:'Orbitron',sans-serif;font-size:0.58rem;letter-spacing:2px;padding:6px 14px;text-decoration:none;border-radius:4px;transition:all 0.2s;display:flex;align-items:center;gap:5px;">← HUB</a>
+    <a href="./index.html#hub" id="back-hub" style="position:fixed;top:14px;left:14px;z-index:9999;background:rgba(5,8,16,0.85);border:1px solid rgba(0,245,255,0.18);backdrop-filter:blur(10px);color:var(--cyan);font-family:'Orbitron',sans-serif;font-size:0.58rem;letter-spacing:2px;padding:6px 14px;text-decoration:none;border-radius:4px;transition:all 0.2s;display:flex;align-items:center;gap:5px;">← HUB</a>
 
     <!-- LOADER -->
     <div id="loader">
@@ -1082,6 +1083,7 @@
             </div>
             <span id="fps-counter">60 FPS</span>
             <button class="btn-ss" id="btn-toggle-theme" style="background:rgba(0,245,255,0.15);color:var(--cyan);font-weight:700;">☀️ DAY</button>
+            <button class="btn-ss" id="btn-fullscreen" style="background:rgba(0,245,255,0.15);color:var(--cyan);font-weight:700;">🖥️ FULLSCREEN</button>
             <button class="btn-ss" id="btn-screenshot">📷 SNAP</button>
             <div class="nav-status">● ONLINE</div>
         </div>
@@ -1102,6 +1104,7 @@
                     <button class="sidebar-tab active" id="tab-btn-kine">🦾 KINE</button>
                     <button class="sidebar-tab" id="tab-btn-traj">📍 PATH</button>
                     <button class="sidebar-tab" id="tab-btn-dyn">⚡ DYN</button>
+                    <button class="sidebar-tab" id="tab-btn-script">📝 IDE</button>
                 </div>
 
                 <!-- Tab 1: KINEMATICS -->
@@ -1286,23 +1289,24 @@
                         </div>
                     </div>
 
-                    <!-- Pick & Place Task -->
+                    <!-- Industrial Tasks -->
                     <div class="ps">
                         <div class="ps-header orange" style="color:var(--cyan);border-bottom-color:rgba(0,245,255,0.2);" onclick="togglePS(this)" tabindex="0" onkeydown="if(event.key==='Enter'||event.key===' ')this.click()" role="button" aria-expanded="true">
-                            <span><span class="ps-icon">🤖</span>PICK & PLACE TASK</span>
+                            <span><span class="ps-icon">🤖</span>INDUSTRIAL TASKS</span>
                         </div>
                         <div class="ps-body">
-                            <div style="font-size:0.62rem;color:var(--text-2);line-height:1.5;margin-bottom:8px;">Choose an object to execute an autonomous pick-and-place sequence using Cartesian IK path planning.</div>
+                            <div style="font-size:0.62rem;color:var(--text-2);line-height:1.5;margin-bottom:8px;">Execute autonomous industrial sequences using path planning and inverse kinematics.</div>
                             <div class="ctrl-row" style="margin-bottom:8px;">
-                                <span class="ctrl-lbl">Select Object</span>
+                                <span class="ctrl-lbl">Select Task</span>
                                 <select id="pick-object-select" style="width: 130px;">
                                     <option value="box">📦 Heavy Cargo Box</option>
                                     <option value="gear">⚙ Industrial Gear</option>
                                     <option value="canister">🛢 Fuel Canister</option>
+                                    <option value="welding">🔥 Precision Welding (Laser)</option>
                                 </select>
                             </div>
-                            <button class="btn" style="background:rgba(0,245,255,0.12);border-color:var(--cyan);color:var(--cyan);" id="btn-execute-task">EXECUTE PICK & PLACE</button>
-                            <button class="btn red sm" id="btn-reset-objects" style="margin-top:6px;">RESET OBJECTS</button>
+                            <button class="btn" style="background:rgba(0,245,255,0.12);border-color:var(--cyan);color:var(--cyan);" id="btn-execute-task">EXECUTE TASK</button>
+                            <button class="btn red sm" id="btn-reset-objects" style="margin-top:6px;">RESET SCENE</button>
                             <div style="text-align:center;font-size:0.65rem;color:var(--text-2);margin-top:6px;" id="task-status">Task Engine Idle</div>
                         </div>
                     </div>
@@ -1386,6 +1390,33 @@ SOLVER: CCD IK</div>
                     </div>
                 </div>
 
+                <!-- Tab 4: SCRIPTING IDE -->
+                <div id="tab-script" class="tab-content">
+                    <div class="ps">
+                        <div class="ps-header" style="background:rgba(155,93,229,0.1);border-color:rgba(155,93,229,0.3);color:var(--violet);">
+                            <span><span class="ps-icon">🐍</span>PYTHON SCRIPTING</span>
+                        </div>
+                        <div class="ps-body" style="padding:10px;">
+                            <div style="font-size:0.62rem;color:var(--text-2);margin-bottom:8px;line-height:1.4;">
+                                Write Python automation scripts.<br>
+                                Commands: <code>robot.speed(val)</code>, <code>robot.moveTo(target="box")</code>, <code>robot.grip(close=True|False)</code>.
+                            </div>
+                            
+                            <textarea id="ide-editor" spellcheck="false" style="width: 100%; height: 250px; background: #050810; border: 1px solid rgba(0,245,255,0.2); border-radius: var(--r); color: #00f5ff; font-family: monospace; font-size: 0.75rem; padding: 10px; resize: vertical; line-height: 1.5;">robot.speed(1.0)
+robot.moveTo(target="box")
+robot.grip(close=True)
+robot.moveTo(target="home")</textarea>
+                            
+                            <div class="btn-row" style="margin-top:10px;">
+                                <button class="btn violet" id="btn-run-script" style="flex:1;">▶ RUN</button>
+                                <button class="btn" id="btn-preview-script" style="flex:1;background:rgba(0,245,255,0.1);color:var(--cyan);border-color:var(--cyan);">👁 GHOST</button>
+                                <button class="btn red sm" id="btn-clear-script" style="width:auto;">CLR</button>
+                            </div>
+                            <div id="script-status" style="margin-top:6px; font-size:0.65rem; color:var(--text-2); text-align:center;">IDE Idle</div>
+                        </div>
+                    </div>
+                </div>
+
             </div><!-- end sidebar-panel -->
 
             <!-- CENTER -->
@@ -1419,10 +1450,22 @@ SOLVER: CCD IK</div>
 
                     <!-- Axis Gizmo canvas -->
                     <canvas id="axis-gizmo" width="60" height="60"></canvas>
+
+                    <!-- ROS Telemetry Terminal -->
+                    <div id="ros-terminal" style="position: absolute; bottom: 10px; right: 10px; width: 300px; height: 160px; background: rgba(3,7,18,0.85); border: 1px solid rgba(0,245,255,0.25); border-radius: var(--r); z-index: 100; backdrop-filter: blur(8px); display: flex; flex-direction: column; overflow: hidden; pointer-events: none;">
+                        <div style="background: rgba(0,245,255,0.1); border-bottom: 1px solid rgba(0,245,255,0.2); padding: 4px 8px; font-family: var(--font-d); font-size: 0.6rem; color: var(--cyan); letter-spacing: 1px; display: flex; justify-content: space-between;">
+                            <span><span style="display:inline-block; width:6px; height:6px; background:var(--cyan); border-radius:50%; margin-right:6px; box-shadow: 0 0 6px var(--cyan); animation: blink 1s infinite;"></span>ROS 2 TELEMETRY</span>
+                            <span style="color: var(--text-2);">/joint_states</span>
+                        </div>
+                        <div id="ros-log" style="flex: 1; padding: 6px 8px; font-family: 'JetBrains Mono', monospace; font-size: 0.55rem; color: #a9ffaf; line-height: 1.4; overflow-y: hidden; white-space: pre-wrap; display: flex; flex-direction: column-reverse;"></div>
+                    </div>
+
+
                 </div>
 
                 <!-- BOTTOM CHARTS -->
-                <div id="kine-bottom">
+                <div id="kine-bottom" style="position: relative;">
+                    <button id="btn-close-graphs" style="position: absolute; top: 6px; right: 10px; z-index: 10; background: rgba(255,255,255,0.08); border: 1px solid var(--border); color: var(--text-2); cursor: pointer; padding: 2px 8px; font-family: monospace; font-size: 0.7rem; border-radius: 4px; transition: all 0.2s;" onmouseover="this.style.background='rgba(255,71,87,0.2)';this.style.color='#ff4757'" onmouseout="this.style.background='rgba(255,255,255,0.08)';this.style.color='var(--text-2)'" title="Hide Graphs">✕ HIDE GRAPHS</button>
                     <div class="chart-cell"><div class="chart-label">VELOCITY PROFILE (J1–J3)</div><canvas id="trajVelChart"></canvas></div>
                     <div class="chart-cell"><div class="chart-label violet">ACCELERATION PROFILE (J1–J3)</div><canvas id="trajAccChart"></canvas></div>
                 </div>
@@ -1738,12 +1781,31 @@ SOLVER: CCD IK</div>
         renderer.setPixelRatio(window.devicePixelRatio);
         renderer.setClearColor(0x020509, 1);
         renderer.shadowMap.enabled = true;
+        renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+        renderer.toneMapping = THREE.ACESFilmicToneMapping;
+        renderer.toneMappingExposure = 1.1;
         window._kineRenderer = renderer;
 
         const controls = new THREE.OrbitControls(camera, canvas);
         controls.enableDamping = true;
         controls.dampingFactor = 0.08;
         controls.target.set(0, 12, 0);
+
+        // ========================
+        // ROS TELEMETRY
+        // ========================
+
+        let rosTelemetryInterval = null;
+        function updateROSTelemetry() {
+            const rosLog = document.getElementById('ros-log');
+            if (!rosLog) return;
+            const logLine = document.createElement('div');
+            logLine.textContent = `[ROS2] /joint_states: [${jointAngles.map(a => a.toFixed(1)).join(', ')}]`;
+            rosLog.prepend(logLine);
+            if (rosLog.childNodes.length > 30) {
+                rosLog.removeChild(rosLog.lastChild);
+            }
+        }
 
         // Resize
         function resizeKine() {
@@ -1760,12 +1822,25 @@ SOLVER: CCD IK</div>
         setTimeout(resizeKine, 500);
         window._kineResizeFunc = resizeKine;
 
-        // Lighting
-        const ambientLight = new THREE.AmbientLight(0xffffff, 0.4);
+        // Lighting — Industrial environment
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.3);
         scene.add(ambientLight);
-        const dLight = new THREE.DirectionalLight(0x88ddff, 1.2);
+        // Hemisphere light for realistic sky/ground ambient
+        const hemiLight = new THREE.HemisphereLight(0x88bbff, 0x0a0e18, 0.6);
+        hemiLight.position.set(0, 50, 0);
+        scene.add(hemiLight);
+        const dLight = new THREE.DirectionalLight(0x88ddff, 1.4);
         dLight.position.set(20, 50, 20);
         dLight.castShadow = true;
+        dLight.shadow.mapSize.width = 2048;
+        dLight.shadow.mapSize.height = 2048;
+        dLight.shadow.camera.near = 0.5;
+        dLight.shadow.camera.far = 120;
+        dLight.shadow.camera.left = -40;
+        dLight.shadow.camera.right = 40;
+        dLight.shadow.camera.top = 40;
+        dLight.shadow.camera.bottom = -40;
+        dLight.shadow.bias = -0.001;
         scene.add(dLight);
         const pLight = new THREE.PointLight(0x9b5de5, 3, 80);
         pLight.position.set(-20, 30, -20);
@@ -1773,6 +1848,11 @@ SOLVER: CCD IK</div>
         const pLight2 = new THREE.PointLight(0x00f5ff, 1.5, 60);
         pLight2.position.set(20, 5, 20);
         scene.add(pLight2);
+        // Warm fill light from opposite side
+        const fillLight = new THREE.PointLight(0xffaa55, 0.8, 50);
+        fillLight.position.set(-15, 20, 15);
+        scene.add(fillLight);
+
 
         // Grid floor
         const grid = new THREE.GridHelper(60, 30, 0x001a2e, 0x001020);
@@ -1926,7 +2006,7 @@ SOLVER: CCD IK</div>
         const MAX_DOF = 6;
         let numJoints = 6; // current active DOF
         const jointAngles  = [0, 0, 0, 0, 0, 0];
-        const jointLimits  = [[-180,180],[-180,180],[-135,135],[-180,180],[-180,180],[-180,180]];
+        const jointLimits  = [[-180,180],[-110,110],[-130,130],[-180,180],[-115,115],[-360,360]];
         const axes = [
             new THREE.Vector3(0,1,0),
             new THREE.Vector3(0,0,1),
@@ -2028,127 +2108,416 @@ SOLVER: CCD IK</div>
             // Use only the first numJoints links
             const activeDefs = linkDefs.slice(0, numJoints);
 
-            const jointMat = new THREE.MeshStandardMaterial({ color: 0x9b5de5, emissive: 0x3a0060, roughness: 0.3, metalness: 0.8 });
+            // ── MATERIALS ──
+            const matDarkMetal = new THREE.MeshStandardMaterial({ color: 0x101828, roughness: 0.45, metalness: 0.92 });
+            const matLightMetal = new THREE.MeshStandardMaterial({ color: 0x3a4560, roughness: 0.35, metalness: 0.88 });
+            const matAccentViolet = new THREE.MeshStandardMaterial({ color: 0x9b5de5, emissive: 0x2d0060, roughness: 0.28, metalness: 0.85 });
+            const matAccentOrange = new THREE.MeshStandardMaterial({ color: 0xff6b35, roughness: 0.3, metalness: 0.82 });
+            const matWarning = new THREE.MeshStandardMaterial({ color: 0xffd166, roughness: 0.35, metalness: 0.6 });
+            const matCable = new THREE.MeshStandardMaterial({ color: 0x0a0e18, roughness: 0.7, metalness: 0.3 });
 
-            // Base turntable pedestal
-            const basePedGeom = new THREE.CylinderGeometry(2.5, 3.2, 1.2, 24);
-            const basePedMat = new THREE.MeshStandardMaterial({ color: 0x111622, roughness: 0.5, metalness: 0.9 });
-            const basePed = new THREE.Mesh(basePedGeom, basePedMat);
-            basePed.position.y = 0.6;
-            basePed.receiveShadow = true;
-            robotGroup.add(basePed);
+            // ── BASE PEDESTAL (Motor Housing) ──
+            const baseGroup = new THREE.Group();
+            baseGroup.position.y = 0;
+            robotGroup.add(baseGroup);
 
-            // Yellow warning ring on pedestal
-            const baseRing = new THREE.Mesh(
-                new THREE.TorusGeometry(2.8, 0.08, 8, 36),
-                new THREE.MeshStandardMaterial({ color: 0xffd166, roughness: 0.4 })
+            // Main base cylinder (bottom plate)
+            const basePlate = new THREE.Mesh(
+                new THREE.CylinderGeometry(3.4, 3.6, 0.4, 32),
+                matDarkMetal
             );
-            baseRing.rotation.x = Math.PI / 2;
-            baseRing.position.y = 0.6;
-            basePed.add(baseRing);
+            basePlate.position.y = 0.2;
+            basePlate.receiveShadow = true;
+            basePlate.castShadow = true;
+            baseGroup.add(basePlate);
 
+            // Motor housing (upper cylinder)
+            const motorHousing = new THREE.Mesh(
+                new THREE.CylinderGeometry(2.6, 2.8, 1.4, 24),
+                matLightMetal
+            );
+            motorHousing.position.y = 1.1;
+            motorHousing.castShadow = true;
+            baseGroup.add(motorHousing);
+
+            // Top cap
+            const topCap = new THREE.Mesh(
+                new THREE.CylinderGeometry(2.3, 2.6, 0.3, 24),
+                matDarkMetal
+            );
+            topCap.position.y = 2.1;
+            topCap.castShadow = true;
+            baseGroup.add(topCap);
+
+            // Ventilation slots (horizontal slits around the motor housing)
+            for (let i = 0; i < 8; i++) {
+                const angle = (i / 8) * Math.PI * 2;
+                const ventSlot = new THREE.Mesh(
+                    new THREE.BoxGeometry(0.08, 0.6, 0.6),
+                    matCable
+                );
+                ventSlot.position.set(
+                    Math.cos(angle) * 2.65,
+                    1.1,
+                    Math.sin(angle) * 2.65
+                );
+                ventSlot.rotation.y = -angle;
+                baseGroup.add(ventSlot);
+            }
+
+            // Warning ring bands
+            [0.4, 1.8].forEach(y => {
+                const ring = new THREE.Mesh(
+                    new THREE.TorusGeometry(y < 1 ? 3.5 : 2.65, 0.06, 8, 36),
+                    matWarning
+                );
+                ring.rotation.x = Math.PI / 2;
+                ring.position.y = y;
+                baseGroup.add(ring);
+            });
+
+            // Base LED status ring
+            const baseLedRing = new THREE.Mesh(
+                new THREE.TorusGeometry(2.45, 0.08, 8, 32),
+                new THREE.MeshStandardMaterial({
+                    color: 0x00f5ff, emissive: 0x00f5ff,
+                    emissiveIntensity: 2.0, transparent: true, opacity: 0.85
+                })
+            );
+            baseLedRing.rotation.x = Math.PI / 2;
+            baseLedRing.position.y = 2.25;
+            baseGroup.add(baseLedRing);
+            jointLEDs.push(baseLedRing);
+
+            // Cable routing channels (4 tubes from base)
+            for (let i = 0; i < 4; i++) {
+                const angle = (i / 4) * Math.PI * 2 + Math.PI / 8;
+                const cable = new THREE.Mesh(
+                    new THREE.CylinderGeometry(0.06, 0.06, 1.8, 6),
+                    matCable
+                );
+                cable.position.set(
+                    Math.cos(angle) * 2.0,
+                    1.3,
+                    Math.sin(angle) * 2.0
+                );
+                baseGroup.add(cable);
+            }
+
+            // Mounting bolt pattern
+            for (let i = 0; i < 6; i++) {
+                const angle = (i / 6) * Math.PI * 2;
+                const bolt = new THREE.Mesh(
+                    new THREE.CylinderGeometry(0.1, 0.1, 0.12, 6),
+                    new THREE.MeshStandardMaterial({ color: 0x888899, roughness: 0.2, metalness: 0.95 })
+                );
+                bolt.position.set(
+                    Math.cos(angle) * 3.15,
+                    0.46,
+                    Math.sin(angle) * 3.15
+                );
+                baseGroup.add(bolt);
+            }
+
+            // ── JOINT AND LINK CONSTRUCTION ──
             let parent = robotGroup;
             activeDefs.forEach((link, i) => {
                 const node = new THREE.Object3D();
-                if (i > 0) node.position.y = activeDefs[i-1].l;
+                node.name = 'jointNode_' + i; // name for ghost cloning
+                if (i === 0) {
+                    node.position.y = 2.4; // on top of base
+                } else {
+                    node.position.y = activeDefs[i-1].l;
+                }
                 parent.add(node);
                 jointNodes.push(node);
 
-                // Joint collar
+                // ── Joint actuator housing ──
                 if (i > 0) {
-                    const sph = new THREE.Mesh(
-                        new THREE.SphereGeometry(link.r * 1.25, 12, 12),
-                        jointMat.clone()
-                    );
-                    node.add(sph);
-                    jointSpheres.push(sph);
+                    const housingSize = link.r * 1.4;
+                    // Rounded box actuator (using box + sphere blend)
+                    const housingGroup = new THREE.Group();
+                    node.add(housingGroup);
 
-                    // LED Ring band on joint
-                    const ledGeom = new THREE.TorusGeometry(link.r * 1.35, 0.07, 8, 24);
+                    // Main actuator box
+                    const actBox = new THREE.Mesh(
+                        new THREE.BoxGeometry(housingSize * 2, housingSize * 1.6, housingSize * 1.8),
+                        matAccentViolet.clone()
+                    );
+                    actBox.castShadow = true;
+                    housingGroup.add(actBox);
+                    jointSpheres.push(actBox);
+
+                    // Side cover plates
+                    [-1, 1].forEach(side => {
+                        const plate = new THREE.Mesh(
+                            new THREE.BoxGeometry(0.06, housingSize * 1.2, housingSize * 1.4),
+                            matDarkMetal
+                        );
+                        plate.position.x = side * housingSize * 1.02;
+                        housingGroup.add(plate);
+                    });
+
+                    // Bolt pattern on actuator
+                    const boltR = 0.06;
+                    [[-1,-1],[1,-1],[-1,1],[1,1]].forEach(([bx, bz]) => {
+                        const bolt = new THREE.Mesh(
+                            new THREE.CylinderGeometry(boltR, boltR, 0.08, 6),
+                            new THREE.MeshStandardMaterial({ color: 0xaabbcc, roughness: 0.15, metalness: 0.95 })
+                        );
+                        bolt.position.set(
+                            bx * housingSize * 0.7,
+                            housingSize * 0.82,
+                            bz * housingSize * 0.65
+                        );
+                        bolt.rotation.x = Math.PI / 2;
+                        housingGroup.add(bolt);
+                    });
+
+                    // LED status ring on joint
+                    const ledGeom = new THREE.TorusGeometry(housingSize * 1.1, 0.06, 8, 24);
                     const ledMat = new THREE.MeshStandardMaterial({
-                        color: 0x00f5ff,
-                        emissive: 0x00f5ff,
-                        emissiveIntensity: 1.5,
-                        transparent: true,
-                        opacity: 0.8
+                        color: 0x00f5ff, emissive: 0x00f5ff,
+                        emissiveIntensity: 1.5, transparent: true, opacity: 0.8
                     });
                     const ledMesh = new THREE.Mesh(ledGeom, ledMat);
                     ledMesh.rotation.x = Math.PI / 2;
-                    node.add(ledMesh);
+                    ledMesh.position.y = housingSize * 0.82;
+                    housingGroup.add(ledMesh);
                     jointLEDs.push(ledMesh);
+
+                    // Cable routing hole
+                    const cableHole = new THREE.Mesh(
+                        new THREE.CylinderGeometry(housingSize * 0.15, housingSize * 0.15, housingSize * 2.1, 8),
+                        matCable
+                    );
+                    cableHole.rotation.z = Math.PI / 2;
+                    cableHole.position.y = -housingSize * 0.3;
+                    housingGroup.add(cableHole);
                 }
 
-                // Tapered link casing
-                const geom = new THREE.CylinderGeometry(link.r * 0.65, link.r * 1.1, link.l, 14);
-                geom.translate(0, link.l / 2, 0);
-                const mat = new THREE.MeshStandardMaterial({
-                    color: i === 0 ? 0x1a1a2e : (i % 2 === 0 ? 0x2e2e4a : 0x3a3a5a),
-                    roughness: 0.35, metalness: 0.85
+                // ── Link arm segment (compound shape) ──
+                const linkGroup = new THREE.Group();
+                node.add(linkGroup);
+
+                // Main arm body — slightly rounded profile
+                const bodyW = link.r * 1.6;
+                const bodyD = link.r * 1.2;
+                const isLast = (i === numJoints - 1);
+                const linkColor = i === 0 ? 0x1a1a2e : (i % 2 === 0 ? 0x252a3e : 0x2e3348);
+                const bodyMat = new THREE.MeshStandardMaterial({
+                    color: linkColor, roughness: 0.32, metalness: 0.88
                 });
-                // Last link glows cyan
-                if (i === numJoints - 1) {
-                    mat.emissive = new THREE.Color(0x00f5ff);
-                    mat.emissiveIntensity = 0.5;
-                }
-                const mesh = new THREE.Mesh(geom, mat);
-                mesh.castShadow = true;
-                node.add(mesh);
-                linkMeshes.push(mesh);
-
-                // Add support strut (mock hydraulic piston)
-                if (i > 0 && i < numJoints - 1) {
-                    const strutGeom = new THREE.CylinderGeometry(link.r * 0.22, link.r * 0.22, link.l * 0.8, 8);
-                    strutGeom.translate(link.r * 0.95, link.l * 0.4, 0);
-                    const strutMat = new THREE.MeshStandardMaterial({ color: 0x111622, roughness: 0.4, metalness: 0.95 });
-                    const strut = new THREE.Mesh(strutGeom, strutMat);
-                    node.add(strut);
+                if (isLast) {
+                    bodyMat.emissive = new THREE.Color(0x00f5ff);
+                    bodyMat.emissiveIntensity = 0.35;
                 }
 
-                // Yellow safety warning stripes
-                const stripGeom = new THREE.TorusGeometry(link.r * 1.12, 0.04, 8, 16);
-                const stripMat = new THREE.MeshStandardMaterial({ color: 0xffd166, roughness: 0.4 });
-                const strip = new THREE.Mesh(stripGeom, stripMat);
-                strip.rotation.x = Math.PI / 2;
-                strip.position.y = link.l * 0.25;
-                mesh.add(strip);
+                // Main link body (octagonal cross-section via cylinder)
+                const bodyGeom = new THREE.CylinderGeometry(bodyW * 0.55, bodyW * 0.75, link.l, 8);
+                bodyGeom.translate(0, link.l / 2, 0);
+                const bodyMesh = new THREE.Mesh(bodyGeom, bodyMat);
+                bodyMesh.castShadow = true;
+                linkGroup.add(bodyMesh);
+                linkMeshes.push(bodyMesh);
 
-                const strip2 = strip.clone();
-                strip2.position.y = link.l * 0.75;
-                mesh.add(strip2);
+                // Side structural rib / cable channel
+                const ribGeom = new THREE.BoxGeometry(bodyW * 0.2, link.l * 0.85, bodyD * 0.3);
+                ribGeom.translate(bodyW * 0.7, link.l * 0.5, 0);
+                const ribMesh = new THREE.Mesh(ribGeom, matCable);
+                ribMesh.castShadow = true;
+                linkGroup.add(ribMesh);
+
+                // Opposite side structural rib
+                const ribGeom2 = new THREE.BoxGeometry(bodyW * 0.15, link.l * 0.7, bodyD * 0.25);
+                ribGeom2.translate(-bodyW * 0.7, link.l * 0.45, 0);
+                const ribMesh2 = new THREE.Mesh(ribGeom2, matDarkMetal.clone());
+                linkGroup.add(ribMesh2);
+
+                // Structural ribbing rings along length
+                const numRibs = Math.max(2, Math.floor(link.l / 2.5));
+                for (let ri = 0; ri < numRibs; ri++) {
+                    const ribY = link.l * (0.2 + 0.6 * ri / (numRibs - 1 || 1));
+                    const ribRing = new THREE.Mesh(
+                        new THREE.TorusGeometry(bodyW * 0.78, 0.04, 6, 16),
+                        matWarning
+                    );
+                    ribRing.rotation.x = Math.PI / 2;
+                    ribRing.position.y = ribY;
+                    linkGroup.add(ribRing);
+                }
+
+                // Hydraulic piston strut (larger links only)
+                if (i > 0 && i < numJoints - 1 && link.l > 2) {
+                    const pistonOuter = new THREE.Mesh(
+                        new THREE.CylinderGeometry(link.r * 0.18, link.r * 0.22, link.l * 0.55, 8),
+                        new THREE.MeshStandardMaterial({ color: 0x888899, roughness: 0.15, metalness: 0.95 })
+                    );
+                    pistonOuter.position.set(bodyW * 0.9, link.l * 0.4, bodyD * 0.3);
+                    linkGroup.add(pistonOuter);
+
+                    const pistonInner = new THREE.Mesh(
+                        new THREE.CylinderGeometry(link.r * 0.1, link.r * 0.1, link.l * 0.35, 8),
+                        new THREE.MeshStandardMaterial({ color: 0xccccdd, roughness: 0.1, metalness: 0.98 })
+                    );
+                    pistonInner.position.set(bodyW * 0.9, link.l * 0.65, bodyD * 0.3);
+                    linkGroup.add(pistonInner);
+                }
+
+                // Accent band at link midpoint
+                const accentBand = new THREE.Mesh(
+                    new THREE.CylinderGeometry(bodyW * 0.82, bodyW * 0.82, 0.15, 12),
+                    i % 2 === 0 ? matAccentViolet.clone() : matAccentOrange.clone()
+                );
+                accentBand.position.y = link.l * 0.5;
+                linkGroup.add(accentBand);
 
                 parent = node;
             });
 
-            // End-effector point always at last joint tip
+            // ── END-EFFECTOR ──
             endEffectorPnt = new THREE.Object3D();
             endEffectorPnt.position.y = activeDefs[numJoints - 1].l;
             jointNodes[numJoints - 1].add(endEffectorPnt);
 
-            // Parallel claw pneumatic gripper
-            const gripBaseGeom = new THREE.BoxGeometry(1.2, 0.6, 1.2);
-            const gripBaseMat = new THREE.MeshStandardMaterial({ color: 0x1f242e, roughness: 0.4, metalness: 0.8 });
-            const gripBase = new THREE.Mesh(gripBaseGeom, gripBaseMat);
-            gripBase.position.y = 0.3;
-            gripBase.castShadow = true;
-            endEffectorPnt.add(gripBase);
+            // ── UPGRADED GRIPPER ──
+            const gripGroup = new THREE.Group();
+            gripGroup.position.y = 0;
+            endEffectorPnt.add(gripGroup);
 
-            const jawGeom = new THREE.BoxGeometry(0.22, 0.9, 0.5);
-            jawGeom.translate(0, 0.45, 0);
-            const jawMat = new THREE.MeshStandardMaterial({ color: 0xff6b35, roughness: 0.3, metalness: 0.9 });
-            
-            fingerL = new THREE.Mesh(jawGeom, jawMat);
-            fingerL.position.set(-0.4, 0.6, 0);
-            fingerL.castShadow = true;
-            gripBase.add(fingerL);
+            // Pneumatic actuator body
+            const actBody = new THREE.Mesh(
+                new THREE.BoxGeometry(1.6, 0.8, 1.4),
+                matDarkMetal
+            );
+            actBody.position.y = 0.4;
+            actBody.castShadow = true;
+            gripGroup.add(actBody);
 
-            fingerR = new THREE.Mesh(jawGeom, jawMat);
-            fingerR.position.set(0.4, 0.6, 0);
-            fingerR.castShadow = true;
-            gripBase.add(fingerR);
+            // Cable connector on top
+            const connector = new THREE.Mesh(
+                new THREE.CylinderGeometry(0.15, 0.2, 0.25, 8),
+                matLightMetal
+            );
+            connector.position.set(0, 0.9, 0.5);
+            gripGroup.add(connector);
+
+            // Actuator accent stripe
+            const actStripe = new THREE.Mesh(
+                new THREE.BoxGeometry(1.65, 0.08, 1.45),
+                matAccentOrange.clone()
+            );
+            actStripe.position.y = 0.6;
+            gripGroup.add(actStripe);
+
+            // Guide rails (thin cylinders)
+            [-0.55, 0.55].forEach(x => {
+                const rail = new THREE.Mesh(
+                    new THREE.CylinderGeometry(0.04, 0.04, 1.4, 6),
+                    new THREE.MeshStandardMaterial({ color: 0xaabbcc, roughness: 0.1, metalness: 0.98 })
+                );
+                rail.position.set(x, 1.0, 0);
+                gripGroup.add(rail);
+            });
+
+            // Left finger
+            const jawGroup_L = new THREE.Group();
+            jawGroup_L.position.set(-0.4, 0.8, 0);
+            gripGroup.add(jawGroup_L);
+            fingerL = jawGroup_L;
+
+            const jawBody_L = new THREE.Mesh(
+                new THREE.BoxGeometry(0.25, 1.0, 0.55),
+                matAccentOrange.clone()
+            );
+            jawBody_L.position.y = 0.5;
+            jawBody_L.castShadow = true;
+            jawGroup_L.add(jawBody_L);
+
+            // Serrated finger tip (ridges)
+            for (let si = 0; si < 4; si++) {
+                const ridge = new THREE.Mesh(
+                    new THREE.BoxGeometry(0.05, 0.06, 0.5),
+                    matDarkMetal
+                );
+                ridge.position.set(0.12, 0.15 + si * 0.2, 0);
+                jawGroup_L.add(ridge);
+            }
+
+            // Right finger
+            const jawGroup_R = new THREE.Group();
+            jawGroup_R.position.set(0.4, 0.8, 0);
+            gripGroup.add(jawGroup_R);
+            fingerR = jawGroup_R;
+
+            const jawBody_R = new THREE.Mesh(
+                new THREE.BoxGeometry(0.25, 1.0, 0.55),
+                matAccentOrange.clone()
+            );
+            jawBody_R.position.y = 0.5;
+            jawBody_R.castShadow = true;
+            jawGroup_R.add(jawBody_R);
+
+            // Serrated finger tip (ridges)
+            for (let si = 0; si < 4; si++) {
+                const ridge = new THREE.Mesh(
+                    new THREE.BoxGeometry(0.05, 0.06, 0.5),
+                    matDarkMetal
+                );
+                ridge.position.set(-0.12, 0.15 + si * 0.2, 0);
+                jawGroup_R.add(ridge);
+            }
+
+            // Tool Center Point LED
+            const tcpLed = new THREE.Mesh(
+                new THREE.SphereGeometry(0.12, 8, 8),
+                new THREE.MeshStandardMaterial({
+                    color: 0x00ffb2, emissive: 0x00ffb2,
+                    emissiveIntensity: 3.0, transparent: true, opacity: 0.9
+                })
+            );
+            tcpLed.position.y = 1.8;
+            gripGroup.add(tcpLed);
+
+            // TCP point light
+            const tcpLight = new THREE.PointLight(0x00ffb2, 0.8, 8);
+            tcpLight.position.y = 1.8;
+            gripGroup.add(tcpLight);
 
             // End-effector glow ring
             effGlowMesh.position.set(0,0,0);
         }
+
+        function buildGhostRobot() {
+            if (window.ghostRobotGroup) scene.remove(window.ghostRobotGroup);
+            
+            window.ghostRobotGroup = robotGroup.clone();
+            window.ghostJointNodes = [];
+            
+            for(let i=0; i<numJoints; i++) {
+                const n = window.ghostRobotGroup.getObjectByName('jointNode_' + i);
+                if (n) window.ghostJointNodes.push(n);
+            }
+            
+            // Set translucent material
+            window.ghostRobotGroup.traverse(child => {
+                if (child.isMesh && child.material) {
+                    child.material = child.material.clone();
+                    child.material.transparent = true;
+                    child.material.opacity = 0.25;
+                    child.material.color.setHex(0x00f5ff);
+                    child.material.emissive.setHex(0x000000);
+                    child.material.depthWrite = false;
+                }
+                if (child.type === 'PointLight') {
+                    child.visible = false;
+                }
+            });
+            
+            scene.add(window.ghostRobotGroup);
+            window.ghostRobotGroup.visible = false; // hidden by default
+        }
+        buildGhostRobot(); // Initialize the ghost arm
 
         // END-EFFECTOR GLOW (teach mode hover ring)
         const effGlowGeo = new THREE.RingGeometry(0.6, 0.9, 32);
@@ -2163,6 +2532,29 @@ SOLVER: CCD IK</div>
         );
         targetMesh.position.set(12, 8, 0);
         scene.add(targetMesh);
+
+        // TransformControls for mouse/trackpad dragging
+        const transformControl = new THREE.TransformControls(camera, renderer.domElement);
+        transformControl.attach(targetMesh);
+        transformControl.size = 0.8;
+        scene.add(transformControl);
+
+        transformControl.addEventListener('dragging-changed', function (event) {
+            controls.enabled = !event.value;
+        });
+
+        transformControl.addEventListener('change', () => {
+            if (pickPlaceActive || window.isWeldingActive) return;
+            // Solve IK dynamically when dragging
+            solveIK(targetMesh.position, 10, 0.1);
+            updateFKSliders();
+            updateReadout();
+            updateDynamics();
+            
+            // Show Ghost Arm slightly ahead of the real arm? Or just follow.
+            // If dragging, let real arm follow (like it does now).
+            if (window.ghostRobotGroup) window.ghostRobotGroup.visible = false;
+        });
 
         // Workspace envelope
         const wsMat = new THREE.MeshBasicMaterial({ color: 0x00f5ff, wireframe: true, transparent: true, opacity: 0 });
@@ -2902,7 +3294,7 @@ JOINTS [deg]:
         });
 
         // ========================
-        // TEACH MODE
+        // TEACH MODE (Pointer Events + Raycasted Grab Sphere)
         // ========================
         let teachMode = false;
         let teachDragging = false;
@@ -2912,18 +3304,91 @@ JOINTS [deg]:
         let teachHover    = false;
         const EFF_HOVER_DIST = 2.5; // world units
 
+        // Invisible grab sphere for raycasted hover detection
+        const grabSphereGeom = new THREE.SphereGeometry(2.2, 16, 16);
+        const grabSphereMat = new THREE.MeshBasicMaterial({
+            color: 0x00f5ff, transparent: true, opacity: 0.0,
+            depthWrite: false
+        });
+        const grabSphere = new THREE.Mesh(grabSphereGeom, grabSphereMat);
+        grabSphere.visible = false;
+        grabSphere.name = 'teachGrabSphere';
+        scene.add(grabSphere);
+
+        // Visible grab handle indicator
+        const grabHandleGeom = new THREE.SphereGeometry(0.6, 16, 16);
+        const grabHandleMat = new THREE.MeshStandardMaterial({
+            color: 0x00f5ff, emissive: 0x00f5ff,
+            emissiveIntensity: 1.5, transparent: true, opacity: 0.0,
+            roughness: 0.3, metalness: 0.8
+        });
+        const grabHandle = new THREE.Mesh(grabHandleGeom, grabHandleMat);
+        grabHandle.visible = false;
+        scene.add(grabHandle);
+
+        // Grab ring indicator
+        const grabRingGeom = new THREE.TorusGeometry(1.2, 0.06, 8, 32);
+        const grabRingMat = new THREE.MeshStandardMaterial({
+            color: 0x00f5ff, emissive: 0x00f5ff,
+            emissiveIntensity: 2.0, transparent: true, opacity: 0.0
+        });
+        const grabRing = new THREE.Mesh(grabRingGeom, grabRingMat);
+        grabRing.visible = false;
+        scene.add(grabRing);
+
+        function updateTeachGrabVisuals() {
+            if (!teachMode) {
+                grabSphere.visible = false;
+                grabHandle.visible = false;
+                grabRing.visible = false;
+                return;
+            }
+            const effP = getEndEffectorPos();
+            grabSphere.position.copy(effP);
+            grabSphere.visible = true;
+            grabHandle.position.copy(effP);
+            grabHandle.visible = true;
+            grabRing.position.copy(effP);
+            grabRing.lookAt(camera.position);
+            grabRing.visible = true;
+
+            if (teachDragging) {
+                grabHandleMat.color.setHex(0xff6b35);
+                grabHandleMat.emissive.setHex(0xff6b35);
+                grabHandleMat.opacity = 0.9;
+                grabRingMat.color.setHex(0xff6b35);
+                grabRingMat.emissive.setHex(0xff6b35);
+                grabRingMat.opacity = 0.7;
+            } else if (teachHover) {
+                grabHandleMat.color.setHex(0xffaa00);
+                grabHandleMat.emissive.setHex(0xffaa00);
+                grabHandleMat.opacity = 0.85;
+                grabRingMat.color.setHex(0xffaa00);
+                grabRingMat.emissive.setHex(0xffaa00);
+                grabRingMat.opacity = 0.6;
+            } else {
+                grabHandleMat.color.setHex(0x00f5ff);
+                grabHandleMat.emissive.setHex(0x00f5ff);
+                const pulse = 0.35 + Math.sin(Date.now() / 400) * 0.2;
+                grabHandleMat.opacity = pulse;
+                grabRingMat.color.setHex(0x00f5ff);
+                grabRingMat.emissive.setHex(0x00f5ff);
+                grabRingMat.opacity = pulse * 0.5;
+            }
+        }
+
         function getTeachDragPos(clientX, clientY) {
             const rect = canvas.getBoundingClientRect();
             mouse.x = ((clientX-rect.left)/rect.width)*2-1;
             mouse.y = -((clientY-rect.top)/rect.height)*2+1;
             raycaster.setFromCamera(mouse, camera);
             const hit = new THREE.Vector3();
-            // Project onto plane through eff, perpendicular to camera look direction
             if (raycaster.ray.intersectPlane(teachDragPlane, hit)) return hit;
             return null;
         }
 
-        canvas.addEventListener('mousemove', e => {
+        // Use pointer events for cross-device compatibility (mouse + trackpad + touch)
+        canvas.addEventListener('pointermove', e => {
             if (!teachMode) return;
             const rect = canvas.getBoundingClientRect();
             const mx   = ((e.clientX-rect.left)/rect.width)*2-1;
@@ -2934,13 +3399,23 @@ JOINTS [deg]:
                 // constrain mode
                 let pos = getTeachDragPos(e.clientX, e.clientY);
                 if (!pos) return;
+                // Store original drag start position for constraints
                 if (e.shiftKey) { pos.x = teachDragPos.x; pos.z = teachDragPos.z; } // vertical only
                 if (e.altKey)   { pos.y = teachDragPos.y; }                           // horizontal only
+
+                // Clamp to reachable workspace
+                const basePos = new THREE.Vector3(0, (linkDefs[0]?linkDefs[0].l:2), 0);
+                const reach = totalReach();
+                if (pos.distanceTo(basePos) > reach * 0.95) {
+                    const dir = pos.clone().sub(basePos).normalize();
+                    pos = basePos.clone().add(dir.multiplyScalar(reach * 0.9));
+                }
+
                 teachDragPos.copy(pos);
                 targetMesh.position.copy(pos);
 
-                // Solve IK live
-                const solved = solveIK(pos, 6, 0.3);
+                // Solve IK live with more iterations for smoother tracking
+                solveIK(pos, 12, 0.25);
                 updateFKSliders();
                 updateReadout();
 
@@ -2948,60 +3423,122 @@ JOINTS [deg]:
                 const effP = getEndEffectorPos();
                 effGlowMesh.position.copy(effP);
                 effGlowMesh.lookAt(camera.position);
+                updateTeachGrabVisuals();
                 return;
             }
 
-            // Check hover proximity
+            // Raycasted hover detection — intersect the invisible grab sphere
             const effP = getEndEffectorPos();
-            const sp = effP.clone().project(camera);
-            const dx = ((sp.x+1)/2*rect.width)  - (e.clientX-rect.left);
-            const dy = ((-sp.y+1)/2*rect.height) - (e.clientY-rect.top);
-            const pxDist = Math.sqrt(dx*dx+dy*dy);
-            teachHover = pxDist < 30; // pixel radius
+            grabSphere.position.copy(effP);
+            const intersects = raycaster.intersectObject(grabSphere);
+            teachHover = intersects.length > 0;
+
             canvas.style.cursor = teachHover ? 'grab' : 'default';
             effGlowMat.opacity = teachHover ? 0.9 : 0.3;
             if (teachHover) {
                 effGlowMesh.position.copy(effP);
                 effGlowMesh.lookAt(camera.position);
             }
+            updateTeachGrabVisuals();
         });
 
-        canvas.addEventListener('mousedown', e => {
-            if (!teachMode || !teachHover) return;
+        // Capture phase to preempt OrbitControls
+        canvas.addEventListener('pointerdown', e => {
+            if (!teachMode) return;
+
+            // Check hover on click as well (for initial click without prior move)
+            if (!teachHover) {
+                const rect = canvas.getBoundingClientRect();
+                const mx   = ((e.clientX-rect.left)/rect.width)*2-1;
+                const my   = -((e.clientY-rect.top)/rect.height)*2+1;
+                raycaster.setFromCamera(new THREE.Vector2(mx,my), camera);
+                const effP = getEndEffectorPos();
+                grabSphere.position.copy(effP);
+                const intersects = raycaster.intersectObject(grabSphere);
+                teachHover = intersects.length > 0;
+            }
+
+            if (!teachHover) return;
             e.preventDefault();
             e.stopPropagation();
             controls.enabled = false; // disable orbit while dragging
             teachDragging = true;
             canvas.style.cursor = 'grabbing';
+            canvas.setPointerCapture(e.pointerId); // capture pointer for reliable tracking
             const effP = getEndEffectorPos();
             teachDragPos.copy(effP);
             // Build drag plane perpendicular to camera through end-effector
             const camDir = new THREE.Vector3();
             camera.getWorldDirection(camDir);
             teachDragPlane.setFromNormalAndCoplanarPoint(camDir, effP);
-        });
+            updateTeachGrabVisuals();
+        }, { capture: true });
 
-        canvas.addEventListener('mouseup', e => {
+        canvas.addEventListener('pointerup', e => {
             if (!teachMode) return;
             if (teachDragging) {
                 teachDragging = false;
                 controls.enabled = true;
+                canvas.releasePointerCapture(e.pointerId);
                 canvas.style.cursor = teachHover ? 'grab' : 'default';
-                // Record waypoint on release if moved
+                // Record waypoint on release
                 const effP = getEndEffectorPos();
                 recordTeachWaypoint(effP);
+                // Visual pulse feedback
+                flashTeachRecordPulse(effP);
             } else if (teachHover) {
                 // Just a click — record current pose
-                recordTeachWaypoint(getEndEffectorPos());
+                const effP = getEndEffectorPos();
+                recordTeachWaypoint(effP);
+                flashTeachRecordPulse(effP);
             }
+            updateTeachGrabVisuals();
         });
 
-        canvas.addEventListener('mouseleave', () => {
+        canvas.addEventListener('pointerleave', () => {
             if (teachDragging) {
                 teachDragging = false;
                 controls.enabled = true;
             }
+            updateTeachGrabVisuals();
         });
+
+        canvas.addEventListener('pointercancel', () => {
+            if (teachDragging) {
+                teachDragging = false;
+                controls.enabled = true;
+            }
+            updateTeachGrabVisuals();
+        });
+
+        // Visual pulse when a waypoint is recorded
+        function flashTeachRecordPulse(pos) {
+            const pulseGeom = new THREE.RingGeometry(0.3, 1.0, 24);
+            const pulseMat = new THREE.MeshBasicMaterial({
+                color: 0x00ffb2, transparent: true, opacity: 1.0,
+                side: THREE.DoubleSide, depthWrite: false
+            });
+            const pulseMesh = new THREE.Mesh(pulseGeom, pulseMat);
+            pulseMesh.position.copy(pos);
+            pulseMesh.lookAt(camera.position);
+            scene.add(pulseMesh);
+
+            gsap.to(pulseMesh.scale, {
+                x: 3, y: 3, z: 3,
+                duration: 0.6,
+                ease: 'power2.out'
+            });
+            gsap.to(pulseMat, {
+                opacity: 0,
+                duration: 0.6,
+                ease: 'power2.out',
+                onComplete: () => {
+                    scene.remove(pulseMesh);
+                    pulseGeom.dispose();
+                    pulseMat.dispose();
+                }
+            });
+        }
 
         function recordTeachWaypoint(pos) {
             const wp = {
@@ -3081,8 +3618,10 @@ JOINTS [deg]:
             if (!teachMode) {
                 controls.enabled = true;
                 teachDragging = false;
+                teachHover = false;
                 canvas.style.cursor = 'default';
             }
+            updateTeachGrabVisuals();
         });
 
         document.getElementById('btn-commit-teach').addEventListener('click', () => {
@@ -3276,6 +3815,33 @@ JOINTS [deg]:
                 ledColor = 0xffb300; // Amber
                 pulse = 0.6 + Math.sin(Date.now() / 120) * 0.4;
             }
+            
+            // Joint Limits Check & Visual Warning
+            let limitWarning = false;
+            for (let i=0; i<numJoints; i++) {
+                const angle = jointAngles[i];
+                const lmin = jointLimits[i] ? jointLimits[i][0] : -180;
+                const lmax = jointLimits[i] ? jointLimits[i][1] : 180;
+                const isNearLimit = (angle - lmin < 5) || (lmax - angle < 5);
+                
+                if (linkMeshes[i]) {
+                    if (isNearLimit) {
+                        linkMeshes[i].material.emissive.setHex(0xff0000);
+                        linkMeshes[i].material.emissiveIntensity = 1.5 + Math.sin(Date.now() / 100) * 0.5;
+                        limitWarning = true;
+                    } else if (!isCol) { // Don't override collision red
+                        linkMeshes[i].material.emissive.setHex(i===5 ? 0x00f5ff : 0x000000);
+                        linkMeshes[i].material.emissiveIntensity = i===5 ? 0.5 : 0;
+                    }
+                }
+            }
+            if (limitWarning) {
+                const sysStat = document.getElementById('sys-status');
+                if (sysStat) { sysStat.textContent = 'LIMIT WARN'; sysStat.style.color = 'var(--orange)'; }
+            } else if (document.getElementById('sys-status') && document.getElementById('sys-status').textContent === 'LIMIT WARN') {
+                document.getElementById('sys-status').textContent = 'NOMINAL';
+                document.getElementById('sys-status').style.color = 'var(--cyan)';
+            }
             jointLEDs.forEach(led => {
                 if (led.material) {
                     led.material.color.setHex(ledColor);
@@ -3284,16 +3850,59 @@ JOINTS [deg]:
                 }
             });
 
-            // Teach glow pulse
+            // Teach glow pulse + grab visuals
             if (teachMode) {
                 effGlowMesh.position.copy(getEndEffectorPos());
                 effGlowMesh.lookAt(camera.position);
                 const t2 = (Date.now()/600);
                 if (!teachDragging && !teachHover) effGlowMat.opacity = 0.25+Math.sin(t2)*0.15;
+                updateTeachGrabVisuals();
             }
 
-            controls.update();
+            // ROS 2 Telemetry stream
+            if (fpsFrames % 6 === 0 && typeof updateROSTelemetry === 'function') {
+                updateROSTelemetry();
+            }
+
+            // Welding sparks animation
+            if (window.weldSparks) {
+                const pos = window.weldSparks.geometry.attributes.position;
+                const vels = window.weldSparks.velocities;
+                // Grab true world tip of tool, or fallback to target-offset
+                let tx = pickPlaceTarget.x, ty = pickPlaceTarget.y - 1.8, tz = pickPlaceTarget.z;
+                
+                for(let i=0; i<100; i++) {
+                    if (window.isWeldingActive && Math.random() < 0.25) {
+                        // Reset particle at tcp
+                        pos.setXYZ(i, tx, ty, tz);
+                        vels[i].set((Math.random()-0.5)*5, (Math.random())*5, (Math.random()-0.5)*5);
+                    } else {
+                        // update physics
+                        let px = pos.getX(i), py = pos.getY(i), pz = pos.getZ(i);
+                        if (py > -10) { 
+                            px += vels[i].x * 0.016;
+                            py += vels[i].y * 0.016;
+                            pz += vels[i].z * 0.016;
+                            vels[i].y -= 9.8 * 0.016; // gravity
+                            if (py < 0) { py = -100; } // hide when hit floor
+                            pos.setXYZ(i, px, py, pz);
+                        }
+                    }
+                }
+                pos.needsUpdate = true;
+                
+                // Make the TCP LED flicker when welding
+                if (window.isWeldingActive) {
+                    const tcpLight = scene.getObjectByName('tcpLight');
+                    const tcpLed = scene.getObjectByName('tcpLed');
+                    if(tcpLight) tcpLight.intensity = 1.0 + Math.random() * 2.0;
+                }
+            }
+
+            renderer.setRenderTarget(null);
             renderer.render(scene, camera);
+            
+
             drawGizmo();
         }
 
@@ -3338,12 +3947,42 @@ JOINTS [deg]:
 
         // Collapsible bottom charts toggle
         const btnToggleCharts = document.getElementById('btn-toggle-charts');
+        const btnCloseGraphs = document.getElementById('btn-close-graphs');
         const kineBottom = document.getElementById('kine-bottom');
         if (btnToggleCharts && kineBottom) {
-            btnToggleCharts.addEventListener('click', () => {
+            const toggleCharts = () => {
                 kineBottom.classList.toggle('collapsed');
                 btnToggleCharts.classList.toggle('active');
                 setTimeout(resizeKine, 350);
+            };
+            btnToggleCharts.addEventListener('click', toggleCharts);
+            if (btnCloseGraphs) {
+                btnCloseGraphs.addEventListener('click', toggleCharts);
+            }
+        }
+
+        // Fullscreen Toggle
+        const btnFullscreen = document.getElementById('btn-fullscreen');
+        if (btnFullscreen) {
+            btnFullscreen.addEventListener('click', () => {
+                if (!document.fullscreenElement) {
+                    document.documentElement.requestFullscreen().catch(err => {
+                        console.error(`Error attempting to enable full-screen mode: ${err.message}`);
+                    });
+                } else {
+                    document.exitFullscreen();
+                }
+            });
+            document.addEventListener('fullscreenchange', () => {
+                if (document.fullscreenElement) {
+                    btnFullscreen.textContent = '🖥️ EXIT FULL';
+                    btnFullscreen.style.background = 'rgba(255,107,53,0.15)';
+                    btnFullscreen.style.color = 'var(--orange)';
+                } else {
+                    btnFullscreen.textContent = '🖥️ FULLSCREEN';
+                    btnFullscreen.style.background = 'rgba(0,245,255,0.15)';
+                    btnFullscreen.style.color = 'var(--cyan)';
+                }
             });
         }
 
@@ -3405,40 +4044,75 @@ JOINTS [deg]:
                 }
             });
 
-            // 1. Hover above object
-            const hoverPick = objDef.startPos.clone().add(new THREE.Vector3(0, 3.0, 0));
-            pickPlaceTimeline.to(pickPlaceTarget, { x: hoverPick.x, y: hoverPick.y, z: hoverPick.z, duration: 1.2, ease: "power2.out" });
+            // TCP offset: Gripper length from joint to finger tips is exactly 1.8 units.
+            const GRIPPER_OFFSET = 1.8;
+            
+            // 1. Hover above object (high approach)
+            const hoverPick = objDef.startPos.clone().add(new THREE.Vector3(0, objDef.heightOffset + GRIPPER_OFFSET + 2.0, 0));
+            pickPlaceTimeline.to(pickPlaceTarget, { x: hoverPick.x, y: hoverPick.y, z: hoverPick.z, duration: 1.2, ease: "power2.inOut" });
 
-            // 2. Descend onto object
-            const pickCoords = objDef.startPos.clone().add(new THREE.Vector3(0, 0.1, 0));
-            pickPlaceTimeline.to(pickPlaceTarget, { x: pickCoords.x, y: pickCoords.y, z: pickCoords.z, duration: 0.8, ease: "power1.inOut" });
+            // 2. Descend onto object (slow precision approach)
+            // Top of object is at startPos.y + heightOffset. We add GRIPPER_OFFSET to put TCP right there.
+            const pickCoords = objDef.startPos.clone().add(new THREE.Vector3(0, objDef.heightOffset + GRIPPER_OFFSET - 0.05, 0)); // Slight penetration for firm grip
+            pickPlaceTimeline.to(pickPlaceTarget, { x: pickCoords.x, y: pickCoords.y, z: pickCoords.z, duration: 1.2, ease: "power1.inOut" });
 
-            // 3. Grasp (close jaws)
+            // 3. Grasp (close jaws slowly)
             pickPlaceTimeline.to(gripperGap, {
                 width: objDef.grabWidth,
-                duration: 0.6,
-                ease: "power1.inOut",
+                duration: 0.8,
+                ease: "power2.out",
                 onComplete: () => {
                     heldObjectKey = key;
                     endEffectorPnt.attach(objMesh);
                 }
             });
 
-            // 4. Ascend (lift up)
-            pickPlaceTimeline.to(pickPlaceTarget, { y: hoverPick.y, duration: 0.8, ease: "power1.inOut" });
+            // 4. Ascend (lift up slowly with payload)
+            pickPlaceTimeline.to(pickPlaceTarget, { y: hoverPick.y, duration: 1.0, ease: "power2.inOut" });
 
-            // 5. Travel to hover above pallet
-            const hoverPlace = palletPos.clone().add(new THREE.Vector3(0, 3.0, 0));
-            pickPlaceTimeline.to(pickPlaceTarget, { x: hoverPlace.x, y: hoverPlace.y, z: hoverPlace.z, duration: 1.5, ease: "power2.inOut" });
+            // 5. Travel to hover above pallet (Advanced Spline Path Planning)
+            const palletTopY = 0.16; // Height of the pallet grid
+            const hoverPlace = palletPos.clone().add(new THREE.Vector3(0, palletTopY + objDef.startPos.y + objDef.heightOffset + GRIPPER_OFFSET + 2.0, 0));
+            
+            // Generate Spline for Obstacle Avoidance
+            const midPoint = hoverPick.clone().lerp(hoverPlace, 0.33);
+            midPoint.y += 2.5; 
+            const midPoint2 = hoverPick.clone().lerp(hoverPlace, 0.66);
+            midPoint2.y += 1.5;
+            
+            const spline = new THREE.CatmullRomCurve3([hoverPick, midPoint, midPoint2, hoverPlace]);
+            
+            // Render Predictive Path visually
+            if (window._splineLine) scene.remove(window._splineLine);
+            const pts = spline.getPoints(40);
+            const geo = new THREE.BufferGeometry().setFromPoints(pts);
+            const mat = new THREE.LineDashedMaterial({ color: 0x00f5ff, dashSize: 0.5, gapSize: 0.2 });
+            window._splineLine = new THREE.Line(geo, mat);
+            window._splineLine.computeLineDistances();
+            scene.add(window._splineLine);
+            
+            const travelObj = { t: 0 };
+            pickPlaceTimeline.to(travelObj, {
+                t: 1,
+                duration: 2.0,
+                ease: "power2.inOut",
+                onUpdate: () => {
+                    const pos = spline.getPoint(travelObj.t);
+                    pickPlaceTarget.copy(pos);
+                },
+                onComplete: () => {
+                    if (window._splineLine) scene.remove(window._splineLine);
+                }
+            });
 
-            // 6. Descend onto pallet
-            const placeCoords = palletPos.clone().add(new THREE.Vector3(0, objDef.heightOffset, 0));
-            pickPlaceTimeline.to(pickPlaceTarget, { x: placeCoords.x, y: placeCoords.y, z: placeCoords.z, duration: 0.8, ease: "power1.inOut" });
+            // 6. Descend onto pallet (slow precision placement)
+            const placeCoords = palletPos.clone().add(new THREE.Vector3(0, palletTopY + objDef.startPos.y + objDef.heightOffset + GRIPPER_OFFSET, 0));
+            pickPlaceTimeline.to(pickPlaceTarget, { x: placeCoords.x, y: placeCoords.y, z: placeCoords.z, duration: 1.2, ease: "power1.inOut" });
 
-            // 7. Release (open jaws)
+            // 7. Release (open jaws slowly to gently drop)
             pickPlaceTimeline.to(gripperGap, {
                 width: 0.4,
-                duration: 0.6,
+                duration: 1.2, // Very slow release
                 ease: "power1.inOut",
                 onComplete: () => {
                     scene.attach(objMesh);
@@ -3447,10 +4121,107 @@ JOINTS [deg]:
             });
 
             // 8. Ascend (lift up empty)
-            pickPlaceTimeline.to(pickPlaceTarget, { y: hoverPlace.y, duration: 0.8, ease: "power1.inOut" });
+            pickPlaceTimeline.to(pickPlaceTarget, { y: hoverPlace.y, duration: 1.0, ease: "power2.inOut" });
 
             // 9. Return to Home ready position
-            pickPlaceTimeline.to(pickPlaceTarget, { x: 0, y: 12, z: 8, duration: 1.2, ease: "power2.inOut" });
+            pickPlaceTimeline.to(pickPlaceTarget, { x: 0, y: 12, z: 8, duration: 1.5, ease: "power2.inOut" });
+        }
+
+        // Welding Task Logic
+        function executeWeldingTask() {
+            if (pickPlaceTimeline) pickPlaceTimeline.kill();
+            resetAllObjects();
+            
+            // Ensure workpiece exists
+            if (!window.weldWorkpiece) {
+                const geo = new THREE.BoxGeometry(5, 0.4, 2);
+                const mat = new THREE.MeshStandardMaterial({ color: 0x444444, metalness: 0.9, roughness: 0.4 });
+                window.weldWorkpiece = new THREE.Mesh(geo, mat);
+                window.weldWorkpiece.position.set(2, 0.2, 4);
+                scene.add(window.weldWorkpiece);
+            }
+            
+            // Particle system for sparks
+            if (!window.weldSparks) {
+                const sparkGeo = new THREE.BufferGeometry();
+                const sparkCount = 100;
+                const positions = new Float32Array(sparkCount * 3);
+                const velocities = [];
+                for(let i=0; i<sparkCount; i++) {
+                    positions[i*3] = 0; positions[i*3+1] = -100; positions[i*3+2] = 0; // hidden initially
+                    velocities.push(new THREE.Vector3());
+                }
+                sparkGeo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+                const sparkMat = new THREE.PointsMaterial({ color: 0xffaa00, size: 0.15, transparent: true, opacity: 0.9, blending: THREE.AdditiveBlending });
+                window.weldSparks = new THREE.Points(sparkGeo, sparkMat);
+                window.weldSparks.velocities = velocities;
+                scene.add(window.weldSparks);
+            }
+            
+            // Weld bead line
+            if (window.weldBead) scene.remove(window.weldBead);
+            const beadPoints = [];
+            const beadGeo = new THREE.BufferGeometry().setFromPoints(beadPoints);
+            const beadMat = new THREE.LineBasicMaterial({ color: 0xff5500, linewidth: 4 });
+            window.weldBead = new THREE.Line(beadGeo, beadMat);
+            scene.add(window.weldBead);
+            
+            const statusEl = document.getElementById('task-status');
+            if (statusEl) {
+                statusEl.textContent = 'Executing Precision Welding...';
+                statusEl.style.color = 'var(--orange)';
+            }
+            
+            const GRIPPER_OFFSET = 1.8;
+            const startX = -0.5, endX = 4.5, yPos = 0.4 + GRIPPER_OFFSET, zPos = 4;
+            
+            pickPlaceTarget.copy(getEndEffectorPos());
+            gripperGap.width = 0.05; // close jaws to look like welding torch
+            
+            window.isWeldingActive = false; // toggle for animation loop
+            
+            pickPlaceTimeline = gsap.timeline({
+                onUpdate: () => {
+                    solveIK(pickPlaceTarget, 30, 0.1);
+                    updateFKSliders();
+                    updateReadout();
+                    updateDynamics();
+                },
+                onComplete: () => {
+                    window.isWeldingActive = false;
+                    if (statusEl) {
+                        statusEl.textContent = 'Welding Complete!';
+                        statusEl.style.color = 'var(--green)';
+                    }
+                }
+            });
+            
+            // 1. Move above start
+            pickPlaceTimeline.to(pickPlaceTarget, { x: startX, y: yPos + 2.0, z: zPos, duration: 1.5, ease: "power2.inOut" });
+            // 2. Lower to start
+            pickPlaceTimeline.to(pickPlaceTarget, { x: startX, y: yPos, z: zPos, duration: 1.0, ease: "power1.inOut", onComplete: () => { window.isWeldingActive = true; } });
+            
+            // 3. Weld along seam
+            const weldObj = { t: 0 };
+            pickPlaceTimeline.to(weldObj, {
+                t: 1, duration: 4.0, ease: "none",
+                onUpdate: () => {
+                    const currentX = THREE.MathUtils.lerp(startX, endX, weldObj.t);
+                    pickPlaceTarget.set(currentX, yPos, zPos);
+                    
+                    // Add point to bead
+                    beadPoints.push(new THREE.Vector3(currentX, 0.41, zPos));
+                    beadGeo.setFromPoints(beadPoints);
+                }
+            });
+            
+            // 4. Stop welding, lift up
+            pickPlaceTimeline.to(pickPlaceTarget, { x: endX, y: yPos + 2.0, z: zPos, duration: 1.0, ease: "power1.inOut", 
+                onStart: () => { window.isWeldingActive = false; } 
+            });
+            
+            // 5. Return Home
+            pickPlaceTimeline.to(pickPlaceTarget, { x: 0, y: 12, z: 8, duration: 1.5, ease: "power2.inOut" });
         }
 
         // Wire task execution button
@@ -3459,7 +4230,11 @@ JOINTS [deg]:
             btnExecuteTask.addEventListener('click', () => {
                 const selectEl = document.getElementById('pick-object-select');
                 if (selectEl) {
-                    executePickAndPlace(selectEl.value);
+                    if (selectEl.value === 'welding') {
+                        executeWeldingTask();
+                    } else {
+                        executePickAndPlace(selectEl.value);
+                    }
                 }
             });
         }
@@ -4347,6 +5122,184 @@ JOINTS [deg]:
         updateDynamics();
         animate();
     } // end initKinematics
+    
+    // ==========================================
+    // SCRIPTING IDE LOGIC
+    // ==========================================
+    document.addEventListener('DOMContentLoaded', () => {
+        const tabBtnScript = document.getElementById('tab-btn-script');
+        const tabScript = document.getElementById('tab-script');
+        if(tabBtnScript && tabScript) {
+            tabBtnScript.addEventListener('click', () => {
+                document.querySelectorAll('.sidebar-tab').forEach(t => t.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+                tabBtnScript.classList.add('active');
+                tabScript.classList.add('active');
+            });
+        }
+        
+        ['tab-btn-kine', 'tab-btn-traj', 'tab-btn-dyn'].forEach(id => {
+            const btn = document.getElementById(id);
+            if(btn) {
+                btn.addEventListener('click', () => {
+                    if(tabScript) tabScript.classList.remove('active');
+                    if(tabBtnScript) tabBtnScript.classList.remove('active');
+                    const tabId = id.replace('-btn', '');
+                    const tabContent = document.getElementById(tabId);
+                    if(tabContent) {
+                        document.querySelectorAll('.sidebar-tab').forEach(t => t.classList.remove('active'));
+                        document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+                        btn.classList.add('active');
+                        tabContent.classList.add('active');
+                    }
+                });
+            }
+        });
+
+        // Parser Logic
+        const btnRunScript = document.getElementById('btn-run-script');
+        const ideEditor = document.getElementById('ide-editor');
+        const scriptStatus = document.getElementById('script-status');
+        
+        if (btnRunScript && ideEditor) {
+            btnRunScript.addEventListener('click', () => {
+                const code = ideEditor.value.trim().split('\n');
+                scriptStatus.textContent = 'Parsing script...';
+                
+                if (window.ghostRobotGroup) window.ghostRobotGroup.visible = false;
+                if (window.pickPlaceTimeline) {
+                    window.pickPlaceTimeline.kill();
+                }
+                window.pickPlaceTimeline = gsap.timeline({
+                    onComplete: () => { scriptStatus.textContent = 'Execution Complete'; }
+                });
+                
+                let currentSpeed = 1.0;
+                
+                code.forEach((line, index) => {
+                    line = line.trim();
+                    if(!line || line.startsWith('#')) return;
+                    
+                    if (line.startsWith('robot.speed')) {
+                        const match = line.match(/robot\.speed\(([^)]+)\)/);
+                        if (match) currentSpeed = parseFloat(match[1]) || 1.0;
+                    } 
+                    else if (line.startsWith('robot.moveTo')) {
+                        const match = line.match(/target=["']([^"']+)["']/);
+                        if (match) {
+                            const target = match[1];
+                            let targetPos = new THREE.Vector3(0, 12, 8); // home
+                            
+                            if (target === 'box') targetPos = new THREE.Vector3(6, 3.4, 4);
+                            else if (target === 'gear') targetPos = new THREE.Vector3(-5, 3.2, 5);
+                            else if (target === 'canister') targetPos = new THREE.Vector3(0, 3.6, 7);
+                            else if (target === 'pallet') targetPos = new THREE.Vector3(7, 3.16, -5);
+                            
+                            window.pickPlaceTimeline.to(pickPlaceTarget, {
+                                x: targetPos.x, y: targetPos.y, z: targetPos.z,
+                                duration: 1.5 / currentSpeed,
+                                ease: "power2.inOut",
+                                onUpdate: () => {
+                                    solveIK(pickPlaceTarget, 30, 0.1);
+                                    updateFKSliders();
+                                    updateReadout();
+                                    updateDynamics();
+                                }
+                            });
+                        }
+                    }
+                    else if (line.startsWith('robot.grip')) {
+                        const match = line.match(/close=(True|False|true|false)/i);
+                        if (match) {
+                            const isClose = match[1].toLowerCase() === 'true';
+                            window.pickPlaceTimeline.to(gripperGap, {
+                                width: isClose ? 0.05 : 0.4,
+                                duration: 0.8 / currentSpeed,
+                                ease: "power1.inOut"
+                            });
+                        }
+                    }
+                });
+                
+                scriptStatus.textContent = 'Executing...';
+            });
+        }
+        
+        const btnPreviewScript = document.getElementById('btn-preview-script');
+        if (btnPreviewScript && ideEditor) {
+            btnPreviewScript.addEventListener('click', () => {
+                const code = ideEditor.value.trim().split('\n');
+                scriptStatus.textContent = 'Previewing ghost trajectory...';
+                
+                if (window.ghostRobotGroup) window.ghostRobotGroup.visible = true;
+                if (window.pickPlaceTimeline) window.pickPlaceTimeline.kill();
+                
+                window.ghostPickPlaceTarget = getEndEffectorPos().clone();
+                let ghostJointAngles = [...jointAngles];
+                
+                window.pickPlaceTimeline = gsap.timeline({
+                    onComplete: () => { scriptStatus.textContent = 'Preview Complete'; }
+                });
+                
+                let currentSpeed = 1.0;
+                
+                code.forEach((line) => {
+                    line = line.trim();
+                    if(!line || line.startsWith('#')) return;
+                    if (line.startsWith('robot.speed')) {
+                        const match = line.match(/robot\.speed\(([^)]+)\)/);
+                        if (match) currentSpeed = parseFloat(match[1]) || 1.0;
+                    } else if (line.startsWith('robot.moveTo')) {
+                        const match = line.match(/target=["']([^"']+)["']/);
+                        if (match) {
+                            const target = match[1];
+                            let targetPos = new THREE.Vector3(0, 12, 8);
+                            if (target === 'box') targetPos = new THREE.Vector3(6, 3.4, 4);
+                            else if (target === 'gear') targetPos = new THREE.Vector3(-5, 3.2, 5);
+                            else if (target === 'canister') targetPos = new THREE.Vector3(0, 3.6, 7);
+                            else if (target === 'pallet') targetPos = new THREE.Vector3(7, 3.16, -5);
+                            
+                            window.pickPlaceTimeline.to(window.ghostPickPlaceTarget, {
+                                x: targetPos.x, y: targetPos.y, z: targetPos.z,
+                                duration: 1.5 / currentSpeed,
+                                ease: "power2.inOut",
+                                onUpdate: () => {
+                                    // Save real arm
+                                    let realAngles = [...jointAngles];
+                                    // Apply ghost
+                                    for(let i=0; i<numJoints; i++) jointAngles[i] = ghostJointAngles[i];
+                                    
+                                    solveIK(window.ghostPickPlaceTarget, 10, 0.1);
+                                    
+                                    // Store ghost
+                                    for(let i=0; i<numJoints; i++) {
+                                        ghostJointAngles[i] = jointAngles[i];
+                                        if (window.ghostJointNodes && window.ghostJointNodes[i]) {
+                                            window.ghostJointNodes[i].rotation.copy(jointNodes[i].rotation);
+                                        }
+                                    }
+                                    
+                                    // Restore real
+                                    for(let i=0; i<numJoints; i++) jointAngles[i] = realAngles[i];
+                                    updateRobotAngles();
+                                }
+                            });
+                        }
+                    }
+                });
+                
+                window.pickPlaceTimeline.timeScale(4.0); // Fast scrub
+            });
+        }
+        
+        const btnClearScript = document.getElementById('btn-clear-script');
+        if (btnClearScript && ideEditor) {
+            btnClearScript.addEventListener('click', () => {
+                ideEditor.value = '';
+                scriptStatus.textContent = 'IDE Idle';
+            });
+        }
+    });
     </script>
 </body>
 </html>
