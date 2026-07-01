@@ -13,6 +13,7 @@ export default defineConfig({
         hive_landing: resolve(__dirname, 'src/hive_landing.html'),
         slam_landing: resolve(__dirname, 'src/slam_landing.html'),
         nexus_landing: resolve(__dirname, 'src/nexus_landing.html'),
+        aero_landing: resolve(__dirname, 'src/aero_landing.html'),
       },
     },
   },

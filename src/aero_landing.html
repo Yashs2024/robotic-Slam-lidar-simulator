@@ -1,0 +1,797 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AERO — Swarm Flight Dynamics Simulator</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #050508;
+  --bg2: #09090f;
+  --bg3: #0f0f18;
+  --cyan: #00d4ff;
+  --mint: #00ffb2;
+  --orange: #ff6b35;
+  --red: #ef4444;
+  --green: #10b981;
+  --white: #e2e8f0;
+  --muted: #64748b;
+  --border: rgba(0, 212, 255, 0.15);
+  --glow-mint: 0 0 20px rgba(0, 255, 178, 0.4);
+  --font-head: 'Orbitron', sans-serif;
+  --font-mono: 'Share Tech Mono', monospace;
+  --font-body: 'Rajdhani', sans-serif;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body { background: var(--bg); color: var(--white); font-family: var(--font-body); overflow-x: hidden; }
+
+/* SCROLLBAR */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--mint); border-radius: 2px; }
+
+/* SCANLINE OVERLAY */
+body::after {
+  content: ''; position: fixed; inset: 0;
+  background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.03) 2px, rgba(0,0,0,0.03) 4px);
+  pointer-events: none; z-index: 1000;
+}
+
+/* BLUEPRINT GRID BG */
+.grid-bg {
+  background-image: radial-gradient(rgba(0, 255, 178, 0.06) 1px, transparent 1px);
+  background-size: 32px 32px;
+}
+
+/* ── STICKY NAV ── */
+#sticky-nav {
+  position: fixed; top: 0; left: 0; right: 0; height: 44px;
+  background: rgba(5, 5, 8, 0.96); backdrop-filter: blur(14px);
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; padding: 0 32px; gap: 24px;
+  z-index: 900; opacity: 0; transform: translateY(-44px); transition: all 0.4s ease;
+}
+#sticky-nav.visible { opacity: 1; transform: translateY(0); }
+.nav-logo { font-family: var(--font-head); font-size: 16px; font-weight: 900; color: var(--mint); letter-spacing: 4px; text-shadow: var(--glow-mint); text-decoration: none; }
+.nav-links { display: flex; gap: 20px; margin-left: 24px; }
+.nav-links a { font-family: var(--font-mono); font-size: 11px; letter-spacing: 2px; color: var(--muted); text-decoration: none; transition: color 0.2s; }
+.nav-links a:hover { color: var(--mint); }
+.nav-spacer { flex: 1; }
+.btn { display: inline-flex; align-items: center; gap: 8px; font-family: var(--font-head); font-size: 11px; font-weight: 700; letter-spacing: 2px; padding: 10px 24px; cursor: pointer; text-decoration: none; transition: all 0.2s; border: none; }
+.btn-primary { background: var(--mint); color: #000; box-shadow: 0 0 24px rgba(0, 255, 178, 0.3); font-weight: 900; }
+.btn-primary:hover { background: #fff; color: #000; box-shadow: 0 0 40px rgba(255, 255, 255, 0.6); transform: scale(1.03); }
+.btn-sm { padding: 6px 14px; font-size: 11px; }
+.btn-outline { background: transparent; color: var(--mint); border: 1px solid var(--mint); }
+.btn-outline:hover { background: rgba(0, 255, 178, 0.12); box-shadow: var(--glow-mint); }
+
+/* ── STATUS TICKER ── */
+#ticker-wrap { background: rgba(0, 255, 178, 0.04); border-bottom: 1px solid var(--border); height: 28px; overflow: hidden; white-space: nowrap; }
+#ticker { display: inline-block; animation: ticker 32s linear infinite; font-family: var(--font-mono); font-size: 11px; letter-spacing: 2px; color: var(--mint); line-height: 28px; padding-left: 100%; }
+@keyframes ticker { from { transform: translateX(0) } to { transform: translateX(-50%) } }
+
+/* ── HERO ── */
+#hero { min-height: 100vh; display: grid; grid-template-columns: 1fr 1fr; position: relative; overflow: hidden; }
+.hero-left { display: flex; flex-direction: column; justify-content: center; padding: 80px 60px 60px 80px; position: relative; z-index: 2; }
+.hero-overline { font-family: var(--font-mono); font-size: 11px; letter-spacing: 3px; color: var(--orange); margin-bottom: 20px; display: flex; align-items: center; gap: 8px; }
+.hero-overline::before { content: ''; width: 24px; height: 1px; background: var(--orange); }
+.hero-title { font-family: var(--font-head); font-size: clamp(72px, 9vw, 108px); font-weight: 900; line-height: 0.9; color: var(--mint); text-shadow: 0 0 60px rgba(0, 255, 178, 0.5), 0 0 120px rgba(0, 255, 178, 0.2); letter-spacing: 8px; margin-bottom: 8px; }
+.hero-subtitle { font-family: var(--font-head); font-size: clamp(13px, 2vw, 18px); font-weight: 400; color: var(--white); letter-spacing: 4px; opacity: 0.7; margin-bottom: 28px; }
+.hero-desc { font-size: 13px; line-height: 1.9; color: rgba(226, 232, 240, 0.65); max-width: 480px; margin-bottom: 36px; border-left: 2px solid var(--border); padding-left: 16px; }
+.hero-btns { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 32px; }
+.hero-badges { display: flex; gap: 8px; flex-wrap: wrap; }
+.badge-pill { display: inline-flex; align-items: center; gap: 5px; font-family: var(--font-mono); font-size: 11px; letter-spacing: 1px; padding: 4px 10px; border: 1px solid var(--border); background: rgba(0, 255, 178, 0.05); color: var(--muted); }
+.badge-pill .dot { width: 5px; height: 5px; border-radius: 50%; background: var(--green); box-shadow: 0 0 6px var(--green); animation: pulse 2s infinite; }
+@keyframes pulse { 0%,100% { opacity:1 } 50% { opacity:0.3 } }
+
+/* HERO CANVAS SIDE */
+.hero-right { position: relative; display: flex; align-items: center; justify-content: center; background: radial-gradient(ellipse at center, #0f0f18 0%, #050508 100%); }
+#heroCanvas { width: 100%; height: 100%; display: block; }
+.hero-canvas-label { position: absolute; bottom: 24px; left: 50%; transform: translateX(-50%); font-family: var(--font-mono); font-size: 11px; letter-spacing: 2px; color: var(--mint); opacity: 0.6; white-space: nowrap; }
+.hero-vignette { position: absolute; inset: 0; background: radial-gradient(ellipse at center, transparent 40%, rgba(5, 5, 8, 0.8) 100%); pointer-events: none; }
+
+/* CORNER BRACKETS */
+.bracket { position: relative; }
+.bracket::before, .bracket::after { content: ''; position: absolute; width: 12px; height: 12px; border-color: var(--mint); border-style: solid; opacity: 0.5; }
+.bracket::before { top: -2px; left: -2px; border-width: 1px 0 0 1px; }
+.bracket::after { bottom: -2px; right: -2px; border-width: 0 1px 1px 0; }
+
+/* ── STATS ROW ── */
+#stats { padding: 60px 80px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; background: var(--bg2); }
+.stat-card { background: var(--bg3); border: 1px solid var(--border); border-left: 2px solid var(--mint); padding: 24px 20px; position: relative; transition: all 0.3s; cursor: default; }
+.stat-card:hover { border-color: var(--mint); box-shadow: var(--glow-mint); transform: translateY(-3px); }
+.stat-card::before, .stat-card::after { content: ''; position: absolute; width: 8px; height: 8px; border-color: var(--mint); border-style: solid; opacity: 0.4; }
+.stat-card::before { top: 6px; left: 6px; border-width: 1px 0 0 1px; }
+.stat-card::after { bottom: 6px; right: 6px; border-width: 0 1px 1px 0; }
+.stat-num { font-family: var(--font-head); font-size: 48px; font-weight: 900; color: var(--mint); text-shadow: 0 0 30px rgba(0, 255, 178, 0.4); line-height: 1; }
+.stat-label { font-family: var(--font-mono); font-size: 11px; letter-spacing: 2px; color: var(--muted); margin-top: 6px; text-transform: uppercase; }
+
+/* ── SCENARIOS ── */
+#scenarios { padding: 80px; }
+.section-head { text-align: center; margin-bottom: 56px; }
+.section-head h2 { font-family: var(--font-head); font-size: 32px; font-weight: 900; color: var(--white); letter-spacing: 4px; text-shadow: 0 0 30px rgba(0, 255, 178, 0.2); margin-bottom: 10px; }
+.section-head p { font-family: var(--font-mono); font-size: 11px; color: var(--muted); letter-spacing: 2px; }
+.section-divider { width: 60px; height: 2px; background: linear-gradient(90deg, transparent, var(--mint), transparent); margin: 16px auto 0; }
+
+.scenario-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+.scenario-card { background: var(--bg3); border: 1px solid var(--border); padding: 0; overflow: hidden; transition: all 0.35s; cursor: pointer; position: relative; }
+.scenario-card:hover { transform: translateY(-8px); border-color: var(--mint); box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5), var(--glow-mint); }
+.scenario-canvas-wrap { width: 100%; height: 140px; position: relative; overflow: hidden; background: #020204; }
+.scenario-canvas-wrap canvas { width: 100%; height: 100%; }
+.scenario-body { padding: 20px; }
+.scenario-num { font-family: var(--font-head); font-size: 11px; color: var(--muted); letter-spacing: 3px; margin-bottom: 8px; }
+.scenario-name { font-family: var(--font-head); font-size: 17px; font-weight: 700; color: var(--white); letter-spacing: 2px; margin-bottom: 10px; }
+.scenario-desc { font-size: 11px; line-height: 1.8; color: rgba(226, 232, 240, 0.55); margin-bottom: 14px; }
+.tag-row { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 12px; }
+.tag { font-family: var(--font-mono); font-size: 11px; letter-spacing: 1px; padding: 2px 7px; border: 1px solid rgba(0, 255, 178, 0.25); color: var(--cyan); background: rgba(0, 255, 178, 0.05); }
+.status-dot { font-family: var(--font-mono); font-size: 11px; color: var(--green); letter-spacing: 1px; display: flex; align-items: center; gap: 5px; }
+.status-dot::before { content: '●'; animation: pulse 2s infinite; }
+
+/* ── FEATURES ── */
+#features { padding: 80px; background: var(--bg2); }
+.feature-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+.feature-card { background: var(--bg); border: 1px solid var(--border); padding: 20px; transition: all 0.3s; position: relative; overflow: hidden; }
+.feature-card::before { content: ''; position: absolute; inset: 0; background: linear-gradient(135deg, rgba(0, 255, 178, 0.03), transparent); opacity: 0; transition: opacity 0.3s; }
+.feature-card:hover { border-color: var(--mint); transform: translateY(-4px); }
+.feature-card:hover::before { opacity: 1; }
+.feature-card:hover .feat-icon { text-shadow: 0 0 20px var(--mint); }
+.feat-icon { font-size: 28px; margin-bottom: 12px; display: block; }
+.feat-name { font-family: var(--font-head); font-size: 11px; font-weight: 700; color: var(--white); letter-spacing: 2px; margin-bottom: 6px; text-transform: uppercase; }
+.feat-desc { font-size: 11px; line-height: 1.7; color: var(--muted); }
+.feat-tag { font-family: var(--font-mono); display: inline-block; margin-top: 10px; font-size: 11px; padding: 2px 7px; border: 1px solid rgba(0, 255, 178, 0.3); color: var(--mint); letter-spacing: 1px; }
+
+/* ── TECH STACK ── */
+#techstack { padding: 80px; }
+.tech-badges { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin-bottom: 20px; }
+.tech-badge { display: inline-flex; align-items: center; gap: 7px; font-family: var(--font-mono); font-size: 11px; letter-spacing: 1px; padding: 8px 16px; border: 1px solid var(--border); background: var(--bg3); color: var(--white); transition: all 0.2s; }
+.tech-badge:hover { border-color: var(--mint); color: var(--mint); box-shadow: var(--glow-mint); }
+
+/* CIRCUIT DIVIDER */
+.circuit-divider { display: flex; align-items: center; gap: 0; margin: 40px auto; width: 80%; max-width: 700px; }
+.circuit-line { flex: 1; height: 1px; background: var(--border); }
+.circuit-node { width: 6px; height: 6px; background: var(--mint); box-shadow: 0 0 10px var(--mint); }
+.circuit-dot { width: 3px; height: 3px; background: var(--muted); margin: 0 12px; }
+
+/* ── FOOTER CTA ── */
+#footer-cta { padding: 80px; background: var(--bg2); display: grid; grid-template-columns: 1fr 1fr; gap: 60px; align-items: center; }
+.cta-left h2 { font-family: var(--font-head); font-size: 56px; font-weight: 900; color: var(--mint); text-shadow: 0 0 60px rgba(0, 255, 178, 0.4); letter-spacing: 6px; line-height: 1; margin-bottom: 12px; }
+.cta-left p { font-family: var(--font-mono); font-size: 11px; color: var(--muted); letter-spacing: 2px; margin-bottom: 28px; }
+.cta-note { font-family: var(--font-mono); font-size: 11px; color: var(--muted); margin-top: 10px; opacity: 0.6; }
+.project-card { background: var(--bg3); border: 1px solid var(--border); padding: 24px; }
+.project-card-title { font-family: var(--font-head); font-size: 12px; color: var(--mint); letter-spacing: 2px; margin-bottom: 14px; padding-bottom: 10px; border-bottom: 1px solid var(--border); }
+.kv-row { display: flex; justify-content: space-between; padding: 5px 0; border-bottom: 1px solid rgba(255, 255, 255, 0.04); font-size: 11px; font-family: var(--font-mono); }
+.kv-row .k { color: var(--muted); }
+.kv-row .v { color: var(--mint); font-family: var(--font-head); font-size: 11px; font-weight: 700; }
+.kv-row .v.green { color: var(--green); }
+
+footer { padding: 16px 80px; border-top: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; font-size: 11px; color: var(--muted); letter-spacing: 1px; font-family: var(--font-mono); }
+
+/* ── SCROLL ANIMATIONS ── */
+.reveal { opacity: 0; transform: translateY(24px); transition: opacity 0.7s ease, transform 0.7s ease; }
+.reveal.visible { opacity: 1; transform: none; }
+.reveal-delay-1 { transition-delay: 0.1s; }
+.reveal-delay-2 { transition-delay: 0.2s; }
+.reveal-delay-3 { transition-delay: 0.3s; }
+.reveal-delay-4 { transition-delay: 0.4s; }
+
+/* RESPONSIVE */
+@media(max-width:900px){
+  #hero { grid-template-columns: 1fr; min-height: auto; }
+  .hero-left { padding: 80px 24px 40px; }
+  .hero-right { height: 300px; }
+  #stats { grid-template-columns: 1fr 1fr; padding: 40px 24px; }
+  #scenarios { padding: 60px 24px; }
+  .scenario-grid { grid-template-columns: 1fr; }
+  #features { padding: 60px 24px; }
+  .feature-grid { grid-template-columns: 1fr 1fr; }
+  #techstack { padding: 60px 24px; }
+  #footer-cta { grid-template-columns: 1fr; padding: 60px 24px; }
+  footer { padding: 16px 24px; flex-direction: column; gap: 8px; text-align: center; }
+  .nav-links { display: none; }
+}
+</style>
+</head>
+<script>
+// ── VECTRASIM AUTH GUARD ──
+(function(){
+  try {
+    var s = JSON.parse(localStorage.getItem('vectrasim_session'));
+    if (!s || !s.email || !s.id) { window.location.replace('../index.html?r=aero'); }
+  } catch(e) { window.location.replace('../index.html?r=aero'); }
+})();
+</script>
+<body class="grid-bg">
+
+<!-- STICKY NAV -->
+<nav id="sticky-nav">
+  <a href="#" class="nav-logo">AERO</a>
+  <div class="nav-links">
+    <a href="#scenarios">SCENARIOS</a>
+    <a href="#features">FEATURES</a>
+    <a href="#techstack">STACK</a>
+  </div>
+  <div class="nav-spacer"></div>
+  <a href="../aero.html" class="btn btn-primary btn-sm">▶ LAUNCH</a>
+</nav>
+
+<!-- TICKER -->
+<div id="ticker-wrap">
+  <div id="ticker">
+    ● SYSTEM ONLINE &nbsp;|&nbsp; MULTI-DRONE SWARM ACTIVE &nbsp;|&nbsp; CASCADED PID Flight TUNER READY &nbsp;|&nbsp; REYNOLDS BOIDS FLOCKING ENGINE READY &nbsp;|&nbsp; ARTIFICIAL POTENTIAL FIELDS NOMINAL &nbsp;|&nbsp; BASE STATION CHARGE QUEUE ACTIVE &nbsp;|&nbsp; LEADER DISPATCH SYSTEM nominal &nbsp;|&nbsp; THREAT FIELD AVOIDANCE LOGIC ONLINE &nbsp;&nbsp;&nbsp;&nbsp;
+    ● SYSTEM ONLINE &nbsp;|&nbsp; MULTI-DRONE SWARM ACTIVE &nbsp;|&nbsp; CASCADED PID Flight TUNER READY &nbsp;|&nbsp; REYNOLDS BOIDS FLOCKING ENGINE READY &nbsp;|&nbsp; ARTIFICIAL POTENTIAL FIELDS NOMINAL &nbsp;|&nbsp; BASE STATION CHARGE QUEUE ACTIVE &nbsp;|&nbsp; LEADER DISPATCH SYSTEM nominal &nbsp;|&nbsp; THREAT FIELD AVOIDANCE LOGIC ONLINE &nbsp;&nbsp;&nbsp;&nbsp;
+  </div>
+</div>
+
+<!-- HERO -->
+<section id="hero">
+  <div class="hero-left">
+    <div class="hero-overline">SEMESTER VI MINI PROJECT — AUTOMATION & ROBOTICS ENGINEERING</div>
+    <div class="hero-title">AERO</div>
+    <div class="hero-subtitle">Drone Swarm Dynamics Simulator</div>
+    <p class="hero-desc">An interactive, browser-based flight dynamics simulator for modeling automated multi-drone aerial swarms. Tweak Reynolds flocking algorithms, inspect closed-loop cascaded PID stability curves, organize swarm formations, and test collision avoidance potential fields.</p>
+    <div class="hero-btns">
+      <a href="../aero.html" class="btn btn-primary">▶ LAUNCH SIMULATOR</a>
+      <a href="#scenarios" class="btn btn-outline">↓ EXPLORE FEATURES</a>
+    </div>
+    <div class="hero-badges">
+      <span class="badge-pill"><span class="dot"></span>OPERATIONAL</span>
+      <span class="badge-pill">VANILLA JS</span>
+      <span class="badge-pill">ISOMETRIC 2.5D</span>
+      <span class="badge-pill">CASCADED PID</span>
+    </div>
+  </div>
+  <div class="hero-right">
+    <canvas id="heroCanvas"></canvas>
+    <div class="hero-vignette"></div>
+    <div class="hero-canvas-label">LIVE PREVIEW — 2.5D FLOCKING & SWARM FORMATION</div>
+  </div>
+</section>
+
+<!-- STATS -->
+<section id="stats">
+  <div class="stat-card bracket reveal">
+    <div class="stat-num" data-target="30" data-suffix="+">0</div>
+    <div class="stat-label">MAX SWARM FLIGHT DRONES</div>
+  </div>
+  <div class="stat-card bracket reveal reveal-delay-1">
+    <div class="stat-num" data-target="4" data-suffix="">0</div>
+    <div class="stat-label">Emergent Formation Modes</div>
+  </div>
+  <div class="stat-card bracket reveal reveal-delay-2">
+    <div class="stat-num" data-target="4" data-suffix="">0</div>
+    <div class="stat-label">Leader Follow Configurations</div>
+  </div>
+  <div class="stat-card bracket reveal reveal-delay-3">
+    <div class="stat-num" data-target="2" data-suffix="">0</div>
+    <div class="stat-label">Cascaded Feedback PID Loops</div>
+  </div>
+</section>
+
+<!-- SCENARIOS -->
+<section id="scenarios" class="grid-bg">
+  <div class="section-head reveal">
+    <h2>FLIGHT OPERATIONS</h2>
+    <p>THREE SIMULATION RUNMODES FOR TESTING DYNAMICS CONTROL</p>
+    <div class="section-divider"></div>
+  </div>
+  <div class="scenario-grid">
+    <div class="scenario-card reveal">
+      <div class="scenario-canvas-wrap"><canvas id="sc1" width="400" height="140"></canvas></div>
+      <div class="scenario-body">
+        <div class="scenario-num">01 — FLOCKING & SCATTER</div>
+        <div class="scenario-name">REYNOLDS BOIDS STEERING</div>
+        <p class="scenario-desc">Simulate biological flocking dynamics. Adjust weights for Separation, Alignment, and Cohesion forces to see smooth swarm behaviors.</p>
+        <div class="tag-row"><span class="tag">SEPARATION</span><span class="tag">ALIGNMENT</span><span class="tag">COHESION</span></div>
+        <div class="status-dot">AVAILABLE</div>
+      </div>
+    </div>
+    <div class="scenario-card reveal reveal-delay-1">
+      <div class="scenario-canvas-wrap"><canvas id="sc2" width="400" height="140"></canvas></div>
+      <div class="scenario-body">
+        <div class="scenario-num">02 — SWARM LEADERSHIP</div>
+        <div class="scenario-name">TACTICAL FORMATION FLIGHT</div>
+        <p class="scenario-desc">Designate a swarm leader. Steer it manually via keyboard inputs, and watch followers align in column, Wedge, or diamond shapes.</p>
+        <div class="tag-row"><span class="tag">LEADER DESIGNATE</span><span class="tag">FORMATION MESH</span><span class="tag">ACTIVE KEYBOARD</span></div>
+        <div class="status-dot">AVAILABLE</div>
+      </div>
+    </div>
+    <div class="scenario-card reveal reveal-delay-2">
+      <div class="scenario-canvas-wrap"><canvas id="sc3" width="400" height="140"></canvas></div>
+      <div class="scenario-body">
+        <div class="scenario-num">03 — ENVIRONMENTAL FORCES</div>
+        <div class="scenario-name">WIND & TURBULENCE TESTING</div>
+        <p class="scenario-desc">Simulate cross-wind loads and turbulence noise. Observe how PID altitude and velocity loops correct drift errors in real-time.</p>
+        <div class="tag-row"><span class="tag">WIND VECTORS</span><span class="tag">PID RESPONSE</span><span class="tag">STABILITY LIMITS</span></div>
+        <div class="status-dot">AVAILABLE</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FEATURES -->
+<section id="features">
+  <div class="section-head reveal">
+    <h2>FLIGHT SYSTEMS</h2>
+    <p>ADVANCED FLIGHT DYNAMICS CONTROL PIPELINE</p>
+    <div class="section-divider"></div>
+  </div>
+  <div class="feature-grid">
+    <div class="feature-card reveal"><span class="feat-icon">🛸</span><div class="feat-name">Reynolds Flocking</div><p class="feat-desc">Emergent swarm navigation using Separation, Alignment, and Cohesion forces.</p><span class="feat-tag">[SWARM INTEL]</span></div>
+    <div class="feature-card reveal reveal-delay-1"><span class="feat-icon">🎛</span><div class="feat-name">Cascaded PID Controller</div><p class="feat-desc">Dual-loop position and velocity controllers with active telemetry charts.</p><span class="feat-tag">[CONTROLS]</span></div>
+    <div class="feature-card reveal reveal-delay-2"><span class="feat-icon">⚡</span><div class="feat-name">Base Station Charger</div><p class="feat-desc">Auto-RTB logic triggers at ≤20% battery, placing drones in a charge queue.</p><span class="feat-tag">[BATTERY SYS]</span></div>
+    <div class="feature-card reveal reveal-delay-3"><span class="feat-icon">🧲</span><div class="feat-name">Artificial Potential Fields</div><p class="feat-desc">Repulsive field calculations for dynamic obstacle and threat avoidance.</p><span class="feat-tag">[PATH PLANNING]</span></div>
+    <div class="feature-card reveal"><span class="feat-icon">👥</span><div class="feat-name">Designate Leader Mode</div><p class="feat-desc">Drive the leader drone manually with followers aligning in formations.</p><span class="feat-tag">[COORDINATION]</span></div>
+    <div class="feature-card reveal reveal-delay-1"><span class="feat-icon">💨</span><div class="feat-name">Wind & Noise Fields</div><p class="feat-desc">Environmental wind vectors with Gaussian turbulence noise interference.</p><span class="feat-tag">[ENVIRONMENT]</span></div>
+    <div class="feature-card reveal reveal-delay-2"><span class="feat-icon">📈</span><div class="feat-name">Live Telemetry Inspector</div><p class="feat-desc">Real-time status tracking showing battery, task, velocity, and distance.</p><span class="feat-tag">[HUD STATS]</span></div>
+    <div class="feature-card reveal reveal-delay-3"><span class="feat-icon">📐</span><div class="feat-name">2.5D Isometric Render</div><p class="feat-desc">High-performance canvas rendering simulating altitude and depth sorting.</p><span class="feat-tag">[VISUALIZATION]</span></div>
+  </div>
+</section>
+
+<!-- TECH STACK -->
+<section id="techstack" class="grid-bg">
+  <div class="section-head reveal">
+    <h2>UNDER THE HOOD</h2>
+    <p>HIGH-PERFORMANCE CLIENT-SIDE FLIGHT DYNAMICS CODE</p>
+    <div class="section-divider"></div>
+  </div>
+  <div class="tech-badges reveal">
+    <span class="tech-badge">🌐 HTML5 Canvas 2D</span>
+    <span class="tech-badge">🎨 CSS Glassmorphism</span>
+    <span class="tech-badge">⚡ Vanilla JS Modules</span>
+    <span class="tech-badge">📊 Chart.js Telemetry</span>
+  </div>
+  <div class="tech-badges reveal reveal-delay-1">
+    <span class="tech-badge">🤖 Cascaded PID Control</span>
+    <span class="tech-badge">🐦 Reynolds flocking logic</span>
+    <span class="tech-badge">🧲 APF Collision Avoidance</span>
+    <span class="tech-badge">📐 2.5D Isometric Math</span>
+  </div>
+  <div class="circuit-divider reveal reveal-delay-2">
+    <div class="circuit-line"></div>
+    <div class="circuit-dot"></div>
+    <div class="circuit-node"></div>
+    <div class="circuit-dot"></div>
+    <div class="circuit-node"></div>
+    <div class="circuit-dot"></div>
+    <div class="circuit-node"></div>
+    <div class="circuit-dot"></div>
+    <div class="circuit-line"></div>
+  </div>
+</section>
+
+<!-- FOOTER CTA -->
+<section id="footer-cta">
+  <div class="cta-left reveal">
+    <h2>LAUNCH</h2>
+    <p>TAKE CONTROL OF THE LEADER OR TUNE THE SWARM FLIGHT LOOPS.</p>
+    <a href="../aero.html" class="btn btn-primary" style="font-size:13px;padding:14px 36px;background:var(--mint);box-shadow:0 0 20px rgba(0, 255, 178, 0.4)">▶ LAUNCH AERO SIMULATOR</a>
+    <div class="cta-note">Opens aero.html in the same tab</div>
+  </div>
+  <div class="project-card bracket reveal reveal-delay-1" style="border-left:2px solid var(--mint)">
+    <div class="project-card-title" style="color:var(--mint)">FLIGHT SPECIFICATIONS</div>
+    <div class="kv-row"><span class="k">Title</span><span class="v">AERO Swarm Flight v1.0</span></div>
+    <div class="kv-row"><span class="k">Type</span><span class="v">Mini Project</span></div>
+    <div class="kv-row"><span class="k">Subject</span><span class="v">Quadcopter Flight Dynamics</span></div>
+    <div class="kv-row"><span class="k">Stabilization</span><span class="v">Cascaded Position-Velocity PID</span></div>
+    <div class="kv-row"><span class="k">Swarm Heuristic</span><span class="v">Boid Rules (3D Vector Weighting)</span></div>
+    <div class="kv-row"><span class="k">Avoidance Model</span><span class="v">Artificial Potential Fields</span></div>
+    <div class="kv-row"><span class="k">Display Mode</span><span class="v">2.5D Isometric Grid</span></div>
+    <div class="kv-row"><span class="k">Status</span><span class="v green">● OPERATIONAL</span></div>
+  </div>
+</section>
+
+<footer>
+  <span>AERO — DRONE SWARM DYNAMICS SIMULATOR</span>
+  <span>SEMESTER VI &nbsp;|&nbsp; AUTOMATION & ROBOTICS ENGINEERING &nbsp;|&nbsp; SPPU</span>
+</footer>
+
+<script>
+// ══════════════════════════════════════
+//  HERO CANVAS — Live AERO preview
+// ══════════════════════════════════════
+(function(){
+  const canvas = document.getElementById('heroCanvas');
+  const ctx = canvas.getContext('2d');
+  let W, H, animId;
+
+  // Swarm variables
+  const N = 12;
+  const drones = [];
+  const windParticles = [];
+  let t = 0;
+
+  // 2.5D Isometric Math
+  const scaleX = 0.7;
+  const scaleY = 0.42;
+  let cx = 200;
+  let cy = 100;
+
+  function isoProject(x, y, z = 0) {
+    let dx = x - W/2;
+    let dy = y - H/2;
+    let screenX = cx + (dx - dy) * 0.866025 * scaleX;
+    let screenY = cy + (dx + dy) * 0.5 * scaleY - z;
+    return { x: screenX, y: screenY };
+  }
+
+  function initWind() {
+    windParticles.length = 0;
+    for(let i=0; i<25; i++) {
+      windParticles.push({
+        x: Math.random()*W,
+        y: Math.random()*H,
+        length: 20 + Math.random()*30,
+        speed: 1.5 + Math.random()*2.0
+      });
+    }
+  }
+
+  function resize(){
+    W = canvas.parentElement.clientWidth;
+    H = canvas.parentElement.clientHeight;
+    canvas.width = W; canvas.height = H;
+    cx = W/2;
+    cy = H/2 - 20;
+    
+    // Initialize drones at positions
+    drones.length = 0;
+    for(let i=0; i<N; i++) {
+      drones.push({
+        x: W/2 + (Math.random()*240 - 120),
+        y: H/2 + (Math.random()*160 - 80),
+        z: 40 + Math.random()*30,
+        vx: 0, vy: 0, vz: 0,
+        rotorAngle: Math.random()*Math.PI,
+        trail: [],
+        pulse: Math.random()*Math.PI*2,
+        id: i
+      });
+    }
+    initWind();
+  }
+
+  function frame(timestamp){
+    if(document.hidden){animId=requestAnimationFrame(frame);return;}
+    t += 0.016;
+    ctx.clearRect(0,0,W,H);
+    ctx.fillStyle = '#050508';
+    ctx.fillRect(0,0,W,H);
+
+    // Draw isometric grid lines
+    ctx.strokeStyle = 'rgba(0, 255, 178, 0.04)';
+    ctx.lineWidth = 0.5;
+    const gridSpacing = 40;
+    for(let i=-6; i<=6; i++) {
+      let p1 = isoProject(W/2 + i*gridSpacing, H/2 - 6*gridSpacing, 0);
+      let p2 = isoProject(W/2 + i*gridSpacing, H/2 + 6*gridSpacing, 0);
+      ctx.beginPath(); ctx.moveTo(p1.x, p1.y); ctx.lineTo(p2.x, p2.y); ctx.stroke();
+
+      let p3 = isoProject(W/2 - 6*gridSpacing, H/2 + i*gridSpacing, 0);
+      let p4 = isoProject(W/2 + 6*gridSpacing, H/2 + i*gridSpacing, 0);
+      ctx.beginPath(); ctx.moveTo(p3.x, p3.y); ctx.lineTo(p4.x, p4.y); ctx.stroke();
+    }
+
+    // Draw wind lines
+    ctx.strokeStyle = 'rgba(0, 255, 178, 0.06)';
+    ctx.lineWidth = 0.8;
+    const windAngle = Math.PI * 0.15; // 27 degrees
+    windParticles.forEach(wp => {
+      wp.x += Math.cos(windAngle)*wp.speed;
+      wp.y += Math.sin(windAngle)*wp.speed;
+      if(wp.x > W + 40 || wp.y > H + 40) {
+        wp.x = -20; wp.y = Math.random()*H - 20;
+      }
+      let pt1 = isoProject(wp.x, wp.y, 45);
+      let pt2 = isoProject(wp.x - Math.cos(windAngle)*wp.length, wp.y - Math.sin(windAngle)*wp.length, 45);
+      ctx.beginPath(); ctx.moveTo(pt1.x, pt1.y); ctx.lineTo(pt2.x, pt2.y); ctx.stroke();
+    });
+
+    // Leader dynamic coordinate path
+    const lx = W/2 + Math.cos(t*0.5)*150;
+    const ly = H/2 + Math.sin(t*0.6)*90;
+    const lz = 60 + Math.sin(t*1.2)*15;
+    let lpos = isoProject(lx, ly, lz);
+
+    // Pulsing target halo
+    let targetPulse = 0.6 + 0.4*Math.sin(t*3);
+    ctx.beginPath();
+    ctx.arc(lpos.x, lpos.y, 8 + targetPulse*6, 0, Math.PI*2);
+    ctx.strokeStyle = `rgba(0, 255, 178, ${0.15 + targetPulse*0.25})`;
+    ctx.lineWidth = 1;
+    ctx.stroke();
+
+    ctx.beginPath();
+    ctx.arc(lpos.x, lpos.y, 2, 0, Math.PI*2);
+    ctx.fillStyle = 'rgba(0, 255, 178, 0.8)';
+    ctx.fill();
+
+    // Swarm flocking simulation
+    drones.forEach((d, i) => {
+      d.pulse += 0.08;
+      
+      // Forces calculation
+      let targetX = lx;
+      let targetY = ly;
+      let targetZ = lz;
+
+      // Add simple formation slot offset based on index (wedge)
+      if (i > 0) {
+        const angleOffset = (i % 2 === 0 ? 1 : -1) * Math.ceil(i/2) * 0.4;
+        targetX = lx - Math.cos(t*0.5 - Math.PI)*50 - Math.cos(t*0.5 + angleOffset)*35;
+        targetY = ly - Math.sin(t*0.5 - Math.PI)*50 - Math.sin(t*0.5 + angleOffset)*35;
+        targetZ = lz + Math.sin(t*0.5 + angleOffset)*10;
+      }
+
+      const dx = targetX - d.x;
+      const dy = targetY - d.y;
+      const dz = targetZ - d.z;
+      const dist = Math.sqrt(dx*dx + dy*dy);
+
+      // Attractive force
+      let ax = (dx / (dist || 1)) * 0.16;
+      let ay = (dy / (dist || 1)) * 0.16;
+      let az = dz * 0.08;
+
+      // Separation from neighbors
+      drones.forEach((other, j) => {
+        if (i === j) return;
+        const sX = d.x - other.x;
+        const sY = d.y - other.y;
+        const sDist = Math.sqrt(sX*sX + sY*sY);
+        if (sDist < 30 && sDist > 0) {
+          ax += (sX / sDist) * 0.35;
+          ay += (sY / sDist) * 0.35;
+        }
+      });
+
+      d.vx += ax; d.vy += ay; d.vz += az;
+      d.vx *= 0.85; d.vy *= 0.85; d.vz *= 0.85; // damping
+
+      d.x += d.vx; d.y += d.vy; d.z += d.vz;
+      d.rotorAngle += (0.12 + Math.abs(d.vx)*0.1) * 2;
+
+      let pos = isoProject(d.x, d.y, d.z);
+
+      // Mesh connection lines
+      drones.forEach((other, j) => {
+        if(j <= i) return;
+        const oDist = Math.sqrt((d.x-other.x)**2 + (d.y-other.y)**2);
+        if(oDist < 60) {
+          let posOther = isoProject(other.x, other.y, other.z);
+          ctx.beginPath();
+          ctx.moveTo(pos.x, pos.y);
+          ctx.lineTo(posOther.x, posOther.y);
+          ctx.strokeStyle = `rgba(0, 255, 178, ${0.12 * (1 - oDist/60)})`;
+          ctx.lineWidth = 0.8;
+          ctx.stroke();
+        }
+      });
+
+      // Trail
+      d.trail.push({x: pos.x, y: pos.y});
+      if(d.trail.length > 20) d.trail.shift();
+      if(d.trail.length > 2) {
+        ctx.beginPath(); ctx.moveTo(d.trail[0].x, d.trail[0].y);
+        d.trail.forEach(pt=>ctx.lineTo(pt.x, pt.y));
+        ctx.strokeStyle = 'rgba(0, 255, 178, 0.08)';
+        ctx.lineWidth = 1;
+        ctx.stroke();
+      }
+
+      // Draw shadow on ground (z=0)
+      let groundPos = isoProject(d.x, d.y, 0);
+      ctx.beginPath();
+      ctx.ellipse(groundPos.x, groundPos.y, 6*(d.z/100 + 0.5), 3*(d.z/100 + 0.5), 0, 0, Math.PI*2);
+      ctx.fillStyle = `rgba(0, 0, 0, ${Math.max(0.05, 0.35 - d.z/120)})`;
+      ctx.fill();
+
+      // Drone structure
+      const isLeader = i === 0;
+      const col = isLeader ? 'rgba(0, 212, 255, 0.95)' : 'rgba(0, 255, 178, 0.95)';
+      const accentGlow = isLeader ? '#00d4ff' : '#00ffb2';
+
+      // Rotors arms
+      const arm = 5;
+      const angle = d.rotorAngle;
+      ctx.strokeStyle = `rgba(255, 255, 255, 0.25)`;
+      ctx.lineWidth = 1.0;
+      ctx.beginPath();
+      ctx.moveTo(pos.x - arm, pos.y - arm*0.5);
+      ctx.lineTo(pos.x + arm, pos.y + arm*0.5);
+      ctx.moveTo(pos.x - arm, pos.y + arm*0.5);
+      ctx.lineTo(pos.x + arm, pos.y - arm*0.5);
+      ctx.stroke();
+
+      // Rotors spinning disks
+      ctx.strokeStyle = `rgba(0, 255, 178, 0.15)`;
+      ctx.lineWidth = 0.5;
+      const offset = [[-arm, -arm*0.5], [arm, arm*0.5], [-arm, arm*0.5], [arm, -arm*0.5]];
+      offset.forEach(off => {
+        ctx.beginPath();
+        ctx.ellipse(pos.x + off[0], pos.y + off[1], 3.2, 1.6, angle, 0, Math.PI*2);
+        ctx.stroke();
+      });
+
+      // Swarm nodes core
+      ctx.beginPath();
+      ctx.arc(pos.x, pos.y, isLeader ? 3.5 : 2.5, 0, Math.PI*2);
+      ctx.fillStyle = col;
+      ctx.shadowBlur = 12;
+      ctx.shadowColor = accentGlow;
+      ctx.fill();
+      ctx.shadowBlur = 0;
+    });
+
+    animId=requestAnimationFrame(frame);
+  }
+
+  resize();
+  window.addEventListener('resize',()=>{resize();});
+  animId=requestAnimationFrame(frame);
+})();
+
+// ══════════════════════════════════════
+//  SCENARIO MINI CANVASES
+// ══════════════════════════════════════
+function makeBoidsAnim(id){
+  const c=document.getElementById(id);if(!c)return;
+  const ctx=c.getContext('2d'),W=c.width,H=c.height;
+  const boids = [];
+  for(let i=0; i<15; i++) {
+    boids.push({
+      x: Math.random()*W, y: Math.random()*H,
+      vx: (Math.random()-0.5)*2, vy: (Math.random()-0.5)*2
+    });
+  }
+  function anim(){
+    ctx.fillStyle='#020204';ctx.fillRect(0,0,W,H);
+    boids.forEach((b,i)=>{
+      // simple flocking logic
+      let ax=0, ay=0;
+      let cx=0, cy=0, count=0;
+      boids.forEach((o,j)=>{
+        if(i===j)return;
+        let dx=b.x-o.x, dy=b.y-o.y, dist=Math.sqrt(dx*dx+dy*dy);
+        if(dist<25&&dist>0){ax+=dx/dist*0.12;ay+=dy/dist*0.12;} // separation
+        if(dist<60){cx+=o.x;cy+=o.y;count++;} // cohesion
+      });
+      if(count>0){
+        cx/=count; cy/=count;
+        ax+=(cx-b.x)*0.003; ay+=(cy-b.y)*0.003;
+      }
+      b.vx+=ax; b.vy+=ay;
+      let speed=Math.sqrt(b.vx*b.vx+b.vy*b.vy);
+      if(speed>1.8){b.vx=(b.vx/speed)*1.8;b.vy=(b.vy/speed)*1.8;}
+      b.x+=b.vx; b.y+=b.vy;
+      if(b.x<0)b.x=W; if(b.x>W)b.x=0;
+      if(b.y<0)b.y=H; if(b.y>H)b.y=0;
+
+      // Draw
+      ctx.beginPath();ctx.arc(b.x,b.y,2.5,0,Math.PI*2);
+      ctx.fillStyle='#00ffb2';ctx.fill();
+    });
+    requestAnimationFrame(anim);
+  }
+  anim();
+}
+
+function makeLeaderAnim(id){
+  const c=document.getElementById(id);if(!c)return;
+  const ctx=c.getContext('2d'),W=c.width,H=c.height;
+  let t=0;
+  const followers = [];
+  for(let i=0; i<6; i++) followers.push({x: W/2, y: H/2});
+  function anim(){
+    t+=0.02;
+    ctx.fillStyle='#020204';ctx.fillRect(0,0,W,H);
+
+    // Leader circular flight
+    const lx = W/2 + Math.cos(t)*110;
+    const ly = H/2 + Math.sin(t*1.2)*45;
+
+    // Followers trail leader with delays
+    followers.forEach((f, idx)=>{
+      const targetX = idx === 0 ? lx : followers[idx-1].x;
+      const targetY = idx === 0 ? ly : followers[idx-1].y;
+      f.x += (targetX - f.x)*0.16;
+      f.y += (targetY - f.y)*0.16;
+
+      ctx.beginPath();ctx.arc(f.x,f.y,2.2,0,Math.PI*2);
+      ctx.fillStyle='rgba(0, 255, 178, 0.4)';ctx.fill();
+    });
+
+    // Draw active links
+    ctx.beginPath();
+    ctx.moveTo(lx, ly);
+    followers.forEach(f=>ctx.lineTo(f.x,f.y));
+    ctx.strokeStyle='rgba(0, 255, 178, 0.15)';ctx.lineWidth=0.8;ctx.stroke();
+
+    // Leader drone
+    ctx.beginPath();ctx.arc(lx,ly,3.5,0,Math.PI*2);
+    ctx.fillStyle='#00d4ff';ctx.shadowBlur=8;ctx.shadowColor='#00d4ff';ctx.fill();ctx.shadowBlur=0;
+    requestAnimationFrame(anim);
+  }
+  anim();
+}
+
+function makeWindAnim(id){
+  const c=document.getElementById(id);if(!c)return;
+  const ctx=c.getContext('2d'),W=c.width,H=c.height;
+  const wind=[]
+  for(let i=0;i<10;i++) wind.push({x:Math.random()*W, y:Math.random()*H, l:15+Math.random()*20});
+  const bot={x:W/2, y:H/2, cy:H/2, dy:0};
+  function anim(){
+    ctx.fillStyle='#020204';ctx.fillRect(0,0,W,H);
+    // Draw wind lines
+    ctx.strokeStyle='rgba(0, 255, 178, 0.08)';ctx.lineWidth=0.8;
+    wind.forEach(w=>{
+      w.x+=2.5; if(w.x>W)w.x=-20;
+      ctx.beginPath();ctx.moveTo(w.x,w.y);ctx.lineTo(w.x+w.l,w.y);ctx.stroke();
+    });
+    // PID stability oscillations
+    bot.dy = 18*Math.sin(Date.now()*0.005) * (0.4+0.6*Math.cos(Date.now()*0.0003));
+    bot.y = bot.cy + bot.dy;
+
+    // Draw PID stabilization corridor lines
+    ctx.strokeStyle='rgba(0, 255, 178, 0.1)';ctx.setLineDash([4,4]);ctx.lineWidth=0.5;
+    ctx.beginPath();ctx.moveTo(0,bot.cy);ctx.lineTo(W,bot.cy);ctx.stroke();ctx.setLineDash([]);
+
+    ctx.beginPath();ctx.arc(bot.x,bot.y,3.5,0,Math.PI*2);
+    ctx.fillStyle='#00ffb2';ctx.shadowBlur=12;ctx.shadowColor='#00ffb2';ctx.fill();ctx.shadowBlur=0;
+    requestAnimationFrame(anim);
+  }
+  anim();
+}
+
+makeBoidsAnim('sc1');
+makeLeaderAnim('sc2');
+makeWindAnim('sc3');
+
+// ══════════════════════════════════════
+//  SCROLL REVEALS
+// ══════════════════════════════════════
+const revealEls = document.querySelectorAll('.reveal');
+const revealObs = new IntersectionObserver((entries)=>{
+  entries.forEach(e=>{
+    if(e.isIntersecting){e.target.classList.add('visible');revealObs.unobserve(e.target);}
+  });
+},{threshold:0.15});
+revealEls.forEach(el=>revealObs.observe(el));
+
+// STAT COUNTER
+const statNums = document.querySelectorAll('.stat-num[data-target]');
+const statObs = new IntersectionObserver((entries)=>{
+  entries.forEach(e=>{
+    if(e.isIntersecting){
+      const el=e.target,target=+el.dataset.target,suffix=el.dataset.suffix||'';
+      if(target===0)return;
+      let cur=0,dur=1200,start=null;
+      function count(ts){
+        if(!start)start=ts;
+        const p=Math.min((ts-start)/dur,1);
+        cur=Math.floor(p*target);
+        el.textContent=cur+(p<1?'':suffix);
+        if(p<1)requestAnimationFrame(count);
+      }
+      requestAnimationFrame(count);
+      statObs.unobserve(el);
+    }
+  });
+},{threshold:0.5});
+statNums.forEach(el=>statObs.observe(el));
+
+// STICKY NAV
+const nav=document.getElementById('sticky-nav');
+const hero=document.getElementById('hero');
+const navObs=new IntersectionObserver((entries)=>{
+  nav.classList.toggle('visible',!entries[0].isIntersecting);
+},{threshold:0.1});
+navObs.observe(hero);
+
+document.querySelectorAll('.scenario-card').forEach(card=>{
+  card.addEventListener('click',()=>{ window.location.href='../aero.html'; });
+});
+</script>
+</body>
+</html>

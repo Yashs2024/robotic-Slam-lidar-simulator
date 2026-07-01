@@ -437,9 +437,9 @@ footer{padding:20px 80px;border-top:1px solid var(--border);display:flex;align-i
     <a href="#algos">ALGORITHMS</a>
     <a href="#stack">STACK</a>
     <a href="#" onclick="authGate('src/slam_landing.html');return false;" class="blue">SLAM</a>
-    <a href="#" onclick="authGate('nexus.html');return false;" class="violet">NEXUS</a>
+    <a href="#" onclick="authGate('src/nexus_landing.html');return false;" class="violet">NEXUS</a>
     <a href="#" onclick="authGate('src/hive_landing.html');return false;" class="amber">HIVE</a>
-    <a href="#" onclick="authGate('aero.html');return false;" class="mint" style="color:var(--mint)">AERO</a>
+    <a href="#" onclick="authGate('src/aero_landing.html');return false;" class="mint" style="color:var(--mint)">AERO</a>
   </div>
   <div class="nav-r">
     <a href="#" class="btn btn-ghost btn-sm" id="btnDonate" style="color:var(--amber);border-color:rgba(245,158,11,0.3);margin-right:8px;">⚡ DONATE</a>
@@ -636,7 +636,7 @@ footer{padding:20px 80px;border-top:1px solid var(--border);display:flex;align-i
           <span class="ec-tag">TELEMETRY</span>
         </div>
         <div class="ec-launch">
-          <a href="#" onclick="authGate('aero.html');return false;" class="ec-launch-btn">▶ LAUNCH AERO</a>
+          <a href="#" onclick="authGate('src/aero_landing.html');return false;" class="ec-launch-btn">▶ LAUNCH AERO</a>
           <span class="ec-status">LOGIN REQUIRED</span>
         </div>
       </div>
@@ -838,7 +838,7 @@ footer{padding:20px 80px;border-top:1px solid var(--border);display:flex;align-i
         <p class="hc-desc">Multi-robot warehouse logistics with isometric 2.5D rendering, battery sim, and task scheduling.</p>
         <span class="hc-go">▶ LAUNCH HIVE</span>
       </a>
-      <a href="aero.html" class="hub-card hc-aero">
+      <a href="src/aero_landing.html" class="hub-card hc-aero">
         <div class="hc-bar"></div>
         <div class="hc-icon">🛸</div>
         <div class="hc-num">ENGINE 04</div>
@@ -1280,7 +1280,7 @@ document.getElementById('hub-signout').addEventListener('click', doSignOut);
           else if (redirect === 'hive_landing') target = 'src/hive_landing.html';
           else if (redirect === 'nexus_landing') target = 'src/nexus_landing.html';
           else if (redirect === 'nexus') target = 'src/nexus_landing.html';
-          else if (redirect === 'aero') target = 'aero.html';
+          else if (redirect === 'aero') target = 'src/aero_landing.html';
           
           if (target) {
             setTimeout(() => openLogin(target), 300);
