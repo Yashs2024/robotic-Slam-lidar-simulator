@@ -11,6 +11,16 @@
 <meta property="og:type" content="website">
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=Share+Tech+Mono&family=Rajdhani:wght@300;400;500;600;700&family=JetBrains+Mono:wght@300;400;500;700&display=swap" rel="stylesheet"/>
+
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.184.0/build/three.module.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.184.0/examples/jsm/"
+  }
+}
+</script>
+
 <style>
   :root {
     --bg: #020509;
@@ -172,13 +182,13 @@
   .legend-line { width: 20px; height: 3px; border-radius: 2px; flex-shrink: 0; }
   .legend-label { font-size: 11px; color: var(--text-dim); }
 
-  /* CANVAS AREA */
+  /* CANVAS CONTAINER (3D) */
   #canvas-area {
     flex: 1; position: relative; overflow: hidden;
-    background: radial-gradient(ellipse at 50% 50%, #06090f 0%, #020509 100%);
+    background: #0a0a0f;
   }
-  #simCanvas { position: absolute; inset: 0; cursor: crosshair; display: block; }
-  #overlayCanvas { position: absolute; inset: 0; pointer-events: none; }
+  #canvas-container { position: absolute; inset: 0; }
+  #canvas-container canvas { display: block; }
 
   /* Canvas overlay info */
   #canvas-info {
@@ -186,7 +196,7 @@
     background: rgba(5,8,16,0.9); border: 1px solid var(--border);
     border-radius: var(--radius); padding: 6px 16px; font-family: var(--font-mono); font-size: 11px; color: var(--cyan);
     backdrop-filter: blur(10px); pointer-events: none; white-space: nowrap;
-    box-shadow: var(--cyan-glow);
+    box-shadow: var(--cyan-glow); z-index: 5;
   }
   #click-hint {
     position: absolute;
@@ -208,10 +218,19 @@
     white-space: nowrap;
     transition: opacity .4s;
     animation: hintPulse 2.5s ease-in-out infinite;
+    z-index: 5;
   }
   @keyframes hintPulse {
     0%, 100% { box-shadow: 0 0 20px rgba(59,130,246,0.2), inset 0 0 15px rgba(59,130,246,0.04); }
     50%       { box-shadow: 0 0 45px rgba(59,130,246,0.45), inset 0 0 25px rgba(59,130,246,0.08); }
+  }
+
+  /* Camera mode badge */
+  #camera-badge {
+    position: absolute; top: 16px; left: 16px;
+    background: rgba(5,8,16,0.9); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 6px 12px; font-family: var(--font-mono); font-size: 11px; color: var(--cyan);
+    pointer-events: none; z-index: 5;
   }
 
   /* RIGHT PANEL */
@@ -274,8 +293,18 @@
     position: absolute; top: 16px; right: 16px;
     background: rgba(5,8,16,0.9); border: 1px solid var(--border);
     border-radius: var(--radius); padding: 6px 12px; font-family: var(--font-mono); font-size: 11px; color: var(--cyan);
-    pointer-events: none;
+    pointer-events: none; z-index: 5;
   }
+
+  /* Tooltip */
+  .tooltip-wrap { position: relative; }
+  .tooltip-wrap .tooltip-text {
+    visibility: hidden; opacity: 0; position: absolute; bottom: 100%; left: 50%; transform: translateX(-50%);
+    background: rgba(5,8,16,0.95); border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 4px 8px; font-size: 10px; color: var(--yellow); white-space: nowrap; transition: opacity .2s;
+    pointer-events: none; z-index: 20;
+  }
+  .tooltip-wrap:hover .tooltip-text { visibility: visible; opacity: 1; }
 </style>
 </head>
 <body>
@@ -336,7 +365,7 @@
       <div class="logo-icon">🤖</div>
       <div>
         <div class="logo-text">SLAM Simulator</div>
-        <div class="logo-sub">Antigravity · Real-time Perception</div>
+        <div class="logo-sub">Antigravity · Real-time Perception · 3D</div>
       </div>
     </div>
     <div class="divider"></div>
@@ -391,6 +420,13 @@
           <div class="control-label"><span>Noise %</span><span class="control-val" id="valNoise">2</span></div>
           <input type="range" id="slNoise" min="0" max="20" value="2" oninput="updateLidar()"/>
         </div>
+        <div class="control-row" style="margin-top:8px;">
+          <div class="control-label"><span>Scan FOV</span><span class="control-val" id="valFov">360°</span></div>
+          <div class="select-row" style="margin-top:4px;">
+            <button class="sel-btn active" id="fov-360" onclick="setLidarFov(360)">360°</button>
+            <button class="sel-btn" id="fov-180" onclick="setLidarFov(180)">180°</button>
+          </div>
+        </div>
       </div>
 
       <!-- Odometry -->
@@ -439,6 +475,31 @@
         </div>
       </div>
 
+      <!-- 3D Controls -->
+      <div class="panel-section">
+        <div class="panel-title">3D Controls</div>
+        <div class="control-row" style="margin-bottom:12px;">
+          <div class="control-label"><span>Camera Mode</span><span class="control-val" id="valCam">TOP-DOWN</span></div>
+          <div class="select-row" style="margin-top:6px;">
+            <button class="sel-btn active" id="cam-topdown" onclick="setCameraMode('topdown')">Top-Down</button>
+            <button class="sel-btn" id="cam-follow" onclick="setCameraMode('follow')">Follow</button>
+            <button class="sel-btn" id="cam-free" onclick="setCameraMode('free')">Free</button>
+          </div>
+        </div>
+        <div class="toggle-row">
+          <span class="toggle-label tooltip-wrap">3D Voxel Map
+            <span class="tooltip-text">⚠ GPU-intensive — may reduce FPS</span>
+          </span>
+          <label class="toggle"><input type="checkbox" id="chkVoxels" onchange="toggleVoxels()"/><span class="toggle-slider"></span></label>
+        </div>
+        <div class="toggle-row">
+          <span class="toggle-label tooltip-wrap">3D LiDAR Channels
+            <span class="tooltip-text">⚠ 8 vertical channels — reduces FPS</span>
+          </span>
+          <label class="toggle"><input type="checkbox" id="chkLidar3D" onchange="toggleLidar3D()"/><span class="toggle-slider"></span></label>
+        </div>
+      </div>
+
       <!-- Pathfinding -->
       <div class="panel-section">
         <div class="panel-title">Pathfinding</div>
@@ -446,7 +507,7 @@
           <button class="sel-btn active" id="pf-astar" onclick="setPathfinder('astar')">A*</button>
           <button class="sel-btn" id="pf-dijkstra" onclick="setPathfinder('dijkstra')">Dijkstra</button>
         </div>
-        <p style="font-size:11px;color:var(--text-muted);">Click on canvas to set target waypoint.</p>
+        <p style="font-size:11px;color:var(--text-muted);">Click on 3D scene to set target waypoint.</p>
       </div>
 
       <!-- Stats -->
@@ -485,15 +546,15 @@
       </div>
     </div>
 
-    <!-- CANVAS -->
+    <!-- CANVAS (3D) -->
     <div id="canvas-area">
-      <canvas id="simCanvas"></canvas>
-      <canvas id="overlayCanvas"></canvas>
-      <div id="canvas-info">🖱 Click to set waypoint · WASD to drive manually</div>
+      <div id="canvas-container"></div>
+      <div id="canvas-info">🖱 Click to set waypoint · WASD to drive · C camera · Tab view</div>
+      <div id="camera-badge">📷 TOP-DOWN</div>
       <div id="fps-counter">60 FPS</div>
       <div id="click-hint">
         ▶ PRESS LAUNCH SIM TO START<br>
-        <span style="font-size:10px;color:rgba(96,165,250,0.7);letter-spacing:2px;">CLICK CANVAS TO SET WAYPOINT AFTER LAUNCH</span>
+        <span style="font-size:10px;color:rgba(96,165,250,0.7);letter-spacing:2px;">CLICK SCENE TO SET WAYPOINT AFTER LAUNCH</span>
       </div>
     </div>
 
@@ -528,7 +589,16 @@
           <div class="key" id="keyS">S</div>
           <div class="key" id="keyD">D</div>
         </div>
-        <p style="font-size:10px;color:var(--text-muted);margin-top:4px;">Hold keys to drive. Click on map for autonomous navigation.</p>
+        <div class="key-label" style="margin-top:8px;">3D Controls</div>
+        <div class="keys-grid">
+          <div class="key" id="keyQ">Q↑</div>
+          <div class="key" id="keyC">C📷</div>
+          <div class="key" id="keyE">E↓</div>
+          <div class="key" id="keyV">V☐</div>
+          <div class="key" id="keyTab">Tab</div>
+          <div></div>
+        </div>
+        <p style="font-size:10px;color:var(--text-muted);margin-top:4px;">Hold keys to drive. Click on scene for autonomous navigation. C cycles camera. Tab toggles view.</p>
       </div>
 
       <div class="panel-section">
@@ -536,8 +606,10 @@
         <div style="font-family:var(--font-mono);font-size:11px;color:var(--text-dim);line-height:1.8;">
           <div>X: <span id="robX" style="color:var(--cyan);">–</span></div>
           <div>Y: <span id="robY" style="color:var(--cyan);">–</span></div>
+          <div>Z: <span id="robZ" style="color:var(--cyan);">0.0</span></div>
           <div>θ: <span id="robTheta" style="color:var(--cyan);">–</span></div>
           <div>v: <span id="robSpeed" style="color:var(--green);">–</span></div>
+          <div>CAM: <span id="robCam" style="color:var(--yellow);">TOP-DOWN</span></div>
         </div>
       </div>
 
@@ -558,9 +630,26 @@
   </div><!-- /main -->
 </div><!-- /app -->
 
-<script>
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+
 // ═══════════════════════════════════════════════════
-//  ENVIRONMENT CLASS
+//  COORDINATE SYSTEM
+//  2D pixels → 3D world: 1 world unit ≈ 0.5 meters
+//  2D (x,y) → 3D (x, 0, z) where x=pixel/50, z=pixel/50
+//  Y axis is UP in Three.js
+// ═══════════════════════════════════════════════════
+const SCALE = 1/50; // pixels to world units
+const INV_SCALE = 50;
+function toWorld(px, py) { return { x: px * SCALE, z: py * SCALE }; }
+function toPixel(wx, wz) { return { x: wx * INV_SCALE, y: wz * INV_SCALE }; }
+
+// ═══════════════════════════════════════════════════
+//  ENVIRONMENT CLASS (preserved from 2D)
 // ═══════════════════════════════════════════════════
 class Environment {
   constructor(width, height) {
@@ -668,14 +757,18 @@ class Environment {
 }
 
 // ═══════════════════════════════════════════════════
-//  LIDAR CLASS
+//  LIDAR CLASS (preserved from 2D)
 // ═══════════════════════════════════════════════════
 class Lidar {
-  constructor() { this.numRays=90; this.maxRange=600; this.noisePercent=2; }
+  constructor() { this.numRays=90; this.maxRange=600; this.noisePercent=2; this.fov = 360; }
   setParameters(numRays, noisePercent) { this.numRays=numRays; this.noisePercent=noisePercent; }
+  setFov(fov) { this.fov = fov; }
   scan(robot, environment, dynamicHumans=null) {
-    const hits=[], fov=Math.PI*2, angleStep=fov/this.numRays;
-    const startAngle=robot.theta - fov/2;
+    const hits=[];
+    const fovRad = this.fov === 180 ? Math.PI : Math.PI*2;
+    const angleStep = fovRad/this.numRays;
+    const startAngle = this.fov === 180 ? robot.theta - Math.PI/2 : robot.theta - Math.PI;
+    
     for (let i=0;i<this.numRays;i++) {
       const rayAngle=startAngle+i*angleStep;
       const p1={x:robot.x,y:robot.y};
@@ -734,12 +827,6 @@ class Mapper {
     this.cols=Math.ceil(canvasWidth/cellSize); this.rows=Math.ceil(canvasHeight/cellSize);
     this.grid=new Float32Array(this.cols*this.rows);
     this.L_OCC=0.85; this.L_FREE=-0.4; this.L_MAX=5.0; this.L_MIN=-5.0;
-    this._colorLUT=this._buildColorLUT();
-  }
-  _buildColorLUT() {
-    const lut=new Array(256);
-    for(let i=0;i<256;i++){const b=255-i;lut[i]=`rgb(${b},${b},${b})`;}
-    return lut;
   }
   clear(){this.grid.fill(0);}
   resize(w,h){this.cols=Math.ceil(w/this.cellSize);this.rows=Math.ceil(h/this.cellSize);this.grid=new Float32Array(this.cols*this.rows);}
@@ -784,28 +871,14 @@ class Mapper {
     if(l===0) return 0;
     return l<0?1:-1;
   }
-  drawMap(ctx){
-    ctx.save();
-    for(let r=0;r<this.rows;r++){
-      for(let c=0;c<this.cols;c++){
-        const l=this.grid[c+r*this.cols];
-        if(l===0) continue;
-        const prob=this._logOddsToProbability(l);
-        const ci=Math.round(prob*255);
-        ctx.fillStyle=this._colorLUT[ci];
-        ctx.fillRect(c*this.cellSize,r*this.cellSize,this.cellSize,this.cellSize);
-      }
-    }
-    ctx.restore();
-  }
 }
 
 // ═══════════════════════════════════════════════════
-//  ROBOT CLASS
+//  ROBOT CLASS (preserved + altitude for anti-gravity)
 // ═══════════════════════════════════════════════════
 class Robot {
   constructor(x,y) {
-    this.x=x; this.y=y; this.theta=0;
+    this.x=x; this.y=y; this.z=0; this.theta=0;
     this.believedX=x; this.believedY=y; this.believedTheta=0;
     this.radius=20;
     this.forwardSpeed=0; this.turnSpeed=0; this.strafeSpeed=0;
@@ -813,6 +886,7 @@ class Robot {
     this.driveModel='differential'; this.steeringAngle=0; this.wheelbase=30; this.maxSteeringAngle=Math.PI/5;
     this.path=null; this.pathIndex=0; this.driftAmount=0;
     this.trueTrail=[]; this.believedTrail=[]; this.maxTrailLength=800; this._trailCounter=0;
+    this.altitudeSpeed=0;
   }
   setDrift(a){this.driftAmount=a;}
   setDriveModel(m){this.driveModel=m;this.forwardSpeed=0;this.turnSpeed=0;this.strafeSpeed=0;this.steeringAngle=0;}
@@ -879,10 +953,12 @@ class Robot {
       }
     }
     if(!hitWall){this.x=nextX;this.y=nextY;}
+    // Altitude
+    this.z = Math.max(0, this.z + this.altitudeSpeed);
     this._updateBelievedPose(hitWall);
     this._trailCounter++;
     if(this._trailCounter%3===0){
-      this.trueTrail.push({x:this.x,y:this.y});
+      this.trueTrail.push({x:this.x,y:this.y,z:this.z});
       this.believedTrail.push({x:this.believedX,y:this.believedY});
       if(this.trueTrail.length>this.maxTrailLength){this.trueTrail.shift();this.believedTrail.shift();}
     }
@@ -934,11 +1010,15 @@ class Robot {
           if(keys['d'])this.turnSpeed=this.maxTurn;
       }
     }
+    // Altitude
+    this.altitudeSpeed = 0;
+    if(keys['q']) this.altitudeSpeed = 2;
+    if(keys['e']) this.altitudeSpeed = -2;
   }
 }
 
 // ═══════════════════════════════════════════════════
-//  A* PATHFINDING
+//  A* PATHFINDING (preserved)
 // ═══════════════════════════════════════════════════
 class AStar {
   constructor(mapper){this.mapper=mapper;this.name='A*';}
@@ -997,7 +1077,7 @@ class AStar {
 }
 
 // ═══════════════════════════════════════════════════
-//  DIJKSTRA PATHFINDING
+//  DIJKSTRA PATHFINDING (preserved)
 // ═══════════════════════════════════════════════════
 class Dijkstra {
   constructor(mapper){this.mapper=mapper;this.name='Dijkstra';}
@@ -1048,7 +1128,7 @@ class Dijkstra {
 }
 
 // ═══════════════════════════════════════════════════
-//  FRONTIER EXPLORER
+//  FRONTIER EXPLORER (preserved)
 // ═══════════════════════════════════════════════════
 class FrontierExplorer {
   constructor(mapper){this.mapper=mapper;}
@@ -1063,17 +1143,13 @@ class FrontierExplorer {
       let cx=0,cy=0;
       for(const cell of cluster){cx+=cell.col;cy+=cell.row;}
       cx/=cluster.length;cy/=cluster.length;
-      
       const tx=cx*this.mapper.cellSize+this.mapper.cellSize/2;
       const ty=cy*this.mapper.cellSize+this.mapper.cellSize/2;
-      
-      // Check blacklist
       const isBlacklisted = blacklist.some(b => {
         const dx = b.x - tx, dy = b.y - ty;
         return Math.sqrt(dx*dx + dy*dy) < 40;
       });
       if (isBlacklisted) continue;
-      
       const dist=Math.sqrt((cx-rc)**2+(cy-rr)**2);
       const score=cluster.length/(1+dist*0.1);
       if(score>bestScore){bestScore=score;bestTarget={x:tx,y:ty};}
@@ -1115,7 +1191,7 @@ class FrontierExplorer {
 }
 
 // ═══════════════════════════════════════════════════
-//  PARTICLE FILTER (MCL)
+//  PARTICLE FILTER (MCL) (preserved)
 // ═══════════════════════════════════════════════════
 class ParticleFilter {
   constructor(numParticles=200){this.numParticles=numParticles;this.particles=[];this.enabled=false;this.raySampleCount=8;}
@@ -1193,7 +1269,7 @@ class ParticleFilter {
 }
 
 // ═══════════════════════════════════════════════════
-//  DYNAMIC OBSTACLES
+//  DYNAMIC OBSTACLES (preserved)
 // ═══════════════════════════════════════════════════
 class DynamicObstacles {
   constructor(width,height){this.width=width;this.height=height;this.obstacles=[];this.enabled=false;}
@@ -1231,7 +1307,7 @@ class DynamicObstacles {
 }
 
 // ═══════════════════════════════════════════════════
-//  DYNAMIC HUMANS
+//  DYNAMIC HUMANS (preserved)
 // ═══════════════════════════════════════════════════
 class DynamicHumans {
   constructor(width,height){this.width=width;this.height=height;this.humans=[];this.enabled=false;this.numHumans=5;}
@@ -1267,7 +1343,7 @@ class DynamicHumans {
 }
 
 // ═══════════════════════════════════════════════════
-//  STATS TRACKER
+//  STATS TRACKER (preserved)
 // ═══════════════════════════════════════════════════
 class StatsTracker {
   constructor(){this.totalDistance=0;this.collisions=0;this.wasHitting=false;this.startTime=performance.now();this.lastX=null;this.lastY=null;this.lastDomUpdate=0;}
@@ -1291,13 +1367,820 @@ class StatsTracker {
 }
 
 // ═══════════════════════════════════════════════════
+//  THREE.JS SCENE BUILDER
+// ═══════════════════════════════════════════════════
+class SceneBuilder {
+  constructor(container) {
+    this.container = container;
+    this.scene = new THREE.Scene();
+    this.scene.background = new THREE.Color(0x0a0a0f);
+    this.scene.fog = new THREE.FogExp2(0x0a0a0f, 0.008);
+
+    // Renderer
+    this.renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
+    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    this.renderer.setSize(container.clientWidth, container.clientHeight);
+    this.renderer.shadowMap.enabled = true;
+    this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    this.renderer.toneMappingExposure = 1.2;
+    container.appendChild(this.renderer.domElement);
+
+    // Lights
+    const ambient = new THREE.AmbientLight(0x1a1a2e, 0.6);
+    this.scene.add(ambient);
+
+    const dirLight = new THREE.DirectionalLight(0x4488ff, 0.8);
+    dirLight.position.set(10, 20, 10);
+    dirLight.castShadow = true;
+    dirLight.shadow.mapSize.set(2048, 2048);
+    dirLight.shadow.camera.near = 0.5;
+    dirLight.shadow.camera.far = 60;
+    dirLight.shadow.camera.left = -30;
+    dirLight.shadow.camera.right = 30;
+    dirLight.shadow.camera.top = 30;
+    dirLight.shadow.camera.bottom = -30;
+    this.scene.add(dirLight);
+    this.dirLight = dirLight;
+
+    const pointLight = new THREE.PointLight(0x00f5ff, 0.4, 30);
+    pointLight.position.set(0, 5, 0);
+    this.scene.add(pointLight);
+    this.robotLight = pointLight;
+
+    // Floor
+    const floorGeo = new THREE.PlaneGeometry(60, 60);
+    const floorMat = new THREE.MeshStandardMaterial({
+      color: 0x080c14,
+      metalness: 0.8,
+      roughness: 0.6,
+    });
+    this.floor = new THREE.Mesh(floorGeo, floorMat);
+    this.floor.rotation.x = -Math.PI / 2;
+    this.floor.position.y = 0;
+    this.floor.receiveShadow = true;
+    this.scene.add(this.floor);
+
+    // Floor grid
+    const gridHelper = new THREE.GridHelper(60, 120, 0x111122, 0x0a0a15);
+    gridHelper.position.y = 0.01;
+    this.scene.add(gridHelper);
+
+    // Post-processing
+    this.composer = new EffectComposer(this.renderer);
+    // Camera will be set later
+    this.bloomPass = new UnrealBloomPass(
+      new THREE.Vector2(container.clientWidth, container.clientHeight),
+      0.4, 0.5, 0.8
+    );
+  }
+
+  setupComposer(camera) {
+    this.composer.passes = [];
+    const renderPass = new RenderPass(this.scene, camera);
+    this.composer.addPass(renderPass);
+    this.composer.addPass(this.bloomPass);
+  }
+
+  resize(w, h) {
+    this.renderer.setSize(w, h);
+    this.composer.setSize(w, h);
+    this.bloomPass.resolution.set(w, h);
+  }
+}
+
+// ═══════════════════════════════════════════════════
+//  3D ROBOT MESH
+// ═══════════════════════════════════════════════════
+class RobotMesh {
+  constructor(scene) {
+    this.group = new THREE.Group();
+
+    // Body (box)
+    const bodyGeo = new THREE.BoxGeometry(0.6, 0.25, 0.6);
+    const bodyMat = new THREE.MeshStandardMaterial({
+      color: 0x3b82f6,
+      emissive: 0x1a4dbf,
+      emissiveIntensity: 0.5,
+      metalness: 0.6,
+      roughness: 0.3,
+    });
+    this.body = new THREE.Mesh(bodyGeo, bodyMat);
+    this.body.castShadow = true;
+    this.body.position.y = 0.15;
+    this.group.add(this.body);
+
+    // 4 Rotors
+    const rotorGeo = new THREE.CylinderGeometry(0.12, 0.12, 0.04, 16);
+    const rotorMat = new THREE.MeshStandardMaterial({
+      color: 0x00f5ff,
+      emissive: 0x00a5af,
+      emissiveIntensity: 0.8,
+      metalness: 0.9,
+      roughness: 0.1,
+    });
+    const rotorPositions = [
+      [-0.25, 0.3, -0.25],
+      [0.25, 0.3, -0.25],
+      [-0.25, 0.3, 0.25],
+      [0.25, 0.3, 0.25],
+    ];
+    this.rotors = [];
+    for (const pos of rotorPositions) {
+      const rotor = new THREE.Mesh(rotorGeo, rotorMat);
+      rotor.position.set(...pos);
+      rotor.castShadow = true;
+      this.group.add(rotor);
+      this.rotors.push(rotor);
+    }
+
+    // LiDAR cylinder on top
+    const lidarGeo = new THREE.CylinderGeometry(0.08, 0.08, 0.12, 16);
+    const lidarMat = new THREE.MeshStandardMaterial({
+      color: 0xff4757,
+      emissive: 0xff2233,
+      emissiveIntensity: 0.6,
+      metalness: 0.7,
+      roughness: 0.2,
+    });
+    this.lidarHead = new THREE.Mesh(lidarGeo, lidarMat);
+    this.lidarHead.position.set(0, 0.35, 0);
+    this.lidarHead.castShadow = true;
+    this.group.add(this.lidarHead);
+
+    // Heading arrow (bright neon green cone)
+    const arrowGeo = new THREE.ConeGeometry(0.12, 0.35, 16);
+    const arrowMat = new THREE.MeshStandardMaterial({
+      color: 0x00ff88,
+      emissive: 0x00ff88,
+      emissiveIntensity: 1.5,
+      metalness: 0.5,
+      roughness: 0.2
+    });
+    this.arrow = new THREE.Mesh(arrowGeo, arrowMat);
+    this.arrow.rotation.x = -Math.PI / 2;
+    this.arrow.position.set(0, 0.15, -0.55); // Clearly in front of chassis
+    this.group.add(this.arrow);
+
+    // Glowing connector line (indicating heading)
+    const lineGeo = new THREE.CylinderGeometry(0.02, 0.02, 0.4, 8);
+    const lineMat = new THREE.MeshStandardMaterial({
+      color: 0x00ff88,
+      emissive: 0x00ff88,
+      emissiveIntensity: 1.0
+    });
+    const connector = new THREE.Mesh(lineGeo, lineMat);
+    connector.rotation.x = -Math.PI / 2;
+    connector.position.set(0, 0.15, -0.3);
+    this.group.add(connector);
+
+    scene.add(this.group);
+  }
+
+  update(robot, dt) {
+    const wp = toWorld(robot.x, robot.y);
+    this.group.position.set(wp.x, 0.25 + robot.z * SCALE, wp.z);
+    this.group.rotation.y = -robot.theta - Math.PI / 2;
+
+    // Spin rotors
+    for (const rotor of this.rotors) {
+      rotor.rotation.y += 0.3;
+    }
+    // Spin LiDAR
+    this.lidarHead.rotation.y += 0.15;
+  }
+}
+
+// ═══════════════════════════════════════════════════
+//  BELIEVED POSE MESH (ghost robot for odometry drift)
+// ═══════════════════════════════════════════════════
+class BelievedPoseMesh {
+  constructor(scene) {
+    const geo = new THREE.SphereGeometry(0.25, 16, 16);
+    const mat = new THREE.MeshStandardMaterial({
+      color: 0xffd166,
+      emissive: 0xffd166,
+      emissiveIntensity: 0.3,
+      transparent: true,
+      opacity: 0.4,
+    });
+    this.mesh = new THREE.Mesh(geo, mat);
+    this.mesh.visible = false;
+    scene.add(this.mesh);
+  }
+  update(robot) {
+    this.mesh.visible = robot.driftAmount > 0;
+    if (robot.driftAmount > 0) {
+      const wp = toWorld(robot.believedX, robot.believedY);
+      this.mesh.position.set(wp.x, 0.25, wp.z);
+    }
+  }
+}
+
+// ═══════════════════════════════════════════════════
+//  3D WALL/OBSTACLE MANAGER
+// ═══════════════════════════════════════════════════
+class ObstacleMeshManager {
+  constructor(scene) {
+    this.scene = scene;
+    this.meshes = [];
+    this.dynamicMeshes = [];
+    this.wallMat = new THREE.MeshStandardMaterial({
+      color: 0x2a3545,
+      emissive: 0x001122,
+      emissiveIntensity: 0.3,
+      metalness: 0.7,
+      roughness: 0.3,
+    });
+    this.dynamicMat = new THREE.MeshStandardMaterial({
+      color: 0xf59e0b,
+      emissive: 0xf59e0b,
+      emissiveIntensity: 0.4,
+      metalness: 0.5,
+      roughness: 0.4,
+    });
+    this.humanMeshes = [];
+    this.humanColors = [0x3b82f6, 0x10b981, 0xf59e0b];
+  }
+
+  buildStaticWalls(walls) {
+    // Remove old
+    for (const m of this.meshes) this.scene.remove(m);
+    this.meshes = [];
+    const wallHeight = 1.0;
+    for (const wall of walls) {
+      const dx = wall.end.x - wall.start.x;
+      const dy = wall.end.y - wall.start.y;
+      const length = Math.sqrt(dx*dx + dy*dy) * SCALE;
+      if (length < 0.01) continue;
+      const geo = new THREE.BoxGeometry(length, wallHeight, 0.08);
+      const mesh = new THREE.Mesh(geo, this.wallMat);
+      const midX = (wall.start.x + wall.end.x) / 2;
+      const midY = (wall.start.y + wall.end.y) / 2;
+      const wp = toWorld(midX, midY);
+      mesh.position.set(wp.x, wallHeight / 2, wp.z);
+      mesh.rotation.y = -Math.atan2(dy, dx);
+      mesh.castShadow = true;
+      mesh.receiveShadow = true;
+      this.scene.add(mesh);
+      this.meshes.push(mesh);
+    }
+  }
+
+  updateDynamicWalls(walls) {
+    // Remove old dynamic
+    for (const m of this.dynamicMeshes) this.scene.remove(m);
+    this.dynamicMeshes = [];
+    const wallHeight = 0.8;
+    for (const wall of walls) {
+      const dx = wall.end.x - wall.start.x;
+      const dy = wall.end.y - wall.start.y;
+      const length = Math.sqrt(dx*dx + dy*dy) * SCALE;
+      if (length < 0.01) continue;
+      const geo = new THREE.BoxGeometry(length, wallHeight, 0.1);
+      const mesh = new THREE.Mesh(geo, this.dynamicMat);
+      const midX = (wall.start.x + wall.end.x) / 2;
+      const midY = (wall.start.y + wall.end.y) / 2;
+      const wp = toWorld(midX, midY);
+      mesh.position.set(wp.x, wallHeight / 2, wp.z);
+      mesh.rotation.y = -Math.atan2(dy, dx);
+      mesh.castShadow = true;
+      this.scene.add(mesh);
+      this.dynamicMeshes.push(mesh);
+    }
+  }
+
+  updateHumans(humans) {
+    // Remove old
+    for (const m of this.humanMeshes) this.scene.remove(m);
+    this.humanMeshes = [];
+    for (const h of humans) {
+      const bodyGeo = new THREE.CapsuleGeometry(h.radius * SCALE, 0.4, 8, 8);
+      const col = this.humanColors[h.colorIndex] || 0x3b82f6;
+      const mat = new THREE.MeshStandardMaterial({
+        color: col,
+        emissive: col,
+        emissiveIntensity: 0.2,
+      });
+      const mesh = new THREE.Mesh(bodyGeo, mat);
+      const wp = toWorld(h.x, h.y);
+      mesh.position.set(wp.x, 0.35, wp.z);
+      mesh.castShadow = true;
+      this.scene.add(mesh);
+      this.humanMeshes.push(mesh);
+    }
+  }
+}
+
+// ═══════════════════════════════════════════════════
+//  LIDAR 3D VISUALIZER
+// ═══════════════════════════════════════════════════
+class LidarVisualizer3D {
+  constructor(scene) {
+    this.scene = scene;
+    this.linesGroup = new THREE.Group();
+    this.scene.add(this.linesGroup);
+    this.hitPointsGroup = new THREE.Group();
+    this.scene.add(this.hitPointsGroup);
+    this.lidar3DEnabled = false;
+
+    // Materials
+    this.hitMat = new THREE.MeshBasicMaterial({ color: 0xff4757 });
+    this.hitHumanMat = new THREE.MeshBasicMaterial({ color: 0xf59e0b });
+    this.hitGeo = new THREE.SphereGeometry(0.04, 6, 6);
+  }
+
+  update(robot, scanHits, visible) {
+    // Clear old
+    while (this.linesGroup.children.length) {
+      const c = this.linesGroup.children[0];
+      c.geometry.dispose();
+      this.linesGroup.remove(c);
+    }
+    while (this.hitPointsGroup.children.length) {
+      const c = this.hitPointsGroup.children[0];
+      this.hitPointsGroup.remove(c);
+    }
+
+    this.linesGroup.visible = visible;
+    this.hitPointsGroup.visible = visible;
+    if (!visible) return;
+
+    const rw = toWorld(robot.x, robot.y);
+    const robotY = 0.35 + robot.z * SCALE;
+
+    // Build line segments for all rays
+    const positions = [];
+    const colors = [];
+
+    for (const hit of scanHits) {
+      const hw = toWorld(hit.x, hit.y);
+      positions.push(rw.x, robotY, rw.z);
+      positions.push(hw.x, robotY, hw.z);
+
+      if (hit.hit) {
+        colors.push(0.94, 0.27, 0.27, 0.94, 0.27, 0.27);
+        // Hit point sphere
+        const sphere = new THREE.Mesh(this.hitGeo, hit.type === 'human' ? this.hitHumanMat : this.hitMat);
+        sphere.position.set(hw.x, robotY, hw.z);
+        this.hitPointsGroup.add(sphere);
+      } else {
+        colors.push(0.06, 0.73, 0.5, 0.06, 0.73, 0.5);
+      }
+    }
+
+    // 3D LiDAR vertical channels
+    if (this.lidar3DEnabled) {
+      const vertAngles = [-30, -20, -12, -5, 5, 12, 20, 30];
+      for (const hit of scanHits) {
+        if (!hit.hit) continue;
+        for (const va of vertAngles) {
+          const vaRad = va * Math.PI / 180;
+          const hw = toWorld(hit.x, hit.y);
+          const elevY = robotY + Math.tan(vaRad) * hit.distance * SCALE;
+          positions.push(rw.x, robotY, rw.z);
+          positions.push(hw.x, elevY, hw.z);
+          colors.push(0.0, 0.85, 1.0, 0.0, 0.85, 1.0);
+
+          const sphere = new THREE.Mesh(this.hitGeo, this.hitMat);
+          sphere.position.set(hw.x, elevY, hw.z);
+          this.hitPointsGroup.add(sphere);
+        }
+      }
+    }
+
+    if (positions.length > 0) {
+      const geo = new THREE.BufferGeometry();
+      geo.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+      geo.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
+      const mat = new THREE.LineBasicMaterial({
+        vertexColors: true,
+        transparent: true,
+        opacity: 0.4,
+        linewidth: 1,
+      });
+      const lines = new THREE.LineSegments(geo, mat);
+      this.linesGroup.add(lines);
+    }
+  }
+}
+
+// ═══════════════════════════════════════════════════
+//  OCCUPANCY TEXTURE (floor plane)
+// ═══════════════════════════════════════════════════
+class OccupancyTexture {
+  constructor(scene, mapper, envWidth, envHeight) {
+    this.mapper = mapper;
+    this.envWidth = envWidth;
+    this.envHeight = envHeight;
+
+    // Off-screen canvas for occupancy
+    this.texCanvas = document.createElement('canvas');
+    this.texCanvas.width = mapper.cols;
+    this.texCanvas.height = mapper.rows;
+    this.texCtx = this.texCanvas.getContext('2d');
+
+    this.texture = new THREE.CanvasTexture(this.texCanvas);
+    this.texture.minFilter = THREE.NearestFilter;
+    this.texture.magFilter = THREE.NearestFilter;
+
+    const planeW = envWidth * SCALE;
+    const planeH = envHeight * SCALE;
+    const geo = new THREE.PlaneGeometry(planeW, planeH);
+    const mat = new THREE.MeshBasicMaterial({
+      map: this.texture,
+      transparent: true,
+      opacity: 0.55,
+      depthWrite: false,
+    });
+    this.mesh = new THREE.Mesh(geo, mat);
+    this.mesh.rotation.x = -Math.PI / 2;
+    this.mesh.position.set(planeW / 2, 0.05, planeH / 2);
+    scene.add(this.mesh);
+    this.scene = scene;
+  }
+
+  update() {
+    const { grid, cols, rows } = this.mapper;
+    const imgData = this.texCtx.createImageData(cols, rows);
+    const d = imgData.data;
+    for (let r = 0; r < rows; r++) {
+      for (let c = 0; c < cols; c++) {
+        const l = grid[c + r * cols];
+        const i = (r * cols + c) * 4;
+        if (l === 0) {
+          d[i] = 0; d[i+1] = 0; d[i+2] = 0; d[i+3] = 0;
+        } else {
+          const prob = 1 - 1 / (1 + Math.exp(l));
+          const bright = Math.round(prob * 255);
+          // Color: occupied = bright white, free = dim cyan
+          if (l > 0) {
+            d[i] = bright; d[i+1] = bright; d[i+2] = bright; d[i+3] = 200;
+          } else {
+            d[i] = 0; d[i+1] = Math.round((1 - prob) * 80); d[i+2] = Math.round((1 - prob) * 100); d[i+3] = 120;
+          }
+        }
+      }
+    }
+    this.texCtx.putImageData(imgData, 0, 0);
+    this.texture.needsUpdate = true;
+  }
+
+  rebuild(mapper, envWidth, envHeight) {
+    this.mapper = mapper;
+    this.envWidth = envWidth;
+    this.envHeight = envHeight;
+    this.texCanvas.width = mapper.cols;
+    this.texCanvas.height = mapper.rows;
+    const planeW = envWidth * SCALE;
+    const planeH = envHeight * SCALE;
+    this.mesh.geometry.dispose();
+    this.mesh.geometry = new THREE.PlaneGeometry(planeW, planeH);
+    this.mesh.position.set(planeW / 2, 0.05, planeH / 2);
+  }
+}
+
+// ═══════════════════════════════════════════════════
+//  VOXEL MAP (3D occupancy InstancedMesh)
+// ═══════════════════════════════════════════════════
+class VoxelMap {
+  constructor(scene) {
+    this.scene = scene;
+    this.enabled = false;
+    this.mesh = null;
+    this.maxVoxels = 50 * 50 * 20;
+    this.voxelSize = 0.2;
+
+    const geo = new THREE.BoxGeometry(this.voxelSize, this.voxelSize, this.voxelSize);
+    const mat = new THREE.MeshStandardMaterial({
+      color: 0x00d4ff,
+      emissive: 0x003344,
+      emissiveIntensity: 0.4,
+      transparent: true,
+      opacity: 0.5,
+      metalness: 0.6,
+      roughness: 0.4,
+    });
+    this.mesh = new THREE.InstancedMesh(geo, mat, this.maxVoxels);
+    this.mesh.count = 0;
+    this.mesh.visible = false;
+    scene.add(this.mesh);
+    this.dummy = new THREE.Object3D();
+  }
+
+  update(mapper) {
+    if (!this.enabled) { this.mesh.visible = false; return; }
+    this.mesh.visible = true;
+
+    const { grid, cols, rows, cellSize } = mapper;
+    let count = 0;
+    for (let r = 0; r < rows && count < this.maxVoxels; r++) {
+      for (let c = 0; c < cols && count < this.maxVoxels; c++) {
+        const l = grid[c + r * cols];
+        if (l <= 0) continue; // only occupied cells
+        const wp = toWorld(c * cellSize + cellSize / 2, r * cellSize + cellSize / 2);
+        this.dummy.position.set(wp.x, 0.5, wp.z);
+        this.dummy.updateMatrix();
+        this.mesh.setMatrixAt(count, this.dummy.matrix);
+        count++;
+      }
+    }
+    this.mesh.count = count;
+    this.mesh.instanceMatrix.needsUpdate = true;
+  }
+}
+
+// ═══════════════════════════════════════════════════
+//  TRAJECTORY LINE
+// ═══════════════════════════════════════════════════
+class TrajectoryLine {
+  constructor(scene) {
+    this.scene = scene;
+    // True trail (indigo/blue)
+    this.trueGeo = new THREE.BufferGeometry();
+    this.trueMat = new THREE.LineBasicMaterial({ color: 0x6366f1, transparent: true, opacity: 0.6 });
+    this.trueLine = new THREE.Line(this.trueGeo, this.trueMat);
+    scene.add(this.trueLine);
+
+    // Believed trail (orange dashed)
+    this.believedGeo = new THREE.BufferGeometry();
+    this.believedMat = new THREE.LineDashedMaterial({ color: 0xf59e0b, transparent: true, opacity: 0.5, dashSize: 0.1, gapSize: 0.1 });
+    this.believedLine = new THREE.Line(this.believedGeo, this.believedMat);
+    scene.add(this.believedLine);
+
+    // Path line (green dashed)
+    this.pathGeo = new THREE.BufferGeometry();
+    this.pathMat = new THREE.LineDashedMaterial({ color: 0x10b981, transparent: true, opacity: 0.7, dashSize: 0.15, gapSize: 0.1 });
+    this.pathLine = new THREE.Line(this.pathGeo, this.pathMat);
+    scene.add(this.pathLine);
+  }
+
+  update(robot, currentPath, visible) {
+    this.trueLine.visible = visible;
+    this.believedLine.visible = visible && robot.driftAmount > 0;
+
+    if (visible && robot.trueTrail.length > 1) {
+      const pts = robot.trueTrail.map(p => {
+        const wp = toWorld(p.x, p.y);
+        return new THREE.Vector3(wp.x, 0.1 + (p.z || 0) * SCALE, wp.z);
+      });
+      this.trueGeo.dispose();
+      this.trueGeo = new THREE.BufferGeometry().setFromPoints(pts);
+      this.trueLine.geometry = this.trueGeo;
+    }
+
+    if (visible && robot.driftAmount > 0 && robot.believedTrail.length > 1) {
+      const pts = robot.believedTrail.map(p => {
+        const wp = toWorld(p.x, p.y);
+        return new THREE.Vector3(wp.x, 0.1, wp.z);
+      });
+      this.believedGeo.dispose();
+      this.believedGeo = new THREE.BufferGeometry().setFromPoints(pts);
+      this.believedLine.geometry = this.believedGeo;
+      this.believedLine.computeLineDistances();
+    }
+
+    // Path
+    this.pathLine.visible = !!(currentPath && currentPath.length > 1);
+    if (currentPath && currentPath.length > 1) {
+      const pts = currentPath.map(p => {
+        const wp = toWorld(p.x, p.y);
+        return new THREE.Vector3(wp.x, 0.15, wp.z);
+      });
+      this.pathGeo.dispose();
+      this.pathGeo = new THREE.BufferGeometry().setFromPoints(pts);
+      this.pathLine.geometry = this.pathGeo;
+      this.pathLine.computeLineDistances();
+    }
+  }
+}
+
+// ═══════════════════════════════════════════════════
+//  PARTICLE VISUALIZATION (3D)
+// ═══════════════════════════════════════════════════
+class ParticleViz3D {
+  constructor(scene) {
+    this.scene = scene;
+    this.mesh = null;
+    this.maxParticles = 500;
+    const geo = new THREE.SphereGeometry(0.04, 4, 4);
+    const mat = new THREE.MeshBasicMaterial({ color: 0x3b82f6, transparent: true, opacity: 0.5 });
+    this.mesh = new THREE.InstancedMesh(geo, mat, this.maxParticles);
+    this.mesh.count = 0;
+    this.mesh.visible = false;
+    scene.add(this.mesh);
+    this.dummy = new THREE.Object3D();
+
+    // Estimate marker
+    const estGeo = new THREE.RingGeometry(0.15, 0.2, 16);
+    const estMat = new THREE.MeshBasicMaterial({ color: 0x9b5de5, side: THREE.DoubleSide });
+    this.estimateMesh = new THREE.Mesh(estGeo, estMat);
+    this.estimateMesh.rotation.x = -Math.PI / 2;
+    this.estimateMesh.visible = false;
+    scene.add(this.estimateMesh);
+  }
+
+  update(pf) {
+    if (!pf.enabled || pf.particles.length === 0) {
+      this.mesh.visible = false;
+      this.estimateMesh.visible = false;
+      return;
+    }
+    this.mesh.visible = true;
+    this.estimateMesh.visible = true;
+
+    let count = 0;
+    for (const p of pf.particles) {
+      if (count >= this.maxParticles) break;
+      const wp = toWorld(p.x, p.y);
+      this.dummy.position.set(wp.x, 0.2, wp.z);
+      this.dummy.updateMatrix();
+      this.mesh.setMatrixAt(count, this.dummy.matrix);
+      count++;
+    }
+    this.mesh.count = count;
+    this.mesh.instanceMatrix.needsUpdate = true;
+
+    const est = pf.getEstimate();
+    const ewp = toWorld(est.x, est.y);
+    this.estimateMesh.position.set(ewp.x, 0.25, ewp.z);
+  }
+}
+
+// ═══════════════════════════════════════════════════
+//  FRONTIER TARGET MARKER (3D)
+// ═══════════════════════════════════════════════════
+class FrontierMarker3D {
+  constructor(scene) {
+    const geo = new THREE.RingGeometry(0.15, 0.2, 16);
+    const mat = new THREE.MeshBasicMaterial({ color: 0xf97316, side: THREE.DoubleSide, transparent: true, opacity: 0.8 });
+    this.ring = new THREE.Mesh(geo, mat);
+    this.ring.rotation.x = -Math.PI / 2;
+    this.ring.visible = false;
+    scene.add(this.ring);
+
+    // Vertical beacon
+    const beaconGeo = new THREE.CylinderGeometry(0.03, 0.03, 2, 8);
+    const beaconMat = new THREE.MeshBasicMaterial({ color: 0xf97316, transparent: true, opacity: 0.3 });
+    this.beacon = new THREE.Mesh(beaconGeo, beaconMat);
+    this.beacon.visible = false;
+    scene.add(this.beacon);
+  }
+
+  update(frontierTarget) {
+    if (!frontierTarget) {
+      this.ring.visible = false;
+      this.beacon.visible = false;
+      return;
+    }
+    this.ring.visible = true;
+    this.beacon.visible = true;
+    const wp = toWorld(frontierTarget.x, frontierTarget.y);
+    const pulse = 0.15 + Math.sin(performance.now() / 500) * 0.05;
+    this.ring.position.set(wp.x, 0.15, wp.z);
+    this.ring.scale.setScalar(1 + Math.sin(performance.now() / 300) * 0.3);
+    this.beacon.position.set(wp.x, 1, wp.z);
+  }
+}
+
+// ═══════════════════════════════════════════════════
+//  CAMERA CONTROLLER
+// ═══════════════════════════════════════════════════
+class CameraController {
+  constructor(sceneBuilder) {
+    this.sb = sceneBuilder;
+    this.mode = 'topdown'; // topdown | follow | free
+    this.followZoom = 1.0;
+
+    // Perspective camera
+    const aspect = sceneBuilder.container.clientWidth / sceneBuilder.container.clientHeight;
+    this.perspCam = new THREE.PerspectiveCamera(60, aspect, 0.1, 200);
+    this.perspCam.position.set(5, 15, 5);
+
+    // Orthographic camera (top-down)
+    const frustumSize = 20;
+    this.orthoFrustum = frustumSize;
+    this.orthoCam = new THREE.OrthographicCamera(
+      -frustumSize * aspect / 2, frustumSize * aspect / 2,
+      frustumSize / 2, -frustumSize / 2, 0.1, 100
+    );
+    this.orthoCam.position.set(5, 30, 5);
+    this.orthoCam.lookAt(5, 0, 5);
+
+    // OrbitControls (for free cam)
+    this.orbitControls = new OrbitControls(this.perspCam, sceneBuilder.renderer.domElement);
+    this.orbitControls.enableDamping = true;
+    this.orbitControls.dampingFactor = 0.05;
+    this.orbitControls.enabled = false;
+
+    // OrbitControls (for top-down cam)
+    this.orthoControls = new OrbitControls(this.orthoCam, sceneBuilder.renderer.domElement);
+    this.orthoControls.enableRotate = false; // Lock rotation for top-down view
+    this.orthoControls.enableDamping = true;
+    this.orthoControls.dampingFactor = 0.05;
+    this.orthoControls.enabled = true;
+
+    // Mouse wheel zoom for follow mode
+    sceneBuilder.container.addEventListener('wheel', (e) => {
+      if (this.mode === 'follow') {
+        this.followZoom = Math.max(0.4, Math.min(3.0, this.followZoom + e.deltaY * 0.001));
+      }
+    }, { passive: true });
+
+    this.setMode('topdown');
+  }
+
+  getActiveCamera() {
+    return this.mode === 'topdown' ? this.orthoCam : this.perspCam;
+  }
+
+  setMode(mode) {
+    this.mode = mode;
+    this.orbitControls.enabled = (mode === 'free');
+    this.orthoControls.enabled = (mode === 'topdown');
+
+    const el = document.getElementById('valCam');
+    if (el) el.textContent = mode.toUpperCase();
+    document.getElementById('robCam').textContent = mode.toUpperCase();
+    document.getElementById('camera-badge').textContent = '📷 ' + mode.toUpperCase();
+
+    // Update button active states
+    document.querySelectorAll('[id^="cam-"]').forEach(b => b.classList.remove('active'));
+    document.getElementById(`cam-${mode}`)?.classList.add('active');
+
+    this.sb.setupComposer(this.getActiveCamera());
+  }
+
+  centerOrthoCamera(envWidth, envHeight) {
+    const centerX = envWidth * SCALE / 2;
+    const centerZ = envHeight * SCALE / 2;
+    this.orthoCam.position.set(centerX, 30, centerZ);
+    this.orthoControls.target.set(centerX, 0, centerZ);
+
+    const aspect = this.sb.container.clientWidth / this.sb.container.clientHeight;
+    const envW3D = envWidth * SCALE;
+    const envH3D = envHeight * SCALE;
+    const fitSize = Math.max(envW3D, envH3D) * 0.65;
+    this.orthoFrustum = fitSize;
+
+    this.orthoCam.left = -fitSize * aspect / 2;
+    this.orthoCam.right = fitSize * aspect / 2;
+    this.orthoCam.top = fitSize / 2;
+    this.orthoCam.bottom = -fitSize / 2;
+
+    this.orthoCam.updateProjectionMatrix();
+    this.orthoControls.update();
+  }
+
+  cycleMode() {
+    const modes = ['topdown', 'follow', 'free'];
+    const idx = modes.indexOf(this.mode);
+    this.setMode(modes[(idx + 1) % modes.length]);
+  }
+
+  resize(w, h) {
+    const aspect = w / h;
+    this.perspCam.aspect = aspect;
+    this.perspCam.updateProjectionMatrix();
+
+    this.orthoCam.left = -this.orthoFrustum * aspect / 2;
+    this.orthoCam.right = this.orthoFrustum * aspect / 2;
+    this.orthoCam.top = this.orthoFrustum / 2;
+    this.orthoCam.bottom = -this.orthoFrustum / 2;
+    this.orthoCam.updateProjectionMatrix();
+  }
+
+  update(robot, envWidth, envHeight) {
+    const rw = toWorld(robot.x, robot.y);
+
+    switch (this.mode) {
+      case 'topdown':
+        this.orthoControls.update();
+        break;
+
+      case 'follow':
+        const behindDist = 4 * this.followZoom;
+        const aboveHeight = 3 * this.followZoom;
+        const targetX = rw.x - Math.sin(robot.theta) * behindDist;
+        const targetZ = rw.z - Math.cos(robot.theta) * behindDist;
+        // Smooth lerp
+        this.perspCam.position.lerp(new THREE.Vector3(targetX, aboveHeight + robot.z * SCALE, targetZ), 0.05);
+        this.perspCam.lookAt(rw.x, 0.5 + robot.z * SCALE, rw.z);
+        break;
+
+      case 'free':
+        this.orbitControls.update();
+        break;
+    }
+  }
+}
+
+// ═══════════════════════════════════════════════════
 //  SIMULATION STATE & MAIN LOOP
 // ═══════════════════════════════════════════════════
-let simCanvas, overlayCanvas, minimapCanvas;
-let simCtx, overlayCtx, minimapCtx;
 let environment, mapper, robot, lidar, particleFilter, dynamicObstacles, dynamicHumans, statsTracker;
 let pathfinder;
-let running = false, animId = null;
+let running = false;
 let keys = {};
 let frontierEnabled = false, frontierTimer = 0;
 let currentPath = null, frontierTarget = null;
@@ -1308,6 +2191,11 @@ let logLines = [];
 let pfAlgo = 'astar';
 let unreachableFrontiers = [];
 
+// 3D objects
+let sceneBuilder, cameraCtrl, robotMesh, believedMesh, obstacleMgr;
+let lidarViz, occTexture, voxelMap, trajectoryLine, particleViz, frontierMarker;
+let minimapCanvas, minimapCtx;
+
 function log(msg, type='info') {
   const time = new Date().toLocaleTimeString('en',{hour12:false,hour:'2-digit',minute:'2-digit',second:'2-digit'});
   logLines.push({t:time,msg,type});
@@ -1317,33 +2205,54 @@ function log(msg, type='info') {
   el.scrollTop = el.scrollHeight;
 }
 
-function initCanvas() {
-  simCanvas = document.getElementById('simCanvas');
-  overlayCanvas = document.getElementById('overlayCanvas');
+function initThreeJS() {
+  const container = document.getElementById('canvas-container');
+  sceneBuilder = new SceneBuilder(container);
+  cameraCtrl = new CameraController(sceneBuilder);
+  robotMesh = new RobotMesh(sceneBuilder.scene);
+  believedMesh = new BelievedPoseMesh(sceneBuilder.scene);
+  obstacleMgr = new ObstacleMeshManager(sceneBuilder.scene);
+  lidarViz = new LidarVisualizer3D(sceneBuilder.scene);
+  trajectoryLine = new TrajectoryLine(sceneBuilder.scene);
+  particleViz = new ParticleViz3D(sceneBuilder.scene);
+  frontierMarker = new FrontierMarker3D(sceneBuilder.scene);
+
+  // Minimap
   minimapCanvas = document.getElementById('minimapCanvas');
-  simCtx = simCanvas.getContext('2d');
-  overlayCtx = overlayCanvas.getContext('2d');
   minimapCtx = minimapCanvas.getContext('2d');
-  resizeCanvases();
-  window.addEventListener('resize', resizeCanvases);
+  minimapCanvas.width = minimapCanvas.parentElement.clientWidth;
+
+  window.addEventListener('resize', resizeHandler);
+  resizeHandler();
 }
 
-function resizeCanvases() {
-  const area = document.getElementById('canvas-area');
-  canvasW = area.clientWidth;
-  canvasH = area.clientHeight;
-  simCanvas.width = canvasW; simCanvas.height = canvasH;
-  overlayCanvas.width = canvasW; overlayCanvas.height = canvasH;
+function resizeHandler() {
+  const container = document.getElementById('canvas-container');
+  const w = container.clientWidth;
+  const h = container.clientHeight;
+  canvasW = w * 2; // Simulation uses pixel coords, we use a virtual space
+  canvasH = h * 2;
+
+  sceneBuilder.resize(w, h);
+  cameraCtrl.resize(w, h);
+
   minimapCanvas.width = minimapCanvas.parentElement.clientWidth;
+
   if (environment) {
     environment.resize(canvasW, canvasH);
     mapper.resize(canvasW, canvasH);
     dynamicObstacles.resize(canvasW, canvasH);
     dynamicHumans.resize(canvasW, canvasH);
+    if (occTexture) occTexture.rebuild(mapper, canvasW, canvasH);
+    obstacleMgr.buildStaticWalls(environment.baseWalls.concat(environment.customWalls));
   }
 }
 
 function initSim() {
+  const container = document.getElementById('canvas-container');
+  canvasW = container.clientWidth * 2;
+  canvasH = container.clientHeight * 2;
+
   environment = new Environment(canvasW, canvasH);
   mapper = new Mapper(canvasW, canvasH, 10);
   const spawn = environment.findSafeSpawn(20);
@@ -1359,16 +2268,40 @@ function initSim() {
   const chk = document.getElementById('chkFrontier');
   if (chk) chk.checked = false;
   unreachableFrontiers = [];
-  log('Simulation initialized', 'success');
+
+  // Build occupancy texture
+  if (occTexture) {
+    sceneBuilder.scene.remove(occTexture.mesh);
+  }
+  occTexture = new OccupancyTexture(sceneBuilder.scene, mapper, canvasW, canvasH);
+
+  if (!voxelMap) {
+    voxelMap = new VoxelMap(sceneBuilder.scene);
+  }
+
+  // Build 3D walls
+  obstacleMgr.buildStaticWalls(environment.baseWalls.concat(environment.customWalls));
+
+  if (cameraCtrl) {
+    cameraCtrl.centerOrthoCamera(canvasW, canvasH);
+  }
+
+  log('Simulation initialized (3D)', 'success');
   log(`Spawn: (${Math.round(spawn.x)}, ${Math.round(spawn.y)})`, 'info');
 }
 
-function gameLoop(timestamp) {
-  if (!running) return;
+// ── ANIMATION LOOP ──
+function animate(timestamp) {
+  if (!running) {
+    // Still render the scene even when paused
+    cameraCtrl.update(robot, canvasW, canvasH);
+    sceneBuilder.composer.render();
+    return;
+  }
+
   try {
-    _gameLoopInner(timestamp);
+    _animateInner(timestamp);
   } catch (err) {
-    if (animId) cancelAnimationFrame(animId);
     running = false;
     log('Simulation crashed: ' + err.message, 'warn');
     document.getElementById('statusText').textContent = 'CRASHED';
@@ -1379,15 +2312,21 @@ function gameLoop(timestamp) {
   }
 }
 
-function _gameLoopInner(timestamp) {
-  animId = requestAnimationFrame(gameLoop);
-
+function _animateInner(timestamp) {
   // FPS tracking
   frameCount++;
-  if (timestamp - lastFpsTime >= 1000) {
-    fps = Math.round(frameCount * 1000 / (timestamp - lastFpsTime));
-    frameCount = 0; lastFpsTime = timestamp;
+  const now = performance.now();
+  if (now - lastFpsTime >= 1000) {
+    fps = Math.round(frameCount * 1000 / (now - lastFpsTime));
+    frameCount = 0; lastFpsTime = now;
     document.getElementById('fps-counter').textContent = fps + ' FPS';
+
+    // Auto-disable 3D LiDAR if FPS < 30
+    if (fps < 30 && lidarViz.lidar3DEnabled) {
+      lidarViz.lidar3DEnabled = false;
+      document.getElementById('chkLidar3D').checked = false;
+      log('3D LiDAR auto-disabled (FPS < 30)', 'warn');
+    }
   }
 
   // Input
@@ -1419,7 +2358,7 @@ function _gameLoopInner(timestamp) {
   if (frontierEnabled) {
     frontierTimer--;
     if (frontierTimer <= 0) {
-      frontierTimer = 60; // check once per second
+      frontierTimer = 60;
       if (!robot.path) {
         frontierTarget = new FrontierExplorer(mapper).findBestFrontier(robot.x, robot.y, unreachableFrontiers);
         if (frontierTarget) {
@@ -1447,217 +2386,70 @@ function _gameLoopInner(timestamp) {
   statsTracker.update(robot, mapper, hitWall);
   updateRobotState();
 
-  // Render
-  render(scanHits);
+  // ── 3D RENDERING ──
+  // Update robot mesh
+  robotMesh.update(robot, 1/60);
+  believedMesh.update(robot);
+
+  // Update robot point light position
+  const rwp = toWorld(robot.x, robot.y);
+  sceneBuilder.robotLight.position.set(rwp.x, 2, rwp.z);
+  sceneBuilder.dirLight.target.position.set(rwp.x, 0, rwp.z);
+
+  // Update dynamic obstacles
+  if (dynamicObstacles.enabled) {
+    obstacleMgr.updateDynamicWalls(dynamicObstacles.getWalls());
+  } else {
+    obstacleMgr.updateDynamicWalls([]);
+  }
+
+  // Update humans
+  if (dynamicHumans.enabled) {
+    obstacleMgr.updateHumans(dynamicHumans.getHumans());
+  } else {
+    obstacleMgr.updateHumans([]);
+  }
+
+  // Update LiDAR visualization
+  lidarViz.update(robot, scanHits, layers.lidar);
+
+  // Update occupancy texture
+  if (layers.map) {
+    occTexture.mesh.visible = true;
+    occTexture.update();
+  } else {
+    occTexture.mesh.visible = false;
+  }
+
+  // Update voxel map
+  if (voxelMap.enabled) {
+    voxelMap.update(mapper);
+  }
+
+  // Update trajectory
+  trajectoryLine.update(robot, currentPath, layers.trail);
+
+  // Update particle visualization
+  particleViz.update(particleFilter);
+
+  // Frontier marker
+  frontierMarker.update(frontierTarget);
+
+  // Camera
+  cameraCtrl.update(robot, canvasW, canvasH);
+
+  // Render via composer (bloom)
+  sceneBuilder.composer.render();
+
+  // Minimap (still 2D canvas)
   renderMinimap();
 }
 
-function render(scanHits) {
-  // Clear simulation canvas
-  simCtx.clearRect(0, 0, canvasW, canvasH);
-
-  // ── Background grid ──
-  simCtx.save();
-  simCtx.strokeStyle = 'rgba(255,255,255,0.025)';
-  simCtx.lineWidth = 0.5;
-  for (let x=0; x<canvasW; x+=40) { simCtx.beginPath(); simCtx.moveTo(x,0); simCtx.lineTo(x,canvasH); simCtx.stroke(); }
-  for (let y=0; y<canvasH; y+=40) { simCtx.beginPath(); simCtx.moveTo(0,y); simCtx.lineTo(canvasW,y); simCtx.stroke(); }
-  simCtx.restore();
-
-  // ── Occupancy map ──
-  if (layers.map) {
-    mapper.drawMap(simCtx);
-    // Dim the map slightly for aesthetics
-    simCtx.save();
-    simCtx.globalAlpha = 0.15;
-    simCtx.fillStyle = '#080c14';
-    simCtx.fillRect(0,0,canvasW,canvasH);
-    simCtx.restore();
-  }
-
-  // ── Walls (environment) ──
-  simCtx.save();
-  simCtx.strokeStyle = 'rgba(148,163,184,0.9)';
-  simCtx.lineWidth = 2;
-  simCtx.lineCap = 'round';
-  for (const wall of environment.getWalls()) {
-    simCtx.beginPath();
-    simCtx.moveTo(wall.start.x, wall.start.y);
-    simCtx.lineTo(wall.end.x, wall.end.y);
-    simCtx.stroke();
-  }
-  simCtx.restore();
-
-  // ── Dynamic obstacle walls (highlight) ──
-  if (dynamicObstacles.enabled) {
-    simCtx.save();
-    simCtx.strokeStyle = 'rgba(245,158,11,0.9)';
-    simCtx.lineWidth = 3;
-    simCtx.shadowBlur = 8; simCtx.shadowColor = '#f59e0b';
-    for (const wall of dynamicObstacles.getWalls()) {
-      simCtx.beginPath(); simCtx.moveTo(wall.start.x,wall.start.y); simCtx.lineTo(wall.end.x,wall.end.y); simCtx.stroke();
-    }
-    simCtx.restore();
-  }
-
-  // ── Dynamic humans ──
-  if (dynamicHumans.enabled) {
-    const shirtColors = ['#3b82f6','#10b981','#f59e0b'];
-    for (const h of dynamicHumans.getHumans()) {
-      simCtx.save();
-      simCtx.shadowBlur = 10; simCtx.shadowColor = shirtColors[h.colorIndex];
-      simCtx.fillStyle = shirtColors[h.colorIndex];
-      simCtx.beginPath(); simCtx.arc(h.x, h.y, h.radius, 0, Math.PI*2); simCtx.fill();
-      // Head
-      simCtx.fillStyle = '#fde68a';
-      simCtx.beginPath(); simCtx.arc(h.x+Math.cos(h.theta)*h.radius*0.8, h.y+Math.sin(h.theta)*h.radius*0.8, h.radius*0.4, 0, Math.PI*2); simCtx.fill();
-      simCtx.restore();
-    }
-  }
-
-  // ── LiDAR rays ──
-  if (layers.lidar) {
-    simCtx.save();
-    simCtx.lineWidth = 0.8;
-    for (const hit of scanHits) {
-      simCtx.beginPath();
-      simCtx.moveTo(robot.x, robot.y);
-      simCtx.lineTo(hit.x, hit.y);
-      simCtx.strokeStyle = hit.hit ? 'rgba(239,68,68,0.35)' : 'rgba(16,185,129,0.15)';
-      simCtx.stroke();
-      if (hit.hit) {
-        simCtx.beginPath();
-        simCtx.arc(hit.x, hit.y, 2.5, 0, Math.PI*2);
-        simCtx.fillStyle = hit.type==='human' ? '#f59e0b' : '#ef4444';
-        simCtx.shadowBlur = 6; simCtx.shadowColor = simCtx.fillStyle;
-        simCtx.fill();
-      }
-    }
-    simCtx.restore();
-  }
-
-  // ── Trail ──
-  if (layers.trail) {
-    // True trail
-    if (robot.trueTrail.length > 1) {
-      simCtx.save();
-      simCtx.beginPath();
-      simCtx.moveTo(robot.trueTrail[0].x, robot.trueTrail[0].y);
-      for (const p of robot.trueTrail) simCtx.lineTo(p.x, p.y);
-      simCtx.strokeStyle = 'rgba(99,102,241,0.5)'; simCtx.lineWidth = 1.5; simCtx.stroke();
-      simCtx.restore();
-    }
-    // Believed trail (odometry)
-    if (robot.driftAmount > 0 && robot.believedTrail.length > 1) {
-      simCtx.save();
-      simCtx.beginPath();
-      simCtx.moveTo(robot.believedTrail[0].x, robot.believedTrail[0].y);
-      for (const p of robot.believedTrail) simCtx.lineTo(p.x, p.y);
-      simCtx.strokeStyle = 'rgba(245,158,11,0.4)'; simCtx.lineWidth = 1; simCtx.setLineDash([4,4]); simCtx.stroke();
-      simCtx.restore();
-    }
-  }
-
-  // ── Particle filter ──
-  if (particleFilter.enabled && particleFilter.particles.length > 0) {
-    simCtx.save();
-    for (const p of particleFilter.particles) {
-      simCtx.beginPath();
-      simCtx.arc(p.x, p.y, 2, 0, Math.PI*2);
-      simCtx.fillStyle = `rgba(59,130,246,${Math.min(1, p.weight*particleFilter.particles.length*0.5)})`;
-      simCtx.fill();
-    }
-    simCtx.restore();
-    // Estimate marker
-    const est = particleFilter.getEstimate();
-    simCtx.save();
-    simCtx.strokeStyle = 'var(--violet)'; simCtx.lineWidth = 2;
-    simCtx.beginPath(); simCtx.arc(est.x, est.y, 10, 0, Math.PI*2); simCtx.stroke();
-    simCtx.restore();
-  }
-
-  // ── Current path ──
-  if (currentPath && currentPath.length > 1) {
-    simCtx.save();
-    simCtx.beginPath();
-    simCtx.moveTo(currentPath[0].x, currentPath[0].y);
-    for (const p of currentPath) simCtx.lineTo(p.x, p.y);
-    simCtx.strokeStyle = 'rgba(16,185,129,0.7)'; simCtx.lineWidth = 2; simCtx.setLineDash([6,4]); simCtx.stroke();
-    // Waypoint dots
-    for (const p of currentPath) {
-      simCtx.beginPath(); simCtx.arc(p.x, p.y, 3, 0, Math.PI*2);
-      simCtx.fillStyle = 'rgba(16,185,129,0.5)'; simCtx.fill();
-    }
-    simCtx.restore();
-  }
-
-  // ── Frontier target ──
-  if (frontierTarget) {
-    simCtx.save();
-    const t = performance.now() / 500;
-    const pulse = 8 + Math.sin(t) * 4;
-    simCtx.strokeStyle = '#f97316'; simCtx.lineWidth = 2;
-    simCtx.shadowBlur = 12; simCtx.shadowColor = '#f97316';
-    simCtx.beginPath(); simCtx.arc(frontierTarget.x, frontierTarget.y, pulse, 0, Math.PI*2); simCtx.stroke();
-    simCtx.restore();
-  }
-
-  // ── Believed pose ──
-  if (robot.driftAmount > 0) {
-    simCtx.save();
-    simCtx.fillStyle = 'rgba(245,158,11,0.3)';
-    simCtx.strokeStyle = '#f59e0b';
-    simCtx.lineWidth = 1.5;
-    simCtx.beginPath(); simCtx.arc(robot.believedX, robot.believedY, robot.radius, 0, Math.PI*2);
-    simCtx.fill(); simCtx.stroke();
-    // Heading line
-    simCtx.beginPath();
-    simCtx.moveTo(robot.believedX, robot.believedY);
-    simCtx.lineTo(robot.believedX+Math.cos(robot.believedTheta)*robot.radius*1.5, robot.believedY+Math.sin(robot.believedTheta)*robot.radius*1.5);
-    simCtx.strokeStyle = '#f59e0b'; simCtx.lineWidth = 1.5; simCtx.stroke();
-    simCtx.restore();
-  }
-
-  // ── Robot body ──
-  simCtx.save();
-  // Glow
-  simCtx.shadowBlur = 20; simCtx.shadowColor = 'var(--blue)';
-  // Body
-  const grad = simCtx.createRadialGradient(robot.x, robot.y, 0, robot.x, robot.y, robot.radius);
-  grad.addColorStop(0, 'rgba(59,130,246,1)');
-  grad.addColorStop(1, 'rgba(0,245,255,0.8)');
-  simCtx.fillStyle = grad;
-  simCtx.beginPath(); simCtx.arc(robot.x, robot.y, robot.radius, 0, Math.PI*2); simCtx.fill();
-  // Outline
-  simCtx.strokeStyle = 'var(--cyan)'; simCtx.lineWidth = 2;
-  simCtx.beginPath(); simCtx.arc(robot.x, robot.y, robot.radius, 0, Math.PI*2); simCtx.stroke();
-  simCtx.restore();
-  // Heading arrow
-  simCtx.save();
-  simCtx.strokeStyle = '#fff'; simCtx.lineWidth = 2.5;
-  simCtx.shadowBlur = 8; simCtx.shadowColor = '#fff';
-  simCtx.beginPath();
-  simCtx.moveTo(robot.x, robot.y);
-  const hx = robot.x + Math.cos(robot.theta) * (robot.radius + 10);
-  const hy = robot.y + Math.sin(robot.theta) * (robot.radius + 10);
-  simCtx.lineTo(hx, hy);
-  simCtx.stroke();
-  // Arrowhead
-  const arrowAngle = robot.theta;
-  simCtx.beginPath();
-  simCtx.moveTo(hx, hy);
-  simCtx.lineTo(hx-Math.cos(arrowAngle-0.4)*8, hy-Math.sin(arrowAngle-0.4)*8);
-  simCtx.lineTo(hx-Math.cos(arrowAngle+0.4)*8, hy-Math.sin(arrowAngle+0.4)*8);
-  simCtx.closePath();
-  simCtx.fillStyle = '#fff'; simCtx.fill();
-  simCtx.restore();
-}
-
 function renderMinimap() {
+  if (!minimapCanvas || !robot) return;
   const mw = minimapCanvas.width, mh = minimapCanvas.height;
   minimapCtx.clearRect(0, 0, mw, mh);
   const sx = mw / canvasW, sy = mh / canvasH;
-  // Background
   minimapCtx.fillStyle = '#0d1117';
   minimapCtx.fillRect(0, 0, mw, mh);
   // Map cells
@@ -1677,8 +2469,14 @@ function renderMinimap() {
     minimapCtx.beginPath();minimapCtx.moveTo(w.start.x*sx,w.start.y*sy);minimapCtx.lineTo(w.end.x*sx,w.end.y*sy);minimapCtx.stroke();
   }
   // Robot
-  minimapCtx.fillStyle='var(--blue)';
+  minimapCtx.fillStyle='#3b82f6';
   minimapCtx.beginPath();minimapCtx.arc(robot.x*sx, robot.y*sy, 4, 0, Math.PI*2);minimapCtx.fill();
+  // Heading line
+  minimapCtx.strokeStyle='#00ff88';minimapCtx.lineWidth=1.5;
+  minimapCtx.beginPath();
+  minimapCtx.moveTo(robot.x*sx, robot.y*sy);
+  minimapCtx.lineTo(robot.x*sx + Math.cos(robot.theta)*8, robot.y*sy + Math.sin(robot.theta)*8);
+  minimapCtx.stroke();
   // Path
   if (currentPath && currentPath.length>1) {
     minimapCtx.strokeStyle='rgba(16,185,129,0.7)';minimapCtx.lineWidth=1;minimapCtx.setLineDash([2,2]);
@@ -1692,20 +2490,25 @@ function updateKeyUI() {
   document.getElementById('keyA').classList.toggle('active', !!keys['a']);
   document.getElementById('keyS').classList.toggle('active', !!keys['s']);
   document.getElementById('keyD').classList.toggle('active', !!keys['d']);
+  document.getElementById('keyQ').classList.toggle('active', !!keys['q']);
+  document.getElementById('keyE').classList.toggle('active', !!keys['e']);
+  document.getElementById('keyC').classList.toggle('active', !!keys['c']);
+  document.getElementById('keyV').classList.toggle('active', !!keys['v']);
 }
 
 function updateRobotState() {
   const now = performance.now();
-  if (now % 100 < 16) { // ~10fps
+  if (now % 100 < 16) {
     document.getElementById('robX').textContent = Math.round(robot.x);
     document.getElementById('robY').textContent = Math.round(robot.y);
+    document.getElementById('robZ').textContent = robot.z.toFixed(1);
     document.getElementById('robTheta').textContent = (robot.theta * 180 / Math.PI).toFixed(1) + '°';
     document.getElementById('robSpeed').textContent = Math.abs(robot.forwardSpeed).toFixed(2);
   }
 }
 
 // ── UI HANDLERS ──
-function toggleSimulation() {
+window.toggleSimulation = function() {
   if (!environment) initSim();
   running = !running;
   const btn = document.getElementById('btnStartStop');
@@ -1717,99 +2520,83 @@ function toggleSimulation() {
     badge.classList.remove('stopped');
     statusText.textContent = 'Running';
     hint.style.opacity = '0';
-    log('Simulation started', 'success');
-    animId = requestAnimationFrame(gameLoop);
+    log('Simulation started (3D)', 'success');
   } else {
     btn.innerHTML = '▶ Launch Sim';
     badge.classList.add('stopped');
     statusText.textContent = 'Stopped';
     hint.style.opacity = '1';
     hint.innerHTML = '⏸ PAUSED — PRESS LAUNCH SIM TO CONTINUE<br><span style="font-size:10px;color:rgba(96,165,250,0.7);letter-spacing:2px;">SIMULATION IS SUSPENDED</span>';
-    if (animId) cancelAnimationFrame(animId);
     log('Simulation paused', 'warn');
   }
-}
+};
 
-function resetSim() {
-  if (animId) cancelAnimationFrame(animId);
+window.resetSim = function() {
   running = false;
   const btn = document.getElementById('btnStartStop');
   btn.innerHTML = '▶ Launch Sim';
   document.getElementById('statusBadge').classList.add('stopped');
   document.getElementById('statusText').textContent = 'Stopped';
   document.getElementById('click-hint').style.opacity = '1';
-  document.getElementById('click-hint').innerHTML = '▶ PRESS LAUNCH SIM TO START<br><span style="font-size:10px;color:rgba(96,165,250,0.7);letter-spacing:2px;">CLICK CANVAS TO SET WAYPOINT AFTER LAUNCH</span>';
+  document.getElementById('click-hint').innerHTML = '▶ PRESS LAUNCH SIM TO START<br><span style="font-size:10px;color:rgba(96,165,250,0.7);letter-spacing:2px;">CLICK SCENE TO SET WAYPOINT AFTER LAUNCH</span>';
   initSim();
-  simCtx.clearRect(0, 0, canvasW, canvasH);
-  overlayCtx.clearRect(0, 0, canvasW, canvasH);
-  // Draw initial walls
-  drawStaticScene();
+  obstacleMgr.buildStaticWalls(environment.baseWalls.concat(environment.customWalls));
   log('Simulation reset', 'warn');
-}
+};
 
-function drawStaticScene() {
-  simCtx.clearRect(0,0,canvasW,canvasH);
-  simCtx.save();
-  simCtx.strokeStyle='rgba(148,163,184,0.9)';simCtx.lineWidth=2;simCtx.lineCap='round';
-  for(const w of environment.getWalls()){simCtx.beginPath();simCtx.moveTo(w.start.x,w.start.y);simCtx.lineTo(w.end.x,w.end.y);simCtx.stroke();}
-  simCtx.restore();
-  // Draw robot
-  simCtx.save();
-  simCtx.shadowBlur=20;simCtx.shadowColor='var(--blue)';
-  simCtx.fillStyle='var(--blue)';
-  simCtx.beginPath();simCtx.arc(robot.x,robot.y,robot.radius,0,Math.PI*2);simCtx.fill();
-  simCtx.restore();
-}
-
-function generateNewMap() {
+window.generateNewMap = function() {
   const wasRunning = running;
-  if (running) { running=false; if(animId)cancelAnimationFrame(animId); }
+  running = false;
   environment.generateRandomMap();
   mapper.clear();
   const spawn = environment.findSafeSpawn(20);
-  robot.x=spawn.x; robot.y=spawn.y; robot.theta=0;
+  robot.x=spawn.x; robot.y=spawn.y; robot.z=0; robot.theta=0;
   robot.believedX=spawn.x; robot.believedY=spawn.y; robot.believedTheta=0;
   robot.resetTrails();
   statsTracker.reset();
   currentPath=null;frontierTarget=null;
   dynamicObstacles.generate();
-  drawStaticScene();
+  obstacleMgr.buildStaticWalls(environment.baseWalls.concat(environment.customWalls));
+  occTexture.rebuild(mapper, canvasW, canvasH);
+  if (cameraCtrl) cameraCtrl.centerOrthoCamera(canvasW, canvasH);
   log('New map generated', 'success');
-  if (wasRunning) { running=true; animId=requestAnimationFrame(gameLoop); }
-}
+  if (wasRunning) running = true;
+};
 
-function clearMap() {
+window.clearMap = function() {
   mapper.clear();
   log('Occupancy map cleared', 'warn');
-}
+};
 
-function loadMap(name) {
+window.loadMap = function(name) {
   const wasRunning = running;
-  if (running) { running=false; if(animId)cancelAnimationFrame(animId); }
+  running = false;
   document.querySelectorAll('.map-btn').forEach(b=>b.classList.remove('active'));
   document.getElementById(`map-${name}`)?.classList.add('active');
   environment.loadPreset(name);
   mapper.clear();
   const spawn = environment.findSafeSpawn(20);
-  robot.x=spawn.x; robot.y=spawn.y; robot.theta=0;
+  robot.x=spawn.x; robot.y=spawn.y; robot.z=0; robot.theta=0;
   robot.believedX=spawn.x; robot.believedY=spawn.y; robot.believedTheta=0;
   robot.resetTrails();
   statsTracker.reset();
   currentPath=null;frontierTarget=null;
   dynamicObstacles.generate();
-  drawStaticScene();
+  obstacleMgr.buildStaticWalls(environment.baseWalls.concat(environment.customWalls));
+  occTexture.rebuild(mapper, canvasW, canvasH);
+  if (cameraCtrl) cameraCtrl.centerOrthoCamera(canvasW, canvasH);
   log(`Map loaded: ${name}`, 'success');
-  if (wasRunning) { running=true; animId=requestAnimationFrame(gameLoop); }
-}
+  if (wasRunning) running = true;
+};
 
-function setDriveModel(model) {
+window.setDriveModel = function(model) {
   document.querySelectorAll('[id^="dm-"]').forEach(b=>b.classList.remove('active'));
   document.getElementById(`dm-${model}`)?.classList.add('active');
   robot.setDriveModel(model);
   log(`Drive model: ${model}`, 'info');
-}
+};
 
-function setPathfinder(algo) {
+window.setPathfinder = function(algo) {
   pfAlgo = algo;
   document.querySelectorAll('[id^="pf-"]').forEach(b=>b.classList.remove('active'));
   document.getElementById(`pf-${algo}`)?.classList.add('active');
@@ -1817,61 +2604,74 @@ function setPathfinder(algo) {
   document.getElementById('algoName').textContent = algo==='astar' ? 'A* Pathfinding' : 'Dijkstra';
   document.getElementById('algoDesc').textContent = algo==='astar' ? 'Heuristic grid search' : 'Uniform cost search';
   log(`Pathfinder: ${algo}`, 'info');
-}
+};
 
-function updateLidar() {
+window.setCameraMode = function(mode) {
+  cameraCtrl.setMode(mode);
+  log(`Camera: ${mode}`, 'info');
+};
+
+window.updateLidar = function() {
   const rays = parseInt(document.getElementById('slRays').value);
   const noise = parseInt(document.getElementById('slNoise').value);
   document.getElementById('valRays').textContent = rays;
   document.getElementById('valNoise').textContent = noise;
   if (lidar) lidar.setParameters(rays, noise);
-}
+};
 
-function updateDrift() {
+window.setLidarFov = function(fov) {
+  document.querySelectorAll('[id^="fov-"]').forEach(b=>b.classList.remove('active'));
+  document.getElementById(`fov-${fov}`)?.classList.add('active');
+  document.getElementById('valFov').textContent = fov + '°';
+  if (lidar) lidar.setFov(fov);
+  log(`LiDAR FOV: ${fov}°`, 'info');
+};
+
+window.updateDrift = function() {
   const drift = parseInt(document.getElementById('slDrift').value);
   document.getElementById('valDrift').textContent = drift;
   if (robot) robot.setDrift(drift);
-}
+};
 
-function updateSpeed() {
+window.updateSpeed = function() {
   const spd = parseInt(document.getElementById('slSpeed').value);
   document.getElementById('valSpeed').textContent = spd;
   if (robot) robot.maxSpeed = spd;
-}
+};
 
-function updateLayers() {
+window.updateLayers = function() {
   layers.map = document.getElementById('chkMap').checked;
   layers.lidar = document.getElementById('chkLidar').checked;
   layers.trail = document.getElementById('chkTrail').checked;
-}
+};
 
-function toggleParticles() {
+window.toggleParticles = function() {
   const enabled = document.getElementById('chkParticles').checked;
   if (particleFilter) {
     particleFilter.setEnabled(enabled);
     if (enabled && robot) particleFilter.init(robot.x, robot.y, robot.theta, 60);
     log(`Particle filter (MCL): ${enabled?'ON':'OFF'}`, 'info');
   }
-}
+};
 
-function toggleObstacles() {
+window.toggleObstacles = function() {
   const enabled = document.getElementById('chkObstacles').checked;
   if (dynamicObstacles) {
     dynamicObstacles.setEnabled(enabled);
     if (enabled) dynamicObstacles.generate();
     log(`Dynamic obstacles: ${enabled?'ON':'OFF'}`, 'info');
   }
-}
+};
 
-function toggleHumans() {
+window.toggleHumans = function() {
   const enabled = document.getElementById('chkHumans').checked;
   if (dynamicHumans) {
     dynamicHumans.setEnabled(enabled);
     log(`Dynamic humans: ${enabled?'ON':'OFF'}`, 'info');
   }
-}
+};
 
-function toggleFrontier() {
+window.toggleFrontier = function() {
   frontierEnabled = document.getElementById('chkFrontier').checked;
   if (frontierEnabled) {
     frontierTimer = 0;
@@ -1881,42 +2681,117 @@ function toggleFrontier() {
     robot.path = null; currentPath = null; frontierTarget = null;
     log('Frontier exploration: OFF', 'warn');
   }
-}
+};
 
-// Canvas click → set waypoint
-document.addEventListener('DOMContentLoaded', () => {
-  initCanvas();
-  initSim();
-  drawStaticScene();
+window.toggleVoxels = function() {
+  const enabled = document.getElementById('chkVoxels').checked;
+  if (voxelMap) {
+    voxelMap.enabled = enabled;
+    log(`3D Voxel Map: ${enabled?'ON':'OFF'}`, enabled ? 'warn' : 'info');
+  }
+};
 
-  document.getElementById('simCanvas').addEventListener('click', (e) => {
-    const rect = simCanvas.getBoundingClientRect();
-    const mx = e.clientX - rect.left, my = e.clientY - rect.top;
-    const path = pathfinder.findPath(robot.x, robot.y, mx, my);
-    if (path.length > 0) {
-      robot.setPath(path);
-      currentPath = path;
-      frontierEnabled = false;
-      unreachableFrontiers = [];
-      const chk = document.getElementById('chkFrontier');
-      if (chk) chk.checked = false;
-      log(`Path set → (${Math.round(mx)}, ${Math.round(my)}), ${path.length} waypoints`, 'success');
-    } else {
-      log('No path found to target', 'warn');
+window.toggleLidar3D = function() {
+  const enabled = document.getElementById('chkLidar3D').checked;
+  if (lidarViz) {
+    lidarViz.lidar3DEnabled = enabled;
+    log(`3D LiDAR Channels: ${enabled?'ON':'OFF'}`, enabled ? 'warn' : 'info');
+  }
+};
+
+// ── CLICK TO SET WAYPOINT (raycast into 3D scene) ──
+function setupClickHandler() {
+  const container = document.getElementById('canvas-container');
+  const raycaster = new THREE.Raycaster();
+  const mouse = new THREE.Vector2();
+  let startX = 0, startY = 0;
+
+  container.addEventListener('mousedown', (e) => {
+    startX = e.clientX;
+    startY = e.clientY;
+  });
+
+  container.addEventListener('mouseup', (e) => {
+    if (!running || !robot) return;
+    
+    // Check if the user was dragging (e.g. OrbitControls panning/rotating)
+    const dx = e.clientX - startX;
+    const dy = e.clientY - startY;
+    const dragDist = Math.sqrt(dx * dx + dy * dy);
+    if (dragDist > 5) {
+      return; // Ignore this as it was a camera drag
+    }
+
+    const rect = container.getBoundingClientRect();
+    mouse.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+    mouse.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+
+    raycaster.setFromCamera(mouse, cameraCtrl.getActiveCamera());
+
+    // Create a ground plane for intersection
+    const groundPlane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
+    const intersectPoint = new THREE.Vector3();
+    raycaster.ray.intersectPlane(groundPlane, intersectPoint);
+
+    if (intersectPoint) {
+      // Convert back to pixel coordinates
+      const px = intersectPoint.x * INV_SCALE;
+      const py = intersectPoint.z * INV_SCALE;
+
+      const path = pathfinder.findPath(robot.x, robot.y, px, py);
+      if (path.length > 0) {
+        robot.setPath(path);
+        currentPath = path;
+        frontierEnabled = false;
+        unreachableFrontiers = [];
+        const chk = document.getElementById('chkFrontier');
+        if (chk) chk.checked = false;
+        log(`Path set → (${Math.round(px)}, ${Math.round(py)}), ${path.length} waypoints`, 'success');
+      } else {
+        log('No path found to target', 'warn');
+      }
     }
   });
+}
 
-  // Keyboard
-  window.addEventListener('keydown', e => {
-    const k = e.key.toLowerCase();
-    keys[k] = true;
-    if (['w','a','s','d',' '].includes(k)) e.preventDefault();
-  });
-  window.addEventListener('keyup', e => { keys[e.key.toLowerCase()] = false; });
+// ── KEYBOARD ──
+window.addEventListener('keydown', e => {
+  const k = e.key.toLowerCase();
+  if (k === 'tab') {
+    e.preventDefault();
+    // Toggle between topdown and follow
+    if (cameraCtrl.mode === 'topdown') cameraCtrl.setMode('follow');
+    else cameraCtrl.setMode('topdown');
+    log(`View: ${cameraCtrl.mode}`, 'info');
+    return;
+  }
+  if (k === 'c' && !keys['c']) {
+    cameraCtrl.cycleMode();
+    log(`Camera: ${cameraCtrl.mode}`, 'info');
+  }
+  if (k === 'v' && !keys['v']) {
+    const chk = document.getElementById('chkVoxels');
+    chk.checked = !chk.checked;
+    window.toggleVoxels();
+  }
+  keys[k] = true;
+  if (['w','a','s','d','q','e',' '].includes(k)) e.preventDefault();
+});
+window.addEventListener('keyup', e => { keys[e.key.toLowerCase()] = false; });
 
-  log('SLAM Simulator ready', 'success');
-  log('Click canvas to set waypoint', 'info');
+// ── INIT ──
+document.addEventListener('DOMContentLoaded', () => {
+  initThreeJS();
+  initSim();
+  setupClickHandler();
+
+  // Start render loop (always running for scene display)
+  sceneBuilder.renderer.setAnimationLoop(animate);
+
+  log('SLAM Simulator ready (3D)', 'success');
+  log('Click scene to set waypoint', 'info');
   log('Press Launch Sim to start', 'info');
+  log('C = cycle camera, Tab = toggle view', 'info');
 });
 </script>
 </body>
