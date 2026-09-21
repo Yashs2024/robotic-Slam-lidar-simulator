@@ -64,7 +64,7 @@ export class Renderer {
                 // Realistic Autonomous Vehicle (Car shape)
                 const w = radius * 2.5;
                 const h = radius * 1.4;
-                
+
                 // Shadow
                 ctx.fillStyle = 'rgba(0,0,0,0.4)';
                 ctx.beginPath();
@@ -72,7 +72,7 @@ export class Renderer {
                 ctx.fill();
 
                 // Chassis Gradient (Metallic Silver)
-                const chassisGrad = ctx.createLinearGradient(-w/2, -h/2, w/2, h/2);
+                const chassisGrad = ctx.createLinearGradient(-w / 2, -h / 2, w / 2, h / 2);
                 chassisGrad.addColorStop(0, '#e2e8f0');
                 chassisGrad.addColorStop(1, '#94a3b8');
 
@@ -98,7 +98,7 @@ export class Renderer {
                 ctx.lineWidth = 1;
                 ctx.strokeStyle = '#000';
                 ctx.stroke();
-                
+
                 // Spinning LiDAR eye
                 ctx.save();
                 ctx.translate(w * 0.1, 0);
@@ -115,13 +115,13 @@ export class Renderer {
                 // Wheels (Realistic thick tires)
                 const wheelW = h * 0.35, wheelLength = w * 0.3;
                 ctx.fillStyle = '#020617';
-                
+
                 const tireR = 3;
                 // Back Left
                 ctx.beginPath(); safeRoundRect(ctx, -w / 2 + 4, -h / 2 - wheelW * 0.6, wheelLength, wheelW, tireR); ctx.fill();
                 // Back Right
                 ctx.beginPath(); safeRoundRect(ctx, -w / 2 + 4, h / 2 - wheelW * 0.4, wheelLength, wheelW, tireR); ctx.fill();
-                
+
                 // Front Left
                 ctx.beginPath(); safeRoundRect(ctx, w / 2 - wheelLength - 4, -h / 2 - wheelW * 0.6, wheelLength, wheelW, tireR); ctx.fill();
                 // Front Right
@@ -132,11 +132,11 @@ export class Renderer {
             case 'holonomic': {
                 // Industrial Warehouse Robot (Octagon)
                 const sides = 8;
-                
+
                 // Shadow
                 ctx.beginPath();
                 for (let i = 0; i < sides; i++) {
-                    const angle = (i / sides) * Math.PI * 2 + (Math.PI/8);
+                    const angle = (i / sides) * Math.PI * 2 + (Math.PI / 8);
                     const px = Math.cos(angle) * (radius * 1.05) - 2;
                     const py = Math.sin(angle) * (radius * 1.05) + 4;
                     if (i === 0) ctx.moveTo(px, py);
@@ -149,7 +149,7 @@ export class Renderer {
                 // Main Body (Vibrant Orange / Industrial style)
                 ctx.beginPath();
                 for (let i = 0; i < sides; i++) {
-                    const angle = (i / sides) * Math.PI * 2 + (Math.PI/8);
+                    const angle = (i / sides) * Math.PI * 2 + (Math.PI / 8);
                     const px = Math.cos(angle) * radius;
                     const py = Math.sin(angle) * radius;
                     if (i === 0) ctx.moveTo(px, py);
@@ -168,7 +168,7 @@ export class Renderer {
                 // Top Plate (Dark Octagon)
                 ctx.beginPath();
                 for (let i = 0; i < sides; i++) {
-                    const angle = (i / sides) * Math.PI * 2 + (Math.PI/8);
+                    const angle = (i / sides) * Math.PI * 2 + (Math.PI / 8);
                     const px = Math.cos(angle) * radius * 0.7;
                     const py = Math.sin(angle) * radius * 0.7;
                     if (i === 0) ctx.moveTo(px, py);
@@ -183,11 +183,11 @@ export class Renderer {
                 ctx.fillStyle = '#111827';
                 const dist = radius * 0.85;
                 const wheelRad = radius * 0.25;
-                for(let i=0; i<4; i++) {
-                   const a = (i/4) * Math.PI * 2 + (Math.PI/4);
-                   ctx.beginPath();
-                   ctx.arc(Math.cos(a) * dist, Math.sin(a) * dist, wheelRad, 0, Math.PI*2);
-                   ctx.fill();
+                for (let i = 0; i < 4; i++) {
+                    const a = (i / 4) * Math.PI * 2 + (Math.PI / 4);
+                    ctx.beginPath();
+                    ctx.arc(Math.cos(a) * dist, Math.sin(a) * dist, wheelRad, 0, Math.PI * 2);
+                    ctx.fill();
                 }
 
                 // Center glowing indicator
@@ -203,7 +203,7 @@ export class Renderer {
             }
             default: {
                 // Realistic SLAM Robot (Differential Drive / TurtleBot style)
-                
+
                 // Shadow
                 ctx.beginPath();
                 ctx.arc(-2, 4, radius * 1.05, 0, Math.PI * 2);
@@ -214,7 +214,7 @@ export class Renderer {
                 const grad = ctx.createLinearGradient(-radius, -radius, radius, radius);
                 grad.addColorStop(0, '#334155');
                 grad.addColorStop(1, '#0f172a');
-                
+
                 ctx.beginPath();
                 ctx.arc(0, 0, radius, 0, Math.PI * 2);
                 ctx.fillStyle = grad;
@@ -228,7 +228,7 @@ export class Renderer {
                 ctx.beginPath();
                 safeRoundRect(ctx, -radius * 0.6, -radius - 2, radius * 1.2, radius * 0.35, 3);
                 ctx.fill();
-                
+
                 // Right Wheel
                 ctx.beginPath();
                 safeRoundRect(ctx, -radius * 0.6, radius - radius * 0.35 + 2, radius * 1.2, radius * 0.35, 3);
@@ -401,7 +401,7 @@ export class Renderer {
             ctx.strokeStyle = theme.shirt;
             ctx.lineWidth = radius * 0.4;
             ctx.lineCap = 'round';
-            
+
             // Left arm
             ctx.beginPath();
             ctx.moveTo(0, -radius * 0.8);

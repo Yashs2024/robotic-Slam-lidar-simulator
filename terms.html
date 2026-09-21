@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Terms & Conditions | VectraSim Suite</title>
+<meta name="description" content="Review the Terms and Conditions for the VectraSim Suite. Understand the rules and guidelines for using our browser-based WebGL robotics simulation platform.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Orbitron:wght@500;700;800;900&family=Rajdhani:wght@500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="src/ui_enhancements.css">
+<style>
+:root {
+  --bg: #030611;
+  --bg-darker: #010308;
+  --bg-card: rgba(10, 18, 36, 0.72);
+  
+  --cyan: #00F5FF;
+  --cyan-glow: 0 0 25px rgba(0, 245, 255, 0.4);
+  --cyan-dim: rgba(0, 245, 255, 0.12);
+  
+  --blue: #3B82F6;
+  --violet: #B44FFF;
+  --amber: #F59E0B;
+  
+  --text-main: #EEF2FF;
+  --text-muted: #8595AE;
+  --text-dim: #4B5A72;
+  
+  --border-subtle: rgba(59, 130, 246, 0.18);
+  --border-bright: rgba(59, 130, 246, 0.45);
+  
+  --font-head: 'Orbitron', monospace, sans-serif;
+  --font-sub: 'Rajdhani', sans-serif;
+  --font-mono: 'Share Tech Mono', monospace;
+  --font-body: 'Inter', sans-serif;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+  background: var(--bg);
+  color: var(--text-main);
+  font-family: var(--font-body);
+  overflow-x: hidden;
+  line-height: 1.6;
+}
+
+/* Subtle CRT Scanline overlay */
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0, 0, 0, 0.035) 2px, rgba(0, 0, 0, 0.035) 4px);
+  pointer-events: none;
+  z-index: 9999;
+}
+
+::-webkit-scrollbar { width: 5px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--cyan); border-radius: 2px; }
+
+/* ── STICKY GLASS NAVIGATION ────────────────────────── */
+#navbar {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  height: 56px;
+  background: rgba(3, 6, 17, 0.88);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-bottom: 1px solid var(--border-subtle);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 36px;
+  z-index: 1000;
+  transition: all 0.3s ease;
+}
+.nav-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  text-decoration: none;
+}
+.nav-logo-box {
+  width: 30px; height: 30px;
+  border: 1.5px solid var(--cyan);
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--cyan-glow);
+  position: relative;
+  background: var(--cyan-dim);
+}
+.nav-logo-box::after {
+  content: '⚖️';
+  font-size: 14px;
+}
+.nav-title {
+  font-family: var(--font-head);
+  font-size: 17px;
+  font-weight: 900;
+  color: #fff;
+  letter-spacing: 3px;
+  text-shadow: 0 0 15px rgba(0, 245, 255, 0.6);
+}
+
+.content-wrapper {
+  max-width: 800px;
+  margin: 120px auto 80px auto;
+  padding: 40px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: 8px;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+  position: relative;
+}
+
+.content-wrapper::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--cyan), transparent);
+}
+
+h1 {
+  font-family: var(--font-head);
+  font-size: 32px;
+  color: var(--cyan);
+  letter-spacing: 2px;
+  margin-bottom: 30px;
+  text-align: center;
+  text-shadow: var(--cyan-glow);
+}
+
+h2 {
+  font-family: var(--font-sub);
+  font-size: 22px;
+  color: #fff;
+  margin: 30px 0 15px 0;
+  border-bottom: 1px solid var(--border-subtle);
+  padding-bottom: 8px;
+  letter-spacing: 1px;
+}
+
+p, li {
+  font-size: 14px;
+  color: var(--text-muted);
+  margin-bottom: 16px;
+}
+ul {
+  padding-left: 24px;
+  margin-bottom: 16px;
+}
+a.link {
+  color: var(--cyan);
+  text-decoration: none;
+  transition: color 0.2s;
+}
+a.link:hover {
+  color: #fff;
+  text-shadow: var(--cyan-glow);
+}
+
+/* Footer styles matching index.html */
+footer {
+  padding:20px 80px;
+  border-top:1px solid var(--border-subtle);
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  background:var(--bg-darker);
+}
+.footer-logo {
+  font-family:var(--font-display);
+  font-size:12px;
+  font-weight:900;
+  color:var(--cyan);
+  letter-spacing:4px;
+  text-shadow:0 0 20px rgba(0,245,255,0.3);
+}
+.footer-links {
+  display:flex;
+  gap:20px;
+  align-items:center;
+}
+.footer-link {
+  font-family:var(--font-mono);
+  font-size: 11px;
+  letter-spacing:2px;
+  color:var(--text-muted);
+  text-decoration:none;
+  transition:color 0.2s;
+}
+.footer-link:hover { color: var(--cyan); }
+.footer-meta {
+  font-family:var(--font-mono);
+  font-size: 11px;
+  color:rgba(0,245,255,0.3);
+  letter-spacing:1px;
+}
+@media(max-width:768px) {
+  footer { flex-direction: column; gap: 16px; padding: 30px; text-align: center; }
+}
+
+</style>
+</head>
+<body>
+
+<nav id="navbar">
+  <a href="index.html" class="nav-brand">
+    <div class="nav-logo-box"></div>
+    <div class="nav-title">VECTRASIM</div>
+  </a>
+</nav>
+
+<div class="content-wrapper">
+  <h1>TERMS & CONDITIONS</h1>
+  
+  <p><strong>Effective Date:</strong> January 1, 2026</p>
+
+  <h2>1. ACCEPTANCE OF TERMS</h2>
+  <p>By accessing or utilizing the VectraSim RoboAI Suite ("the Platform"), you acknowledge that you have read, understood, and agree to be bound by these Terms & Conditions. If you do not agree with any part of these terms, you must immediately cease all use of the Platform.</p>
+
+  <h2>2. SYSTEM USAGE AND LICENSE</h2>
+  <p>We grant you a personal, non-exclusive, non-transferable, and revocable license to access the Platform solely for non-commercial simulation, research, and educational purposes. You may not:</p>
+  <ul>
+    <li>Reverse engineer, decompile, or attempt to extract the source code of the simulators (SLAM, NEXUS, HIVE).</li>
+    <li>Use the Platform in any manner that could disable, overburden, damage, or impair the site's functionality.</li>
+    <li>Attempt unauthorized access to our Hub cloud infrastructure, databases, or API endpoints.</li>
+  </ul>
+
+  <h2>3. INTELLECTUAL PROPERTY</h2>
+  <p>All content, features, and functionality—including but not limited to 3D models, WebGL rendering engines, pathfinding algorithms, UI/UX designs, and documentation—are the exclusive property of VectraSim and are protected by international copyright, trademark, and other intellectual property laws.</p>
+
+  <h2>4. DISCLAIMER OF WARRANTIES</h2>
+  <p>The Platform is provided on an "AS-IS" and "AS-AVAILABLE" basis. We make no guarantees regarding the accuracy of simulated kinematics, sensor outputs, or physical behaviors. The simulations provided by VectraSim should NOT be utilized for mission-critical operations, real-world autonomous vehicle training without secondary validation, or life-safety systems.</p>
+
+  <h2>5. LIMITATION OF LIABILITY</h2>
+  <p>To the maximum extent permitted by applicable law, VectraSim shall not be liable for any indirect, incidental, special, consequential, or punitive damages resulting from your use or inability to use the Platform.</p>
+  
+  <h2>6. MODIFICATIONS TO TERMS</h2>
+  <p>We reserve the right to modify these Terms at our sole discretion. Continuous use of the Platform following any published changes constitutes your acceptance of the revised Terms.</p>
+  
+  <p>For any inquiries regarding these terms, contact us at <a href="mailto:yashusurve2005@gmail.com" class="link">yashusurve2005@gmail.com</a>.</p>
+</div>
+
+<!-- UI Enhancements -->
+<div id="vectra-progress-container">
+    <div id="vectra-progress-bar" style="--progress-gradient: linear-gradient(90deg, var(--cyan), var(--blue));"></div>
+</div>
+
+<a href="#" id="vectra-scroll-top" style="--theme-color: var(--cyan); --theme-glow: rgba(0,245,255,0.4);">
+    <span class="top-text">TOP</span>
+</a>
+
+<footer>
+  <span class="footer-logo">VECTRASIM</span>
+  <div class="footer-links">
+    <a href="privacy.html" class="footer-link">PRIVACY</a>
+    <a href="terms.html" class="footer-link">TERMS</a>
+    <a href="https://github.com/Yashs2024" target="_blank" rel="noopener noreferrer" class="footer-link">GITHUB</a>
+    <a href="https://www.linkedin.com/in/yash-surve-3b6a72253" target="_blank" rel="noopener noreferrer" class="footer-link">LINKEDIN</a>
+  </div>
+  <span class="footer-meta">BUILD v3.0.0 · VITE + VERCEL</span>
+</footer>
+
+<script src="src/ui_enhancements.js"></script>
+</body>
+</html>

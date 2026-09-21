@@ -1,14 +1,14 @@
 # 🤖 VectraSim Suite — Multi-Engine Robotics Simulation Platform
 
-**An interactive, browser-based, high-performance robotics simulation platform containing four standalone engine simulators accessible from a single cyber-themed hub.**
+**An interactive, browser-based, high-performance robotics simulation platform containing three standalone engine simulators accessible from a single cyber-themed hub.**
 
-Designed as a modern educational tool for robotics, kinematics, logistics, and drone swarm flight dynamics. The platform operates completely in the browser—leveraging Vanilla JavaScript, HTML5 Canvas 2D, and Three.js WebGL rendering for 60FPS execution with zero backend dependencies.
+Designed as a modern educational tool for robotics, kinematics, and logistics. The platform operates completely in the browser—leveraging Vanilla JavaScript, HTML5 Canvas 2D, and Three.js WebGL rendering for 60FPS execution with zero backend dependencies.
 
 ---
 
 ## 🚀 Simulator Engines Overview
 
-VectraSim Suite provides four highly interactive, independent simulation modules:
+VectraSim Suite provides three highly interactive, independent simulation modules:
 
 ### 1. 🗺️ SLAM Simulator (`slam.html`)
 *Simultaneous Localization and Mapping & Autonomous Navigation*
@@ -32,7 +32,6 @@ VectraSim Suite provides four highly interactive, independent simulation modules
 - **Behavioral Scenarios:** Warehouse picking tasks, assembly workstation conveyor lines, and autonomous frontier mapping.
 - **Fleet Coordination:** Battery draining (auto-charging at ≤20%), collision-avoidance routing, and nearest-idle task allocation heuristics.
 
-### 🛩️ AERO Swarm Flight (`aero.html`)
 *Isometric 2.5D Aerial Drone Swarm Dynamics*
 - **Visualizer:** Isometric 2.5D canvas rendering showing wind flows and real-time drone states.
 - **Swarm Physics & Control:** Cascaded PID loops controlling position and velocity response curves, with active Chart.js tuning plots.
@@ -54,16 +53,12 @@ VectraSim Suite provides four highly interactive, independent simulation modules
 ### HIVE Logistics
 ![HIVE Logistics](public/hive_simulator.png)
 
-### AERO Swarm Flight
-![AERO Swarm Flight](public/aero_simulator.png)
-
 ---
 
 ## 🔬 Implemented Algorithms Matrix
 
 | Category | Algorithm | Core File / Location | Description |
 |---|---|---|---|
-| **Path Planning** | A* Search | `src/AStar.js`, `hive.html`, `aero.html` | Pathfinding with custom wall-proximity penalties |
 | **Path Planning** | Dijkstra's Algorithm | `src/Dijkstra.js` | Shortest path searching (no heuristics) |
 | **Path Planning** | Bug2 Navigation | `src/BugAlgorithm.js` | Reactive wall-following obstacle navigation |
 | **Localization** | Particle Filter (MCL) | `src/ParticleFilter.js` | Monte Carlo Localization with particle resampling |
@@ -74,8 +69,6 @@ VectraSim Suite provides four highly interactive, independent simulation modules
 | **Kinematics** | Inverse Kinematics (IK) | `nexus.html` | Cyclic Coordinate Descent (CCD) numerical solver |
 | **Dynamics** | Trajectory Planning | `nexus.html` | Linear Segment with Parabolic Blend (LSPB) profiles |
 | **Dynamics** | Torque Analysis | `nexus.html` | Real-time joint torque estimation |
-| **Control** | Cascaded PID Loop | `aero.html` | Position-velocity feedback loop control |
-| **Swarm** | Flocking (Boids) | `aero.html` | Separation, alignment, and cohesion vector fields |
 | **Swarm** | Task Allocation | `hive.html` | Nearest-idle heuristics with battery gates |
 | **Swarm** | Collision Avoidance | `hive.html` | Potential fields and dynamic A* re-routing |
 
@@ -89,7 +82,6 @@ slam-simulator/
 ├── slam.html                    # ← Standalone SLAM Simulator page
 ├── nexus.html                   # ← Standalone NEXUS Kinematics Engine page
 ├── hive.html                    # ← Standalone HIVE Logistics Simulator page
-├── aero.html                    # ← Standalone AERO Swarm Flight Simulator page
 ├── style.css                    # ← Central shared design system (cyberpunk themes)
 ├── vite.config.js               # ← Multi-page Vite compilation configuration
 ├── vercel.json                  # ← Production deployment configuration
@@ -99,7 +91,6 @@ slam-simulator/
 │   ├── slam_simulator.png       # ← SLAM Simulator image
 │   ├── nexus_simulator.png      # ← NEXUS Engine image
 │   ├── hive_simulator.png       # ← HIVE Logistics image
-│   ├── aero_simulator.png       # ← AERO Swarm Flight image
 │   ├── donate.jpeg              # ← Support QR code asset
 │   └── vite.svg                 # ← Vite icon
 │
@@ -199,7 +190,6 @@ npx playwright test
 ## ⚙️ Key Engineering Decisions
 
 - **Zero-Framework Architecture (Vanilla JS):** Ensures raw performance without layout/virtual DOM diff overhead, maintaining 60FPS simulation loops even with hundreds of rays and calculations per frame.
-- **Self-Contained Sub-Engines:** `nexus.html`, `hive.html`, and `aero.html` are built as self-contained files with inline logic/CSS. This allows easy redistribution and ensures they can run directly inside any browser.
 - **Canvas 2D vs Three.js WebGL:** Canvas 2D is utilized for mapping grids and warehouse routes for optimized 2D grid rendering. Three.js is deployed where 3D projections are critical, such as 3D robot arm modeling and 3D point cloud structures.
 - **TypedArrays for Planners:** The A* implementation uses `Uint8Array` and `Float32Array` buffers to prevent GC (garbage collection) pauses during real-time navigation.
 

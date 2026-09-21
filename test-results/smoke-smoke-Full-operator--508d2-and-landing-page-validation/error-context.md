@@ -1,0 +1,389 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e1]:
+  - navigation [ref=e2]:
+    - link "VECTRASIM" [ref=e3] [cursor=pointer]:
+      - /url: "#"
+    - generic [ref=e5]:
+      - link "ENGINES" [ref=e6] [cursor=pointer]:
+        - /url: "#engines"
+      - link "ALGORITHMS" [ref=e7] [cursor=pointer]:
+        - /url: "#algos"
+      - link "STACK" [ref=e8] [cursor=pointer]:
+        - /url: "#stack"
+      - link "SLAM" [ref=e9] [cursor=pointer]:
+        - /url: "#"
+      - link "NEXUS" [ref=e10] [cursor=pointer]:
+        - /url: "#"
+      - link "HIVE" [ref=e11] [cursor=pointer]:
+        - /url: "#"
+    - generic [ref=e12]:
+      - link "⚡ DONATE" [ref=e13] [cursor=pointer]:
+        - /url: "#"
+      - link "SIGN IN" [ref=e14] [cursor=pointer]:
+        - /url: "#"
+      - link "▶ ENTER HUB" [ref=e15] [cursor=pointer]:
+        - /url: "#"
+  - generic [ref=e17]: ◆ VECTRASIM SUITE ONLINE | 3 SIMULATION ENGINES ACTIVE | SLAM LIDAR MAPPING | NEXUS 6-DOF ARM KINEMATICS | HIVE SWARM LOGISTICS | YOSHIKAWA MANIPULABILITY | SPACE-TIME A* MAPF | EKF SENSOR FUSION | VITE 7.3.1 BUILD | PLAYWRIGHT E2E TESTED ◆ VECTRASIM SUITE ONLINE | 3 SIMULATION ENGINES ACTIVE | SLAM LIDAR MAPPING | NEXUS 6-DOF ARM KINEMATICS | HIVE SWARM LOGISTICS | YOSHIKAWA MANIPULABILITY | SPACE-TIME A* MAPF | EKF SENSOR FUSION | VITE 7.3.1 BUILD | PLAYWRIGHT E2E TESTED
+  - generic [ref=e18]:
+    - generic [ref=e19]:
+      - generic [ref=e20]: UNIFIED PLATFORM
+      - generic [ref=e22]: VECTRASIM VECTRASIM VECTRASIM
+      - generic [ref=e23]: Suite — Three Engines. One Platform.
+      - paragraph [ref=e24]: A browser-based robotics simulation suite featuring SLAM mapping with LiDAR, 6-DOF robotic arm kinematics, and multi-robot warehouse logistics. Built with Vanilla JS, Three.js, and HTML5 Canvas — no framework required.
+      - generic [ref=e25]:
+        - link "▶ ENTER HUB" [ref=e26] [cursor=pointer]:
+          - /url: "#"
+        - link "↓ EXPLORE ENGINES" [ref=e27] [cursor=pointer]:
+          - /url: "#engines"
+      - generic [ref=e28]:
+        - generic [ref=e29]: 3 ENGINES LIVE
+        - generic [ref=e31]: SLAM
+        - generic [ref=e33]: NEXUS
+        - generic [ref=e35]: HIVE
+        - generic [ref=e37]: ZERO FRAMEWORK
+        - generic [ref=e38]: 60FPS SIMULATION
+    - generic [ref=e39]:
+      - generic:
+        - text: "SYS: ONLINE"
+        - text: "AGENTS: 12 ACTIVE"
+        - text: "FPS: 60.0"
+        - text: "MAP: 512×512"
+        - text: "BUILD: v3.0.0"
+      - generic:
+        - text: SLAM ■ ACTIVE
+        - text: NEXUS ■ ACTIVE
+        - text: HIVE ■ ACTIVE
+        - text: "AUTH: SESSION"
+        - text: "ENV: BROWSER"
+  - generic [ref=e41]:
+    - generic [ref=e42]:
+      - generic [ref=e43]: "0"
+      - generic [ref=e44]: SIM ENGINES
+    - generic [ref=e45]:
+      - generic [ref=e46]: "0"
+      - generic [ref=e47]: ALGORITHM MODULES
+    - generic [ref=e48]:
+      - generic [ref=e49]: "0"
+      - generic [ref=e50]: DOF ARM
+    - generic [ref=e51]:
+      - generic [ref=e52]: "0"
+      - generic [ref=e53]: SWARM ROBOTS
+    - generic [ref=e54]:
+      - generic [ref=e55]: 60fps
+      - generic [ref=e56]: SIMULATION SPEED
+  - generic [ref=e57]:
+    - generic [ref=e58]:
+      - generic [ref=e59]: SIMULATION ENGINES
+      - heading "THREE WORLDS TO EXPLORE" [level=2] [ref=e60]
+      - paragraph [ref=e61]: EACH ENGINE IS A FULLY SELF-CONTAINED SIMULATION ENVIRONMENT
+    - generic [ref=e63]:
+      - generic [ref=e64] [cursor=pointer]:
+        - generic [ref=e68]: LIVE PREVIEW
+        - generic [ref=e69]:
+          - generic [ref=e70]: ENGINE 01
+          - generic [ref=e71]: SLAM
+          - generic [ref=e72]: LiDAR Mapping Simulator
+          - paragraph [ref=e73]: Simultaneous Localization and Mapping with 360° LiDAR raycasting, Bayesian occupancy grids, particle filter MCL, and autonomous frontier exploration. Three drive models, three pathfinding algorithms.
+          - generic [ref=e74]:
+            - generic [ref=e75]: A* PATHFINDING
+            - generic [ref=e76]: PARTICLE FILTER
+            - generic [ref=e77]: LOOP CLOSURE
+            - generic [ref=e78]: 3D POINT CLOUD
+            - generic [ref=e79]: MCL
+          - generic [ref=e80]:
+            - link "▶ LAUNCH SLAM" [ref=e81]:
+              - /url: "#"
+            - generic [ref=e82]: ● LOGIN REQUIRED
+      - generic [ref=e83] [cursor=pointer]:
+        - generic [ref=e87]: LIVE PREVIEW
+        - generic [ref=e88]:
+          - generic [ref=e89]: ENGINE 02
+          - generic [ref=e90]: NEXUS
+          - generic [ref=e91]: Robot Kinematics Engine
+          - paragraph [ref=e92]: 6-DOF robot arm with forward/inverse kinematics, LSPB trajectory planning, Teach Mode, and dynamic torque analysis per joint.
+          - generic [ref=e93]:
+            - generic [ref=e94]: FK / IK SOLVER
+            - generic [ref=e95]: TEACH MODE
+            - generic [ref=e96]: LSPB TRAJECTORY
+            - generic [ref=e97]: CCD IK SOLVER
+            - generic [ref=e98]: THREE.JS
+          - generic [ref=e99]:
+            - link "▶ LAUNCH NEXUS" [ref=e100]:
+              - /url: "#"
+            - generic [ref=e101]: ● LOGIN REQUIRED
+      - generic [ref=e102] [cursor=pointer]:
+        - generic [ref=e106]: LIVE PREVIEW
+        - generic [ref=e107]:
+          - generic [ref=e108]: ENGINE 03
+          - generic [ref=e109]: HIVE
+          - generic [ref=e110]: Swarm Logistics Simulator
+          - paragraph [ref=e111]: Multi-robot warehouse with 4 autonomous agents across 3 industrial scenarios — Warehouse, Assembly, and Mapping. Isometric 2.5D engine, battery management, collision avoidance, live analytics.
+          - generic [ref=e112]:
+            - generic [ref=e113]: ISOMETRIC 2.5D
+            - generic [ref=e114]: BATTERY SIM
+            - generic [ref=e115]: TASK SCHEDULER
+            - generic [ref=e116]: FRONTIER EXPLORE
+            - generic [ref=e117]: HEATMAP
+          - generic [ref=e118]:
+            - link "▶ LAUNCH HIVE" [ref=e119]:
+              - /url: "#"
+            - generic [ref=e120]: ● LOGIN REQUIRED
+  - generic [ref=e121]:
+    - generic [ref=e122]:
+      - generic [ref=e123]: ALGORITHM LIBRARY
+      - heading "IMPLEMENTED FROM SCRATCH" [level=2] [ref=e124]
+      - paragraph [ref=e125]: EVERY CORE ALGORITHM HAND-CODED IN VANILLA JAVASCRIPT
+    - generic [ref=e127]:
+      - generic [ref=e128]:
+        - generic [ref=e129]: 🎯
+        - generic [ref=e130]: A* PATHFINDING
+        - paragraph [ref=e131]: TypedArray-optimized with wall proximity penalties and diagonal movement.
+        - generic [ref=e132]: AStar.js + hive.html
+      - generic [ref=e133]:
+        - generic [ref=e134]: 🔀
+        - generic [ref=e135]: DIJKSTRA'S
+        - paragraph [ref=e136]: Optimal shortest path without heuristic for guaranteed minimum cost.
+        - generic [ref=e137]: Dijkstra.js
+      - generic [ref=e138]:
+        - generic [ref=e139]: 🐛
+        - generic [ref=e140]: BUG2 ALGORITHM
+        - paragraph [ref=e141]: Reactive wall-following navigation for obstacle-dense environments.
+        - generic [ref=e142]: BugAlgorithm.js
+      - generic [ref=e143]:
+        - generic [ref=e144]: 🗺
+        - generic [ref=e145]: FRONTIER EXPLORE
+        - paragraph [ref=e146]: Autonomous frontier cell detection for complete unknown area mapping.
+        - generic [ref=e147]: FrontierExplorer.js
+      - generic [ref=e148]:
+        - generic [ref=e149]: 🧪
+        - generic [ref=e150]: BAYESIAN GRID
+        - paragraph [ref=e151]: Log-odds occupancy mapping with Bresenham ray voting for SLAM.
+        - generic [ref=e152]: Mapper.js
+      - generic [ref=e153]:
+        - generic [ref=e154]: 🎲
+        - generic [ref=e155]: PARTICLE FILTER
+        - paragraph [ref=e156]: Monte Carlo Localization with 50–500 configurable particles.
+        - generic [ref=e157]: ParticleFilter.js
+      - generic [ref=e158]:
+        - generic [ref=e159]: 🔁
+        - generic [ref=e160]: LOOP CLOSURE
+        - paragraph [ref=e161]: Scan-matching keyframe system for drift correction over long traversals.
+        - generic [ref=e162]: LoopClosureDetector.js
+      - generic [ref=e163]:
+        - generic [ref=e164]: 📡
+        - generic [ref=e165]: LIDAR RAYCASTING
+        - paragraph [ref=e166]: 2D raycasting with 30–360 rays, Gaussian noise, and ray visualization.
+        - generic [ref=e167]: Lidar.js
+      - generic [ref=e168]:
+        - generic [ref=e169]: 🦾
+        - generic [ref=e170]: FORWARD KINEMATICS
+        - paragraph [ref=e171]: DH parameter chain evaluation for 2–6 configurable joint configurations.
+        - generic [ref=e172]: nexus.html
+      - generic [ref=e173]:
+        - generic [ref=e174]: 🎯
+        - generic [ref=e175]: INVERSE KINEMATICS
+        - paragraph [ref=e176]: Numerical Jacobian IK solver for end-effector position targeting.
+        - generic [ref=e177]: nexus.html
+      - generic [ref=e178]:
+        - generic [ref=e179]: 📈
+        - generic [ref=e180]: LSPB TRAJECTORY
+        - paragraph [ref=e181]: Linear Segment with Parabolic Blend for smooth joint trajectory planning.
+        - generic [ref=e182]: nexus.html
+      - generic [ref=e183]:
+        - generic [ref=e184]: 📊
+        - generic [ref=e185]: YOSHIKAWA MANIPULABILITY
+        - paragraph [ref=e186]: Analytical dexterity index w = √(det(JJᵀ)) with Damped Least Squares IK singularity damping.
+        - generic [ref=e187]: nexus.html
+      - generic [ref=e188]:
+        - generic [ref=e189]: 🛡️
+        - generic [ref=e190]: SPACE-TIME A* (MAPF)
+        - paragraph [ref=e191]: 4D multi-agent path finding with dynamic corridor conflict resolution and priority yielding.
+        - generic [ref=e192]: hive.html
+      - generic [ref=e193]:
+        - generic [ref=e194]: 🔄
+        - generic [ref=e195]: EKF SENSOR FUSION
+        - paragraph [ref=e196]: Extended Kalman Filter state estimation with 1σ/2σ/3σ dynamic covariance uncertainty ellipses.
+        - generic [ref=e197]: slam.html
+  - generic [ref=e198]:
+    - generic [ref=e199]:
+      - generic [ref=e200]: TECHNOLOGY
+      - heading "ZERO DEPENDENCIES. PURE WEB." [level=2] [ref=e201]
+      - paragraph [ref=e202]: EVERY PIXEL DRAWN WITH NATIVE BROWSER APIS
+    - generic [ref=e203]:
+      - generic [ref=e204]:
+        - generic [ref=e205]: 🌐
+        - text: HTML5
+      - generic [ref=e206]:
+        - generic [ref=e207]: 🎨
+        - text: CSS3
+      - generic [ref=e208]:
+        - generic [ref=e209]: ⚡
+        - text: Vanilla JS
+      - generic [ref=e210]:
+        - generic [ref=e211]: 🎮
+        - text: Canvas 2D API
+      - generic [ref=e212]:
+        - generic [ref=e213]: 🧊
+        - text: Three.js r183
+      - generic [ref=e214]:
+        - generic [ref=e215]: 📊
+        - text: Chart.js 3.9.1
+    - generic [ref=e216]:
+      - generic [ref=e217]:
+        - generic [ref=e218]: ⚙
+        - text: Vite 7.3.1
+      - generic [ref=e219]:
+        - generic [ref=e220]: 🎬
+        - text: GSAP 3.12.2
+      - generic [ref=e221]:
+        - generic [ref=e222]: 🕹
+        - text: nipplejs
+      - generic [ref=e223]:
+        - generic [ref=e224]: 🔊
+        - text: Web Audio API
+      - generic [ref=e225]:
+        - generic [ref=e226]: 🧪
+        - text: Playwright E2E
+      - generic [ref=e227]:
+        - generic [ref=e228]: 🚀
+        - text: Vercel Deploy
+  - generic [ref=e239]:
+    - generic [ref=e240]:
+      - heading "READY TO RUN?" [level=2] [ref=e241]:
+        - text: READY
+        - text: TO RUN?
+      - paragraph [ref=e242]: Open the Hub, authenticate with any credentials, and choose your simulation engine. No setup required — the entire platform runs in your browser.
+      - generic [ref=e243]:
+        - link "▶ LAUNCH HUB" [ref=e244] [cursor=pointer]:
+          - /url: "#"
+        - link "⌥ GITHUB" [ref=e245] [cursor=pointer]:
+          - /url: https://github.com/Yashs2024/Slam-lidar-simulator
+        - link "↗ LINKEDIN" [ref=e246] [cursor=pointer]:
+          - /url: https://www.linkedin.com/in/yash-surve-3b6a72253
+      - generic [ref=e247]: Sign in or create a free account to access all simulators
+    - generic [ref=e248]:
+      - generic [ref=e249]: PROJECT MANIFEST
+      - generic [ref=e250]:
+        - generic [ref=e251]: Platform
+        - generic [ref=e252]: VectraSim Suite v3.0
+      - generic [ref=e253]:
+        - generic [ref=e254]: Engine 01
+        - generic [ref=e255]: SLAM Simulator
+      - generic [ref=e256]:
+        - generic [ref=e257]: Engine 02
+        - generic [ref=e258]: NEXUS Arm Engine
+      - generic [ref=e259]:
+        - generic [ref=e260]: Engine 03
+        - generic [ref=e261]: HIVE Logistics
+      - generic [ref=e262]:
+        - generic [ref=e263]: Build Tool
+        - generic [ref=e264]: Vite 7.3.1
+      - generic [ref=e265]:
+        - generic [ref=e266]: Renderer
+        - generic [ref=e267]: Canvas 2D + Three.js
+      - generic [ref=e268]:
+        - generic [ref=e269]: Auth
+        - generic [ref=e270]: Mock (sessionStorage)
+      - generic [ref=e271]:
+        - generic [ref=e272]: Deploy
+        - generic [ref=e273]: Vercel Static
+      - generic [ref=e274]:
+        - generic [ref=e275]: Author
+        - generic [ref=e276]: Yash Surve
+      - generic [ref=e277]:
+        - generic [ref=e278]: Status
+        - generic [ref=e279]: ● OPERATIONAL
+  - generic [ref=e281]:
+    - button "✕" [ref=e286] [cursor=pointer]
+    - generic [ref=e287]: VECTRASIM
+    - tablist [ref=e288]:
+      - tab "SIGN IN" [ref=e289] [cursor=pointer]
+      - tab "SIGN UP" [selected] [ref=e290] [cursor=pointer]
+    - generic [ref=e292]:
+      - generic [ref=e293]: CREATE YOUR ACCOUNT
+      - generic [ref=e294]:
+        - generic [ref=e295]: FULL NAME
+        - textbox "Yash Surve" [ref=e296]: E2E Tester
+      - generic [ref=e297]:
+        - generic [ref=e298]: EMAIL ADDRESS
+        - textbox "you@example.com" [ref=e299]: test_1788452746736@example.com
+      - generic [ref=e300]:
+        - generic [ref=e301]: PASSWORD
+        - generic [ref=e302]:
+          - textbox "Min 6 characters" [ref=e303]: password123
+          - button "Show password" [ref=e304] [cursor=pointer]:
+            - img [ref=e305]
+      - generic [ref=e308]:
+        - generic [ref=e309]: CONFIRM PASSWORD
+        - generic [ref=e310]:
+          - textbox "Repeat password" [ref=e311]: password123
+          - button "Show password" [ref=e312] [cursor=pointer]:
+            - img [ref=e313]
+      - generic [ref=e316]: ⚠ SIGN UP FAILED — PLEASE TRY AGAIN
+      - button "▶ CREATE ACCOUNT" [active] [ref=e317] [cursor=pointer]
+      - generic [ref=e318]: Already registered? Sign in →
+  - generic:
+    - generic:
+      - generic:
+        - generic: WELCOME BACK, OPERATOR
+        - generic: SELECT ENGINE
+        - generic: CHOOSE YOUR SIMULATION ENVIRONMENT
+      - generic:
+        - link "🗺 ENGINE 01 SLAM LiDAR mapping, Monte Carlo localization, frontier exploration, and three pathfinding algorithms. ▶ LAUNCH SLAM":
+          - /url: src/slam_landing.html
+          - generic: 🗺
+          - generic: ENGINE 01
+          - generic: SLAM
+          - paragraph: LiDAR mapping, Monte Carlo localization, frontier exploration, and three pathfinding algorithms.
+          - generic: ▶ LAUNCH SLAM
+        - link "🦾 ENGINE 02 NEXUS 6-DOF robot arm with forward/inverse kinematics, LSPB trajectory planning, and Teach Mode. ▶ LAUNCH NEXUS":
+          - /url: src/nexus_landing.html
+          - generic: 🦾
+          - generic: ENGINE 02
+          - generic: NEXUS
+          - paragraph: 6-DOF robot arm with forward/inverse kinematics, LSPB trajectory planning, and Teach Mode.
+          - generic: ▶ LAUNCH NEXUS
+        - link "🏭 ENGINE 03 HIVE Multi-robot warehouse logistics with isometric 2.5D rendering, battery sim, and task scheduling. ▶ LAUNCH HIVE":
+          - /url: src/hive_landing.html
+          - generic: 🏭
+          - generic: ENGINE 03
+          - generic: HIVE
+          - paragraph: Multi-robot warehouse logistics with isometric 2.5D rendering, battery sim, and task scheduling.
+          - generic: ▶ LAUNCH HIVE
+      - button "⎋ SIGN OUT"
+  - generic [ref=e320]:
+    - generic [ref=e321]: CONNECT
+    - heading "GET IN TOUCH" [level=2] [ref=e322]
+    - paragraph [ref=e323]: OPEN TO COLLABORATIONS, FEEDBACK, AND OPPORTUNITIES
+    - generic [ref=e324]:
+      - link "GITHUB @Yashs2024" [ref=e325] [cursor=pointer]:
+        - /url: https://github.com/Yashs2024
+        - img [ref=e326]
+        - generic [ref=e328]:
+          - generic [ref=e329]: GITHUB
+          - generic [ref=e330]: "@Yashs2024"
+      - link "LINKEDIN Yash Surve" [ref=e331] [cursor=pointer]:
+        - /url: https://www.linkedin.com/in/yash-surve-3b6a72253
+        - img [ref=e332]
+        - generic [ref=e336]:
+          - generic [ref=e337]: LINKEDIN
+          - generic [ref=e338]: Yash Surve
+      - link "CONTACT yashusurve2005@gmail.com" [ref=e339] [cursor=pointer]:
+        - /url: mailto:yashusurve2005@gmail.com
+        - img [ref=e340]
+        - generic [ref=e343]:
+          - generic [ref=e344]: CONTACT
+          - generic [ref=e345]: yashusurve2005@gmail.com
+  - contentinfo [ref=e346]:
+    - generic [ref=e347]: VECTRASIM
+    - generic [ref=e348]:
+      - link "GITHUB" [ref=e349] [cursor=pointer]:
+        - /url: https://github.com/Yashs2024
+      - link "LINKEDIN" [ref=e350] [cursor=pointer]:
+        - /url: https://www.linkedin.com/in/yash-surve-3b6a72253
+      - link "CONTACT" [ref=e351] [cursor=pointer]:
+        - /url: mailto:yashusurve2005@gmail.com
+    - generic [ref=e352]: BUILD v3.0.0 · VITE + VERCEL
+```

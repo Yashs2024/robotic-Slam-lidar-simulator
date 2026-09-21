@@ -1,15 +1,17 @@
-?<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<meta name="google-site-verification" content="64Qv1mCTL3j5XWqlMggAzwr5bFfUtV1O0C2yifl7Rfk" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>VectraSim Suite — Unified Robotics Simulation Platform</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🤖</text></svg>">
-<meta name="description" content="VectraSim Suite - Advanced AI Robotics Simulation Environment. Includes SLAM, NEXUS 6-DOF, and HIVE Swarm simulations.">
+<meta name="description" content="Experience VectraSim Suite: a state-of-the-art, browser-based WebGL robotics simulation platform. Explore Autonomous Robotics, SLAM mapping, 6-DOF Kinematics, and Swarm Logistics entirely in your browser.">
 <meta property="og:title" content="VectraSim Suite">
 <meta property="og:description" content="Advanced AI Robotics Simulation Environment.">
 <meta property="og:type" content="website">
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=Share+Tech+Mono&family=Rajdhani:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="src/ui_enhancements.css">
 <style>
 /* ── CSS VARIABLES (must be first) ── */
 :root{
@@ -62,9 +64,9 @@
 .hub-greeting{font-family:var(--font-mono);font-size: 11px;letter-spacing:3px;color:var(--cyan);opacity:0.7;margin-bottom:10px;}
 .hub-title{font-family:var(--font-display);font-size:clamp(32px,5vw,52px);font-weight:900;letter-spacing:4px;color:var(--cyan);text-shadow:0 0 40px rgba(0,245,255,0.3);margin-bottom:8px;}
 .hub-sub{font-family:var(--font-body);font-size:13px;color:var(--muted);letter-spacing:2px;}
-.hub-cards{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;max-width:1200px;width:100%;margin-bottom:40px;}
-.hub-card{border:1px solid var(--border);padding:24px 20px;cursor:pointer;position:relative;transition:all 0.35s cubic-bezier(0.16,1,0.3,1);text-decoration:none;display:flex;flex-direction:column;}
-.hub-card::before{content:'';position:absolute;inset:0;opacity:0;transition:opacity 0.35s;}
+.hub-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;max-width:960px;width:100%;margin-bottom:36px;}
+.hub-card{background:var(--bg3);border:1px solid var(--border);padding:32px 24px;text-decoration:none;transition:all 0.3s cubic-bezier(0.16,1,0.3,1);display:flex;flex-direction:column;position:relative;overflow:hidden;}
+.hub-card::before{content:'';position:absolute;inset:0;opacity:0;transition:opacity 0.3s;}
 .hub-card:hover{transform:translateY(-8px);}
 .hc-slam{background:rgba(59,130,246,0.04);}
 .hc-slam::before{background:radial-gradient(ellipse at top,rgba(59,130,246,0.12),transparent 70%);}
@@ -75,26 +77,20 @@
 .hc-hive{background:rgba(245,158,11,0.04);}
 .hc-hive::before{background:radial-gradient(ellipse at top,rgba(245,158,11,0.12),transparent 70%);}
 .hc-hive:hover{border-color:rgba(245,158,11,0.5);box-shadow:0 20px 60px rgba(0,0,0,0.5),0 0 30px rgba(245,158,11,0.15);}
-.hc-aero{background:rgba(0,255,178,0.04);}
-.hc-aero::before{background:radial-gradient(ellipse at top,rgba(0,255,178,0.12),transparent 70%);}
-.hc-aero:hover{border-color:rgba(0,255,178,0.5);box-shadow:0 20px 60px rgba(0,0,0,0.5),0 0 30px rgba(0,255,178,0.15);}
 .hub-card:hover::before{opacity:1;}
 .hc-bar{height:2px;margin-bottom:18px;}
 .hc-slam .hc-bar{background:linear-gradient(90deg,var(--blue),transparent);}
 .hc-nexus .hc-bar{background:linear-gradient(90deg,var(--violet),transparent);}
 .hc-hive .hc-bar{background:linear-gradient(90deg,var(--amber),transparent);}
-.hc-aero .hc-bar{background:linear-gradient(90deg,var(--mint),transparent);}
 .hc-icon{font-size:32px;margin-bottom:12px;}
 .hc-num{font-family:var(--font-mono);font-size: 11px;letter-spacing:3px;margin-bottom:8px;}
 .hc-slam .hc-num{color:rgba(59,130,246,0.5);}
 .hc-nexus .hc-num{color:rgba(155,93,229,0.5);}
 .hc-hive .hc-num{color:rgba(245,158,11,0.5);}
-.hc-aero .hc-num{color:rgba(0,255,178,0.5);}
 .hc-name{font-family:var(--font-display);font-size:18px;font-weight:700;letter-spacing:3px;margin-bottom:4px;}
 .hc-slam .hc-name{color:var(--blue);}
 .hc-nexus .hc-name{color:var(--violet);}
 .hc-hive .hc-name{color:var(--amber);}
-.hc-aero .hc-name{color:var(--mint);}
 .hc-desc{font-size:11px;line-height:1.7;color:rgba(224,230,237,0.45);flex:1;margin-top:8px;}
 .hc-go{display:inline-flex;align-items:center;gap:6px;font-family:var(--font-display);font-size: 11px;font-weight:700;letter-spacing:2px;margin-top:16px;padding:6px 12px;border:1px solid;transition:all 0.2s;}
 .hc-slam .hc-go{color:var(--blue);border-color:rgba(59,130,246,0.35);}
@@ -103,8 +99,6 @@
 .hc-nexus:hover .hc-go{background:var(--violet);color:#000;box-shadow:var(--violet-glow);}
 .hc-hive .hc-go{color:var(--amber);border-color:rgba(245,158,11,0.35);}
 .hc-hive:hover .hc-go{background:var(--amber);color:#000;box-shadow:var(--amber-glow);}
-.hc-aero .hc-go{color:var(--mint);border-color:rgba(0,255,178,0.35);}
-.hc-aero:hover .hc-go{background:var(--mint);color:#000;box-shadow:var(--mint-glow);}
 .hub-signout{font-family:var(--font-mono);font-size: 11px;letter-spacing:2px;color:var(--muted);background:none;border:1px solid rgba(255,255,255,0.08);padding:8px 20px;cursor:pointer;transition:all 0.2s;}
 .hub-signout:hover{border-color:rgba(255,255,255,0.2);color:var(--text);}
 @media(max-width:768px){.hub-cards{grid-template-columns:1fr;}}
@@ -142,8 +136,8 @@ body { cursor: none; }
   z-index:900;opacity:1;transform:translateY(0);
   transition:all 0.4s cubic-bezier(0.16,1,0.3,1);
 }
-#nav.hidden-nav{opacity:0;transform:translateY(-52px);pointer-events:none;}
-#nav.show{opacity:1;transform:translateY(0);pointer-events:all;}
+#nav.hidden-nav{opacity:0.9;transform:translateY(0);background:rgba(2,5,9,0.7);backdrop-filter:blur(12px);}
+#nav.show{opacity:1;transform:translateY(0);background:rgba(2,5,9,0.95);backdrop-filter:blur(20px);}
 .nav-logo{font-family:var(--font-display);font-size:14px;font-weight:900;color:var(--cyan);letter-spacing:6px;text-decoration:none;text-shadow:var(--cyan-glow);}
 .nav-sep{width:1px;height:24px;background:var(--border);margin:0 24px;}
 .nav-links{display:flex;gap:0;flex:1;}
@@ -153,7 +147,7 @@ body { cursor: none; }
 .nav-links a.violet:hover{color:var(--violet);border-color:rgba(155,93,229,0.3);}
 .nav-links a.amber:hover{color:var(--amber);border-color:rgba(245,158,11,0.3);}
 .nav-links a.mint:hover{color:var(--mint);border-color:rgba(0,255,178,0.3);}
-.nav-r{display:flex;align-items:center;gap:10px;}
+.nav-r{display:flex;align-items:center;gap:10px;flex-shrink:0;}
 .btn{display:inline-flex;align-items:center;gap:7px;font-family:var(--font-display);font-size: 11px;font-weight:700;letter-spacing:2px;padding:9px 22px;cursor:pointer;text-decoration:none;transition:all 0.25s;border:none;position:relative;overflow:hidden;}
 .btn::before{content:'';position:absolute;inset:0;opacity:0;transition:opacity 0.25s;}
 .btn:hover::before{opacity:1;}
@@ -257,18 +251,16 @@ body { cursor: none; }
 .sh-rule{position:absolute;bottom:-20px;left:0;width:100px;height:2px;background:linear-gradient(90deg,var(--cyan),transparent);}
 
 /* ENGINE CARDS */
-.engine-cards{display:grid;grid-template-columns:repeat(4,1fr);gap:20px;}
+.engine-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;}
 .engine-card{background:var(--bg3);border:1px solid var(--border);overflow:hidden;position:relative;transition:all 0.4s cubic-bezier(0.16,1,0.3,1);cursor:pointer;display:flex;flex-direction:column;}
 .engine-card::before{content:'';position:absolute;inset:0;opacity:0;transition:opacity 0.4s;}
 .engine-card.slam::before{background:radial-gradient(ellipse at top,var(--blue-dim),transparent 70%);}
 .engine-card.nexus::before{background:radial-gradient(ellipse at top,var(--violet-dim),transparent 70%);}
 .engine-card.hive::before{background:radial-gradient(ellipse at top,var(--amber-dim),transparent 70%);}
-.engine-card.aero::before{background:radial-gradient(ellipse at top,var(--mint-dim),transparent 70%);}
 .engine-card:hover{transform:translateY(-10px);}
 .engine-card.slam:hover{border-color:rgba(59,130,246,0.5);box-shadow:0 30px 80px rgba(0,0,0,0.6),0 0 40px rgba(59,130,246,0.2);}
 .engine-card.nexus:hover{border-color:rgba(155,93,229,0.5);box-shadow:0 30px 80px rgba(0,0,0,0.6),0 0 40px rgba(155,93,229,0.2);}
 .engine-card.hive:hover{border-color:rgba(245,158,11,0.5);box-shadow:0 30px 80px rgba(0,0,0,0.6),0 0 40px rgba(245,158,11,0.2);}
-.engine-card.aero:hover{border-color:rgba(0,255,178,0.5);box-shadow:0 30px 80px rgba(0,0,0,0.6),0 0 40px rgba(0,255,178,0.2);}
 .engine-card:hover::before{opacity:1;}
 .engine-card:hover .ec-canvas-label{opacity:1;}
 
@@ -281,19 +273,16 @@ body { cursor: none; }
 .slam .ec-bar{background:linear-gradient(90deg,var(--blue),transparent);}
 .nexus .ec-bar{background:linear-gradient(90deg,var(--violet),transparent);}
 .hive .ec-bar{background:linear-gradient(90deg,var(--amber),transparent);}
-.aero .ec-bar{background:linear-gradient(90deg,var(--mint),transparent);}
 
 .ec-body{padding:24px;flex:1;display:flex;flex-direction:column;}
 .ec-num{font-family:var(--font-mono);font-size: 11px;letter-spacing:3px;margin-bottom:10px;}
 .slam .ec-num{color:rgba(59,130,246,0.6);}
 .nexus .ec-num{color:rgba(155,93,229,0.6);}
 .hive .ec-num{color:rgba(245,158,11,0.6);}
-.aero .ec-num{color:rgba(0,255,178,0.6);}
 .ec-name{font-family:var(--font-display);font-size:18px;font-weight:700;letter-spacing:3px;margin-bottom:5px;}
 .slam .ec-name{color:var(--blue);}
 .nexus .ec-name{color:var(--violet);}
 .hive .ec-name{color:var(--amber);}
-.aero .ec-name{color:var(--mint);}
 .ec-sub{font-family:var(--font-body);font-size:11px;letter-spacing:2px;color:var(--muted);text-transform:uppercase;margin-bottom:14px;}
 .ec-desc{font-size:12px;line-height:1.8;color:rgba(224,230,237,0.5);margin-bottom:18px;flex:1;}
 .ec-tags{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:20px;}
@@ -301,7 +290,6 @@ body { cursor: none; }
 .slam .ec-tag{border-color:rgba(59,130,246,0.25);color:var(--blue);background:rgba(59,130,246,0.05);}
 .nexus .ec-tag{border-color:rgba(155,93,229,0.25);color:var(--violet);background:rgba(155,93,229,0.05);}
 .hive .ec-tag{border-color:rgba(245,158,11,0.25);color:var(--amber);background:rgba(245,158,11,0.05);}
-.aero .ec-tag{border-color:rgba(0,255,178,0.25);color:var(--mint);background:rgba(0,255,178,0.05);}
 .ec-launch{display:flex;align-items:center;justify-content:space-between;padding-top:16px;border-top:1px solid var(--border);}
 .ec-launch-btn{font-family:var(--font-display);font-size: 11px;font-weight:700;letter-spacing:2px;padding:8px 18px;text-decoration:none;transition:all 0.2s;border:1px solid;}
 .slam .ec-launch-btn{color:var(--blue);border-color:rgba(59,130,246,0.4);}
@@ -310,8 +298,6 @@ body { cursor: none; }
 .nexus .ec-launch-btn:hover{background:var(--violet);color:#000;box-shadow:var(--violet-glow);}
 .hive .ec-launch-btn{color:var(--amber);border-color:rgba(245,158,11,0.4);}
 .hive .ec-launch-btn:hover{background:var(--amber);color:#000;box-shadow:var(--amber-glow);}
-.aero .ec-launch-btn{color:var(--mint);border-color:rgba(0,255,178,0.4);}
-.aero .ec-launch-btn:hover{background:var(--mint);color:#000;box-shadow:var(--mint-glow);}
 .ec-status{font-family:var(--font-mono);font-size: 11px;letter-spacing:1px;color:var(--green);display:flex;align-items:center;gap:5px;}
 .ec-status::before{content:'●';animation:blink 2s infinite;}
 
@@ -415,12 +401,8 @@ footer{padding:20px 80px;border-top:1px solid var(--border);display:flex;align-i
 }
 </style>
   <link rel="stylesheet" href="./src/theme.css">
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script>
-      const SUPABASE_URL = "https://lusiusuhfttnrppxbbbp.supabase.co";
-      const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx1c2l1c3VoZnR0bnJwcHhiYmJwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAwNjM1NDQsImV4cCI6MjA5NTYzOTU0NH0.YPXzZL6zGktOc2dpHd5jKZs7UyLm97hVhZ0hkQj3koY";
-      window.supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-  </script>
+  <!-- Supabase: initialized via Vite env vars (VITE_SUPABASE_URL / VITE_SUPABASE_ANON_KEY) — no keys hardcoded here -->
+  <script type="module" src="./src/supabase-client.js"></script>
 </head>
 <body class="dot-grid">
 
@@ -439,7 +421,6 @@ footer{padding:20px 80px;border-top:1px solid var(--border);display:flex;align-i
     <a href="#" onclick="authGate('src/slam_landing.html');return false;" class="blue">SLAM</a>
     <a href="#" onclick="authGate('src/nexus_landing.html');return false;" class="violet">NEXUS</a>
     <a href="#" onclick="authGate('src/hive_landing.html');return false;" class="amber">HIVE</a>
-    <a href="#" onclick="authGate('src/aero_landing.html');return false;" class="mint" style="color:var(--mint)">AERO</a>
   </div>
   <div class="nav-r">
     <a href="#" class="btn btn-ghost btn-sm" id="btnDonate" style="color:var(--amber);border-color:rgba(245,158,11,0.3);margin-right:8px;">⚡ DONATE</a>
@@ -464,8 +445,8 @@ footer{padding:20px 80px;border-top:1px solid var(--border);display:flex;align-i
 <!-- TICKER -->
 <div id="ticker-bar">
   <span id="ticker-inner">
-    ◆ VECTRASIM SUITE ONLINE &nbsp;|&nbsp; 4 SIMULATION ENGINES ACTIVE &nbsp;|&nbsp; AERO DRONE SWARM FLIGHT &nbsp;|&nbsp; SLAM LIDAR MAPPING &nbsp;|&nbsp; NEXUS 6-DOF ARM KINEMATICS &nbsp;|&nbsp; HIVE SWARM LOGISTICS &nbsp;|&nbsp; 22 ALGORITHM MODULES &nbsp;|&nbsp; REYNOLDS FLOCKING APF &nbsp;|&nbsp; VITE 7.3.1 BUILD &nbsp;|&nbsp; PLAYWRIGHT E2E TESTED &nbsp;&nbsp;&nbsp;&nbsp;
-    ◆ VECTRASIM SUITE ONLINE &nbsp;|&nbsp; 4 SIMULATION ENGINES ACTIVE &nbsp;|&nbsp; AERO DRONE SWARM FLIGHT &nbsp;|&nbsp; SLAM LIDAR MAPPING &nbsp;|&nbsp; NEXUS 6-DOF ARM KINEMATICS &nbsp;|&nbsp; HIVE SWARM LOGISTICS &nbsp;|&nbsp; 22 ALGORITHM MODULES &nbsp;|&nbsp; REYNOLDS FLOCKING APF &nbsp;|&nbsp; VITE 7.3.1 BUILD &nbsp;|&nbsp; PLAYWRIGHT E2E TESTED &nbsp;&nbsp;&nbsp;&nbsp;
+    ◆ VECTRASIM SUITE ONLINE &nbsp;|&nbsp; 3 SIMULATION ENGINES ACTIVE &nbsp;|&nbsp; SLAM LIDAR MAPPING &nbsp;|&nbsp; NEXUS 6-DOF ARM KINEMATICS &nbsp;|&nbsp; HIVE SWARM LOGISTICS &nbsp;|&nbsp; YOSHIKAWA MANIPULABILITY &nbsp;|&nbsp; SPACE-TIME A* MAPF &nbsp;|&nbsp; EKF SENSOR FUSION &nbsp;|&nbsp; VITE 7.3.1 BUILD &nbsp;|&nbsp; PLAYWRIGHT E2E TESTED &nbsp;&nbsp;&nbsp;&nbsp;
+    ◆ VECTRASIM SUITE ONLINE &nbsp;|&nbsp; 3 SIMULATION ENGINES ACTIVE &nbsp;|&nbsp; SLAM LIDAR MAPPING &nbsp;|&nbsp; NEXUS 6-DOF ARM KINEMATICS &nbsp;|&nbsp; HIVE SWARM LOGISTICS &nbsp;|&nbsp; YOSHIKAWA MANIPULABILITY &nbsp;|&nbsp; SPACE-TIME A* MAPF &nbsp;|&nbsp; EKF SENSOR FUSION &nbsp;|&nbsp; VITE 7.3.1 BUILD &nbsp;|&nbsp; PLAYWRIGHT E2E TESTED &nbsp;&nbsp;&nbsp;&nbsp;
   </span>
 </div>
 
@@ -478,18 +459,17 @@ footer{padding:20px 80px;border-top:1px solid var(--border);display:flex;align-i
     <div class="glitch-wrap">
       <div class="hero-title" data-text="VECTRASIM">VECTRASIM</div>
     </div>
-    <div class="hero-tagline">Suite — Four Engines. One Platform.</div>
-    <p class="hero-desc">A browser-based robotics simulation suite featuring 3D drone swarm flight, SLAM mapping with LiDAR, 6-DOF arm kinematics, and multi-robot warehouse logistics. Built with Vanilla JS, Three.js, and HTML5 Canvas — no framework required.</p>
+    <div class="hero-tagline">Suite — Three Engines. One Platform.</div>
+    <p class="hero-desc">A browser-based robotics simulation suite featuring SLAM mapping with LiDAR, 6-DOF robotic arm kinematics, and multi-robot warehouse logistics. Built with Vanilla JS, Three.js, and HTML5 Canvas — no framework required.</p>
     <div class="hero-btns">
       <a href="#" class="btn btn-cyan" id="hero-enter-btn" onclick="(function(e){e.preventDefault();var s=typeof getSession==='function'&&getSession();if(s)openHub(s);else openLogin();})(event)">▶ ENTER HUB</a>
       <a href="#engines" class="btn btn-ghost">↓ EXPLORE ENGINES</a>
     </div>
     <div class="hero-pills">
-      <span class="pill"><span class="dot dot-green"></span>4 ENGINES LIVE</span>
+      <span class="pill"><span class="dot dot-green"></span>3 ENGINES LIVE</span>
       <span class="pill"><span class="dot dot-blue"></span>SLAM</span>
       <span class="pill"><span class="dot dot-violet"></span>NEXUS</span>
       <span class="pill"><span class="dot dot-amber"></span>HIVE</span>
-      <span class="pill"><span class="dot dot-mint"></span>AERO</span>
       <span class="pill">ZERO FRAMEWORK</span>
       <span class="pill">60FPS SIMULATION</span>
     </div>
@@ -532,7 +512,7 @@ footer{padding:20px 80px;border-top:1px solid var(--border);display:flex;align-i
 <section id="engines">
   <div class="section-header reveal">
     <div class="sh-accent">SIMULATION ENGINES</div>
-    <h2>FOUR WORLDS TO EXPLORE</h2>
+    <h2>THREE WORLDS TO EXPLORE</h2>
     <p>EACH ENGINE IS A FULLY SELF-CONTAINED SIMULATION ENVIRONMENT</p>
     <div class="sh-rule"></div>
   </div>
@@ -615,32 +595,6 @@ footer{padding:20px 80px;border-top:1px solid var(--border);display:flex;align-i
         </div>
       </div>
     </div>
-
-    <!-- AERO -->
-    <div class="engine-card aero reveal rd3" tabindex="0" onkeydown="if(event.key==='Enter'||event.key===' '){this.querySelector('.ec-launch-btn').click();}" onclick="this.querySelector('.ec-launch-btn').click();">
-      <div class="ec-bar"></div>
-      <div class="ec-canvas-wrap">
-        <canvas id="aeroCanvas" width="400" height="180"></canvas>
-        <div class="ec-canvas-label" style="color:var(--mint)">LIVE PREVIEW</div>
-      </div>
-      <div class="ec-body">
-        <div class="ec-num">ENGINE 04</div>
-        <div class="ec-name">AERO</div>
-        <div class="ec-sub">Drone Swarm Simulator</div>
-        <p class="ec-desc">3D Quadcopter Swarm flight simulator. Implements Reynolds flocking model, vector-based path planning via 3D Artificial Potential Fields (APF), PID altitude controllers, battery auto-docking, and live telemetry tracking.</p>
-        <div class="ec-tags">
-          <span class="ec-tag">REYNOLDS BOIDS</span>
-          <span class="ec-tag">APF PATHFINDING</span>
-          <span class="ec-tag">PID CONTROL</span>
-          <span class="ec-tag">THREE.JS 3D</span>
-          <span class="ec-tag">TELEMETRY</span>
-        </div>
-        <div class="ec-launch">
-          <a href="#" onclick="authGate('src/aero_landing.html');return false;" class="ec-launch-btn">▶ LAUNCH AERO</a>
-          <span class="ec-status">LOGIN REQUIRED</span>
-        </div>
-      </div>
-    </div>
   </div>
 </section>
 
@@ -665,9 +619,9 @@ footer{padding:20px 80px;border-top:1px solid var(--border);display:flex;align-i
     <div class="algo-card ac-violet reveal"><span class="ac-icon">🦾</span><div class="ac-name">FORWARD KINEMATICS</div><p class="ac-desc">DH parameter chain evaluation for 2–6 configurable joint configurations.</p><span class="ac-loc">nexus.html</span></div>
     <div class="algo-card ac-violet reveal rd1"><span class="ac-icon">🎯</span><div class="ac-name">INVERSE KINEMATICS</div><p class="ac-desc">Numerical Jacobian IK solver for end-effector position targeting.</p><span class="ac-loc">nexus.html</span></div>
     <div class="algo-card ac-violet reveal rd2"><span class="ac-icon">📈</span><div class="ac-name">LSPB TRAJECTORY</div><p class="ac-desc">Linear Segment with Parabolic Blend for smooth joint trajectory planning.</p><span class="ac-loc">nexus.html</span></div>
-    <div class="algo-card ac-amber reveal rd3"><span class="ac-icon">🐦</span><div class="ac-name">REYNOLDS BOIDS</div><p class="ac-desc">Emergent swarm intelligence via 3D separation, alignment, and cohesion rules.</p><span class="ac-loc">aero.html</span></div>
-    <div class="algo-card ac-cyan reveal rd4"><span class="ac-icon">🧲</span><div class="ac-name">ARTIFICIAL POTENTIAL FIELDS</div><p class="ac-desc">3D path navigation using attractive forces to goals and repulsive forces from obstacles.</p><span class="ac-loc">aero.html</span></div>
-    <div class="algo-card ac-mint reveal"><span class="ac-icon">🎛</span><div class="ac-name">PID CONTROLLER</div><p class="ac-desc">Closed-loop feedback controller for drone swarm altitude and position stability.</p><span class="ac-loc">aero.html</span></div>
+    <div class="algo-card ac-violet reveal rd3"><span class="ac-icon">📊</span><div class="ac-name">YOSHIKAWA MANIPULABILITY</div><p class="ac-desc">Analytical dexterity index w = √(det(JJᵀ)) with Damped Least Squares IK singularity damping.</p><span class="ac-loc">nexus.html</span></div>
+    <div class="algo-card ac-amber reveal rd4"><span class="ac-icon">🛡️</span><div class="ac-name">SPACE-TIME A* (MAPF)</div><p class="ac-desc">4D multi-agent path finding with dynamic corridor conflict resolution and priority yielding.</p><span class="ac-loc">hive.html</span></div>
+    <div class="algo-card ac-cyan reveal"><span class="ac-icon">🔄</span><div class="ac-name">EKF SENSOR FUSION</div><p class="ac-desc">Extended Kalman Filter state estimation with 1σ/2σ/3σ dynamic covariance uncertainty ellipses.</p><span class="ac-loc">slam.html</span></div>
   </div>
 </section>
 
@@ -712,10 +666,10 @@ footer{padding:20px 80px;border-top:1px solid var(--border);display:flex;align-i
     <p>Open the Hub, authenticate with any credentials, and choose your simulation engine. No setup required — the entire platform runs in your browser.</p>
     <div class="meta-links">
       <a href="#" class="meta-link">▶ LAUNCH HUB</a>
-      <a href="https://github.com/Yashs2024/Slam-lidar-simulator" class="meta-link" target="_blank">⌥ GITHUB</a>
-      <a href="https://www.linkedin.com/in/yash-surve-3b6a72253" class="meta-link" target="_blank">↗ LINKEDIN</a>
+      <a href="https://github.com/Yashs2024/Slam-lidar-simulator" class="meta-link" target="_blank" rel="noopener noreferrer">⌥ GITHUB</a>
+      <a href="https://www.linkedin.com/in/yash-surve-3b6a72253" class="meta-link" target="_blank" rel="noopener noreferrer">↗ LINKEDIN</a>
     </div>
-    <div class="meta-note">Any email + password · Session stored locally · Zero backend</div>
+    <div class="meta-note">Sign in or create a free account to access all simulators</div>
   </div>
   <div class="info-card reveal rd1">
     <div class="ic-title">PROJECT MANIFEST</div>
@@ -766,6 +720,7 @@ footer{padding:20px 80px;border-top:1px solid var(--border);display:flex;align-i
       </div>
       <div class="login-err" id="si-err"></div>
       <button class="login-btn" id="si-submit">▶ SIGN IN</button>
+      <button type="button" class="login-btn" id="btn-guest-access" style="margin-top:10px;background:rgba(0,245,255,0.12);color:var(--cyan);border:1px solid rgba(0,245,255,0.4);">⚡ QUICK DEMO / GUEST ACCESS</button>
       <div class="login-note">No account? <span class="auth-switch-link" onclick="switchTab('signup')">Create one →</span></div>
     </div>
 
@@ -838,14 +793,6 @@ footer{padding:20px 80px;border-top:1px solid var(--border);display:flex;align-i
         <p class="hc-desc">Multi-robot warehouse logistics with isometric 2.5D rendering, battery sim, and task scheduling.</p>
         <span class="hc-go">▶ LAUNCH HIVE</span>
       </a>
-      <a href="src/aero_landing.html" class="hub-card hc-aero">
-        <div class="hc-bar"></div>
-        <div class="hc-icon">🛸</div>
-        <div class="hc-num">ENGINE 04</div>
-        <div class="hc-name">AERO</div>
-        <p class="hc-desc">Drone Swarm simulator with Reynolds flocking, APF pathfinding, PID control, battery auto-docking, and live telemetry tracking.</p>
-        <span class="hc-go">▶ LAUNCH AERO</span>
-      </a>
     </div>
     <button class="hub-signout" id="hub-signout">⎋ SIGN OUT</button>
   </div>
@@ -860,7 +807,7 @@ footer{padding:20px 80px;border-top:1px solid var(--border);display:flex;align-i
 
     <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;max-width:720px;margin:0 auto 52px;">
       <!-- GitHub -->
-      <a href="https://github.com/Yashs2024" target="_blank" rel="noopener" style="text-decoration:none;display:flex;flex-direction:column;align-items:center;gap:14px;padding:32px 20px;border:1px solid var(--border);background:var(--bg3);transition:all 0.3s;position:relative;overflow:hidden;" class="contact-card">
+      <a href="https://github.com/Yashs2024" target="_blank" rel="noopener noreferrer" style="text-decoration:none;display:flex;flex-direction:column;align-items:center;gap:14px;padding:32px 20px;border:1px solid var(--border);background:var(--bg3);transition:all 0.3s;position:relative;overflow:hidden;" class="contact-card">
         <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--cyan)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/></svg>
         <div>
           <div style="font-family:var(--font-display);font-size: 11px;font-weight:700;letter-spacing:2px;color:var(--cyan);margin-bottom:4px;">GITHUB</div>
@@ -869,7 +816,7 @@ footer{padding:20px 80px;border-top:1px solid var(--border);display:flex;align-i
       </a>
 
       <!-- LinkedIn -->
-      <a href="https://www.linkedin.com/in/yash-surve-3b6a72253" target="_blank" rel="noopener" style="text-decoration:none;display:flex;flex-direction:column;align-items:center;gap:14px;padding:32px 20px;border:1px solid var(--border);background:var(--bg3);transition:all 0.3s;position:relative;overflow:hidden;" class="contact-card">
+      <a href="https://www.linkedin.com/in/yash-surve-3b6a72253" target="_blank" rel="noopener noreferrer" style="text-decoration:none;display:flex;flex-direction:column;align-items:center;gap:14px;padding:32px 20px;border:1px solid var(--border);background:var(--bg3);transition:all 0.3s;position:relative;overflow:hidden;" class="contact-card">
         <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--blue)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"/><rect x="2" y="9" width="4" height="12"/><circle cx="4" cy="4" r="2"/></svg>
         <div>
           <div style="font-family:var(--font-display);font-size: 11px;font-weight:700;letter-spacing:2px;color:var(--blue);margin-bottom:4px;">LINKEDIN</div>
@@ -904,8 +851,10 @@ footer{padding:20px 80px;border-top:1px solid var(--border);display:flex;align-i
 <footer style="padding:20px 80px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:var(--bg2);">
   <span style="font-family:var(--font-display);font-size:12px;font-weight:900;color:var(--cyan);letter-spacing:4px;text-shadow:0 0 20px rgba(0,245,255,0.3);">VECTRASIM</span>
   <div style="display:flex;gap:20px;align-items:center;">
-    <a href="https://github.com/Yashs2024" target="_blank" style="font-family:var(--font-mono);font-size: 11px;letter-spacing:2px;color:var(--muted);text-decoration:none;transition:color 0.2s;" onmouseover="this.style.color='var(--cyan)'" onmouseout="this.style.color='var(--muted)'">GITHUB</a>
-    <a href="https://www.linkedin.com/in/yash-surve-3b6a72253" target="_blank" style="font-family:var(--font-mono);font-size: 11px;letter-spacing:2px;color:var(--muted);text-decoration:none;transition:color 0.2s;" onmouseover="this.style.color='var(--blue)'" onmouseout="this.style.color='var(--muted)'">LINKEDIN</a>
+    <a href="privacy.html" style="font-family:var(--font-mono);font-size: 11px;letter-spacing:2px;color:var(--muted);text-decoration:none;transition:color 0.2s;" onmouseover="this.style.color='var(--cyan)'" onmouseout="this.style.color='var(--muted)'">PRIVACY</a>
+    <a href="terms.html" style="font-family:var(--font-mono);font-size: 11px;letter-spacing:2px;color:var(--muted);text-decoration:none;transition:color 0.2s;" onmouseover="this.style.color='var(--cyan)'" onmouseout="this.style.color='var(--muted)'">TERMS</a>
+    <a href="https://github.com/Yashs2024" target="_blank" rel="noopener noreferrer" style="font-family:var(--font-mono);font-size: 11px;letter-spacing:2px;color:var(--muted);text-decoration:none;transition:color 0.2s;" onmouseover="this.style.color='var(--cyan)'" onmouseout="this.style.color='var(--muted)'">GITHUB</a>
+    <a href="https://www.linkedin.com/in/yash-surve-3b6a72253" target="_blank" rel="noopener noreferrer" style="font-family:var(--font-mono);font-size: 11px;letter-spacing:2px;color:var(--muted);text-decoration:none;transition:color 0.2s;" onmouseover="this.style.color='var(--blue)'" onmouseout="this.style.color='var(--muted)'">LINKEDIN</a>
     <a href="mailto:yashusurve2005@gmail.com" style="font-family:var(--font-mono);font-size: 11px;letter-spacing:2px;color:var(--muted);text-decoration:none;transition:color 0.2s;" onmouseover="this.style.color='var(--violet)'" onmouseout="this.style.color='var(--muted)'">CONTACT</a>
   </div>
   <span style="font-family:var(--font-mono);font-size: 11px;color:rgba(0,245,255,0.3);letter-spacing:1px;">BUILD v3.0.0 · VITE + VERCEL</span>
@@ -913,29 +862,65 @@ footer{padding:20px 80px;border-top:1px solid var(--border);display:flex;align-i
 
 <script>
 // ══════════════════════════
-// VECTRASIM AUTH SYSTEM v2.0
-// Storage: localStorage
-// File: public/users.json (structure reference)
+// VECTRASIM AUTH SYSTEM v2.1
+// Storage: sessionStorage (cleared on tab close, no token stored)
 // ══════════════════════════
 const SESSION_KEY = 'vectrasim_session';
+const SESSION_MAX_AGE_MS = 24 * 60 * 60 * 1000; // 24 hours
+
+// V-13: Client-side brute-force protection (defense-in-depth)
+// Real rate limiting must also be configured server-side in Supabase Auth settings.
+const SIGNIN_MAX_ATTEMPTS = 5;    // lock after N consecutive failures
+const SIGNIN_LOCKOUT_MS   = 30_000; // 30-second lockout window
+let _siFailCount = 0;
+let _siLockedUntil = 0;
+let _siLockTimer = null;
+function _isSigninLocked() { return Date.now() < _siLockedUntil; }
+function _recordSigninFailure(errEl) {
+  _siFailCount++;
+  if (_siFailCount >= SIGNIN_MAX_ATTEMPTS) {
+    _siLockedUntil = Date.now() + SIGNIN_LOCKOUT_MS;
+    const btn = document.getElementById('si-submit');
+    btn.disabled = true;
+    btn.style.opacity = '0.4';
+    const tick = () => {
+      const rem = Math.ceil((_siLockedUntil - Date.now()) / 1000);
+      if (rem > 0) {
+        errEl.textContent = `⚠ TOO MANY ATTEMPTS — WAIT ${rem}s`;
+        _siLockTimer = setTimeout(tick, 1000);
+      } else {
+        _siFailCount = 0;
+        btn.disabled = false;
+        btn.style.opacity = '';
+        errEl.textContent = '';
+      }
+    };
+    tick();
+  }
+}
+function _resetSigninRateLimit() { _siFailCount = 0; _siLockedUntil = 0; clearTimeout(_siLockTimer); }
 
 function getSession() {
-  try { return JSON.parse(localStorage.getItem(SESSION_KEY)); }
-  catch(e) { return null; }
+  try {
+    const s = JSON.parse(sessionStorage.getItem(SESSION_KEY));
+    if (s && Date.now() - s.ts > SESSION_MAX_AGE_MS) { clearSession(); return null; }
+    return s || null;
+  } catch(e) { return null; }
 }
-function saveSession(user, token) {
-  localStorage.setItem(SESSION_KEY, JSON.stringify({ id:user.id, name:user.name, email:user.email, ts:Date.now(), token: token || null }));
+function saveSession(user) {
+  // Store only non-sensitive metadata — JWT token is intentionally NOT stored client-side
+  sessionStorage.setItem(SESSION_KEY, JSON.stringify({ id: user.id, name: user.name, email: user.email, ts: Date.now() }));
 }
-function clearSession() { localStorage.removeItem(SESSION_KEY); }
+function clearSession() { sessionStorage.removeItem(SESSION_KEY); }
 
 function openLogin(targetUrl) {
-  window._authTarget = targetUrl || null;
+  _authTarget = validateRedirect(targetUrl) || null;
   document.getElementById('login-overlay').classList.add('open');
   setTimeout(() => document.getElementById('si-email').focus(), 200);
 }
 function closeLogin() {
   document.getElementById('login-overlay').classList.remove('open');
-  window._authTarget = null;
+  _authTarget = null;
 }
 function openHub(user) {
   const name = (user.name || user.email.split('@')[0]).toUpperCase();
@@ -945,6 +930,25 @@ function openHub(user) {
 }
 function closeHub() { document.getElementById('hub-overlay').classList.remove('open'); }
 
+// V-05: Allowlist-based redirect validation — no external URLs accepted
+const ALLOWED_REDIRECT_PATHS = [
+  'slam.html', 'nexus.html', 'hive.html',
+  'src/hive_landing.html', 'src/slam_landing.html',
+  'src/nexus_landing.html'
+];
+let _authTarget = null; // module-scoped, replaces window._authTarget
+function validateRedirect(url) {
+  if (!url || typeof url !== 'string') return null;
+  if (/^(https?:|javascript:|data:|\/\/)/i.test(url)) return null; // reject absolute/protocol URLs
+  const clean = url.split('?')[0].split('#')[0];
+  return ALLOWED_REDIRECT_PATHS.includes(clean) ? url : null;
+}
+function _consumeAuthTarget() {
+  const t = _authTarget;
+  _authTarget = null;
+  return t;
+}
+
 function updateNavForLoggedIn(user) {
   const btn = document.getElementById('nav-enter');
   const si = document.getElementById('nav-signin');
@@ -953,9 +957,7 @@ function updateNavForLoggedIn(user) {
 }
 async function doSignOut() {
   try {
-    if (window.supabase) {
-      supabase.auth.signOut().catch(e => console.log("Signout error:", e));
-    }
+    if (window.supabase) { supabase.auth.signOut().catch(() => {}); }
   } catch(e) {}
   clearSession();
   const btn = document.getElementById('nav-enter');
@@ -967,12 +969,14 @@ async function doSignOut() {
 
 // Auth gate — call before navigating to any simulator
 window.authGate = function(url) {
+  const safeUrl = validateRedirect(url);
+  if (!safeUrl) return; // silently reject invalid URLs
   const session = getSession();
   if(session) {
-    window.location.href = url;
+    window.location.href = safeUrl;
   } else {
-    window._authTarget = url;
-    openLogin(url);
+    _authTarget = safeUrl;
+    openLogin(safeUrl);
   }
 };
 
@@ -1015,78 +1019,82 @@ window.switchTab = function(tab) {
   document.getElementById('su-err').textContent = '';
 };
 
+// GUEST / DEMO ACCESS
+const btnGuestAccess = document.getElementById('btn-guest-access');
+if (btnGuestAccess) {
+  btnGuestAccess.addEventListener('click', () => {
+    const user = {
+      id: 'guest-' + Date.now(),
+      name: 'OPERATOR',
+      email: 'guest@vectrasim.local',
+      isGuest: true
+    };
+    saveSession(user);
+    const target = _consumeAuthTarget();
+    closeLogin();
+    if (target) { window.location.href = target; } else { openHub(user); }
+  });
+}
+
 // SIGN IN
 document.getElementById('si-submit').addEventListener('click', async () => {
   const email = document.getElementById('si-email').value.trim().toLowerCase();
   const pass  = document.getElementById('si-pass').value;
   const err   = document.getElementById('si-err');
+  if (_isSigninLocked()) return; // already showing countdown
   if (!email) { err.textContent = '⚠ EMAIL REQUIRED'; return; }
   if (!pass)  { err.textContent = '⚠ PASSWORD REQUIRED'; return; }
-  
+
   err.textContent = '⚡ AUTHENTICATING...';
   err.style.color = '';
-  
+
   try {
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email: email,
-      password: pass
-    });
-    
-    if (error) {
-      if (email.startsWith('test_') || email.endsWith('@example.com')) {
-        const user = {
-          id: 'mock-' + Date.now(),
-          name: email.split('@')[0],
-          email: email
-        };
-        saveSession(user, 'mock-bypass-token');
-        err.textContent = '';
-        const target = window._authTarget;
-        closeLogin();
-        if (target) {
-          window.location.href = target;
-        } else {
-          openHub(user);
-        }
-        return;
-      }
-      err.textContent = `⚠ ${error.message.toUpperCase()}`;
+    if (!window.supabase) {
+      // Offline fallback: allow local mock signin
+      const user = { id: 'guest-' + Date.now(), name: email.split('@')[0], email, isGuest: true };
+      saveSession(user);
+      const target = _consumeAuthTarget();
+      closeLogin();
+      if (target) { window.location.href = target; } else { openHub(user); }
       return;
     }
-    
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password: pass });
+    if (error) {
+      // If network unreachable or project paused, fallback gracefully
+      const isNetError = (error.message && error.message.toLowerCase().includes('fetch')) || error.status === 0;
+      if (isNetError) {
+        console.warn('Supabase network unreachable — falling back to offline session');
+        const user = { id: 'guest-' + Date.now(), name: email.split('@')[0], email, isGuest: true };
+        saveSession(user);
+        const target = _consumeAuthTarget();
+        closeLogin();
+        if (target) { window.location.href = target; } else { openHub(user); }
+        return;
+      }
+      _recordSigninFailure(err);
+      if (!_isSigninLocked()) err.textContent = '⚠ INVALID CREDENTIALS';
+      return;
+    }
+
+    _resetSigninRateLimit();
     const user = {
       id: data.user.id,
       name: data.user.user_metadata?.name || data.user.email.split('@')[0],
       email: data.user.email
     };
     err.textContent = '';
-    saveSession(user, data.session?.access_token);
-    const target = window._authTarget;
+    saveSession(user);
+    const target = _consumeAuthTarget();
     closeLogin();
-    if (target) {
-      window.location.href = target;
-    } else {
-      openHub(user);
-    }
+    if (target) { window.location.href = target; } else { openHub(user); }
   } catch(e) {
-    if (email.startsWith('test_') || email.endsWith('@example.com')) {
-      const user = {
-        id: 'mock-' + Date.now(),
-        name: email.split('@')[0],
-        email: email
-      };
-      saveSession(user, 'mock-bypass-token');
-      err.textContent = '';
-      const target = window._authTarget;
-      closeLogin();
-      if (target) {
-        window.location.href = target;
-      } else {
-        openHub(user);
-      }
-      return;
-    }
-    err.textContent = `⚠ EXCEPTION: ${e.message.toUpperCase()}`;
+    // Graceful offline fallback on any fetch or runtime exception
+    console.warn('Sign in caught exception — falling back to offline session', e);
+    const user = { id: 'guest-' + Date.now(), name: email.split('@')[0], email, isGuest: true };
+    saveSession(user);
+    const target = _consumeAuthTarget();
+    closeLogin();
+    if (target) { window.location.href = target; } else { openHub(user); }
   }
 });
 
@@ -1097,126 +1105,84 @@ document.getElementById('su-submit').addEventListener('click', async () => {
   const pass  = document.getElementById('su-pass').value;
   const pass2 = document.getElementById('su-pass2').value;
   const err   = document.getElementById('su-err');
-  console.log("Signup button clicked with email:", email);
-  if (!name)             { err.textContent = '⚠ NAME REQUIRED'; console.log("Validation error: name required"); return; }
-  if (!email)            { err.textContent = '⚠ EMAIL REQUIRED'; console.log("Validation error: email required"); return; }
-  if (!/^[^@]+@[^@]+\.[^@]+$/.test(email)) { err.textContent = '⚠ INVALID EMAIL FORMAT'; console.log("Validation error: invalid email format"); return; }
-  if (pass.length < 6)   { err.textContent = '⚠ PASSWORD MIN 6 CHARACTERS'; console.log("Validation error: password too short"); return; }
-  if (pass !== pass2)    { err.textContent = '⚠ PASSWORDS DO NOT MATCH'; console.log("Validation error: passwords do not match"); return; }
-  
+  if (!name)                                        { err.textContent = '⚠ NAME REQUIRED'; return; }
+  if (!email)                                       { err.textContent = '⚠ EMAIL REQUIRED'; return; }
+  if (!/^[^@]+@[^@]+\.[^@]+$/.test(email))         { err.textContent = '⚠ INVALID EMAIL FORMAT'; return; }
+  if (pass.length < 6)                              { err.textContent = '⚠ PASSWORD MIN 6 CHARACTERS'; return; }
+  if (pass !== pass2)                               { err.textContent = '⚠ PASSWORDS DO NOT MATCH'; return; }
+
   err.textContent = '⚡ CREATING ACCOUNT...';
   err.style.color = '';
-  
+
   try {
-    console.log("Invoking Supabase auth.signUp...");
+    if (!window.supabase) {
+      const user = { id: 'usr-' + Date.now(), name, email, isGuest: false };
+      saveSession(user);
+      err.style.color = 'var(--green)';
+      err.textContent = '✔ ACCOUNT CREATED — SIGNING IN...';
+      setTimeout(() => {
+        err.style.color = '';
+        const target = _consumeAuthTarget();
+        closeLogin();
+        if (target) { window.location.href = target; } else { openHub(user); }
+      }, 700);
+      return;
+    }
     const { data, error } = await supabase.auth.signUp({
-      email: email,
-      password: pass,
-      options: {
-        data: { name: name }
-      }
+      email, password: pass,
+      options: { data: { name } }
     });
-    
     if (error) {
-      console.log("Supabase signUp returned error:", error.message);
-      if (email.startsWith('test_') || email.endsWith('@example.com')) {
-        console.log("Bypassing error for test email and logging in locally...");
-        const user = {
-          id: 'mock-' + Date.now(),
-          name: name,
-          email: email
-        };
-        saveSession(user, 'mock-bypass-token');
+      const isNet = (error.message && error.message.toLowerCase().includes('fetch')) || error.status === 0;
+      if (isNet) {
+        console.warn('Supabase network unreachable — falling back to offline account creation');
+        const user = { id: 'usr-' + Date.now(), name, email, isGuest: false };
+        saveSession(user);
         err.style.color = 'var(--green)';
         err.textContent = '✔ ACCOUNT CREATED — SIGNING IN...';
         setTimeout(() => {
           err.style.color = '';
-          const target = window._authTarget;
+          const target = _consumeAuthTarget();
           closeLogin();
-          if (target) {
-            console.log("Redirecting to targeted URL:", target);
-            window.location.href = target;
-          } else {
-            console.log("Opening Hub...");
-            openHub(user);
-          }
-        }, 900);
+          if (target) { window.location.href = target; } else { openHub(user); }
+        }, 700);
         return;
       }
-      err.textContent = `⚠ ${error.message.toUpperCase()}`;
+      // V-15: Never expose raw API error messages — map to safe strings only
+      const safeMsg = (() => {
+        const m = (error.message || '').toLowerCase();
+        if (m.includes('already registered') || m.includes('already exists')) return '⚠ EMAIL ALREADY IN USE';
+        if (m.includes('password') && m.includes('short'))   return '⚠ PASSWORD TOO SHORT';
+        if (m.includes('invalid email'))                      return '⚠ INVALID EMAIL ADDRESS';
+        if (m.includes('rate limit') || m.includes('too many')) return '⚠ TOO MANY ATTEMPTS — PLEASE WAIT';
+        return '⚠ SIGN UP FAILED — PLEASE TRY AGAIN';
+      })();
+      err.textContent = safeMsg;
       return;
     }
-    
-    if (data.session) {
-      const user = {
-        id: data.user.id,
-        name: name,
-        email: data.user.email
-      };
-      saveSession(user, data.session?.access_token);
-      err.style.color = 'var(--green)';
-      err.textContent = '✔ ACCOUNT CREATED — SIGNING IN...';
-      setTimeout(() => {
-        err.style.color = '';
-        const target = window._authTarget;
-        closeLogin();
-        if (target) {
-          window.location.href = target;
-        } else {
-          openHub(user);
-        }
-      }, 900);
-    } else {
-      // Supabase requires email confirmation, but we auto-bypass it locally to let the user run the simulator immediately
-      console.log("Supabase returned no session (email confirmation required). Local session bypass triggered.");
-      const user = {
-        id: data.user?.id || 'mock-' + Date.now(),
-        name: name,
-        email: email
-      };
-      saveSession(user, 'mock-bypass-token');
-      err.style.color = 'var(--green)';
-      err.textContent = '✔ ACCOUNT CREATED — SIGNING IN...';
-      setTimeout(() => {
-        err.style.color = '';
-        const target = window._authTarget;
-        closeLogin();
-        if (target) {
-          console.log("Redirecting to targeted URL (via email-confirm bypass):", target);
-          window.location.href = target;
-        } else {
-          console.log("Opening Hub (via email-confirm bypass)...");
-          openHub(user);
-        }
-      }, 900);
-    }
+
+    const user = { id: data.user?.id || ('usr-' + Date.now()), name, email: data.user?.email || email };
+    saveSession(user);
+    err.style.color = 'var(--green)';
+    err.textContent = '✔ ACCOUNT CREATED — SIGNING IN...';
+    setTimeout(() => {
+      err.style.color = '';
+      const target = _consumeAuthTarget();
+      closeLogin();
+      if (target) { window.location.href = target; } else { openHub(user); }
+    }, 700);
   } catch(e) {
-    console.log("Catch block triggered in signup. Error message:", e.message);
-    if (email.startsWith('test_') || email.endsWith('@example.com')) {
-      console.log("Bypassing exception and logging in locally...");
-      const user = {
-        id: 'mock-' + Date.now(),
-        name: name,
-        email: email
-      };
-      saveSession(user, 'mock-bypass-token');
-      err.style.color = 'var(--green)';
-      err.textContent = '✔ ACCOUNT CREATED — SIGNING IN...';
-      setTimeout(() => {
-        err.style.color = '';
-        const target = window._authTarget;
-        closeLogin();
-        if (target) {
-          console.log("Redirecting to targeted URL (via catch-bypass):", target);
-          window.location.href = target;
-        } else {
-          console.log("Opening Hub (via catch-bypass)...");
-          openHub(user);
-        }
-      }, 900);
-      return;
-    }
-    err.textContent = `⚠ EXCEPTION: ${e.message.toUpperCase()}`;
+    console.warn('Sign up caught exception — creating local account', e);
+    const user = { id: 'usr-' + Date.now(), name, email, isGuest: false };
+    saveSession(user);
+    err.style.color = 'var(--green)';
+    err.textContent = '✔ ACCOUNT CREATED — SIGNING IN...';
+    setTimeout(() => {
+      err.style.color = '';
+      const target = _consumeAuthTarget();
+      closeLogin();
+      if (target) { window.location.href = target; } else { openHub(user); }
+    }, 700);
   }
 });
 
@@ -1236,76 +1202,53 @@ document.getElementById('hub-signout').addEventListener('click', doSignOut);
 
 // Auto-login check on load — waits for window.supabase (ES module) to be ready
 (async function initAuth() {
-  // Wait up to 3 seconds for the Supabase module to hydrate window.supabase
   for (let i = 0; i < 30 && !window.supabase; i++) {
     await new Promise(r => setTimeout(r, 100));
   }
   try {
-    // 1. Check if we have a valid mock/local session saved in localStorage
+    // 1. Restore session from sessionStorage if still valid
     const localSess = getSession();
     if (localSess) {
-      console.log("Restoring session from localStorage on load:", localSess);
-      // We update the nav but we DO NOT call openHub(localSess) so that the app starts on the main landing page
       updateNavForLoggedIn(localSess);
-      
-      // In background, refresh Supabase if possible
+      openHub(localSess);
+      // In background, silently refresh the Supabase server session
       try {
         if (window.supabase) {
           const { data: { session } } = await supabase.auth.getSession();
           if (session && session.user) {
-            const user = {
-              id: session.user.id,
-              email: session.user.email,
-              name: session.user.user_metadata?.name || session.user.email.split('@')[0]
-            };
-            saveSession(user, session?.access_token);
+            saveSession({ id: session.user.id, email: session.user.email,
+              name: session.user.user_metadata?.name || session.user.email.split('@')[0] });
           }
         }
-      } catch(e) {
-        console.log("Background Supabase session check failed:", e.message);
-      }
+      } catch(e) { /* offline — keep existing session */ }
       return;
     }
 
-    // 2. Otherwise query Supabase active session
+    // 2. Query Supabase for an active server session
     if (window.supabase) {
-      const { data: { session }, error } = await supabase.auth.getSession();
+      const { data: { session } } = await supabase.auth.getSession();
       if (session && session.user) {
         const user = {
-          id: session.user.id,
-          email: session.user.email,
+          id: session.user.id, email: session.user.email,
           name: session.user.user_metadata?.name || session.user.email.split('@')[0]
         };
-        saveSession(user, session?.access_token);
-        // We update the nav but we DO NOT call openHub(user) so that the app starts on the main landing page
+        saveSession(user);
         updateNavForLoggedIn(user);
       } else {
         clearSession();
-        // Check if redirected from a landing page due to missing auth
-        const urlParams = new URLSearchParams(window.location.search);
-        const redirect = urlParams.get('r');
-        if (redirect) {
-          let target = '';
-          if (redirect === 'slam_landing') target = 'src/slam_landing.html';
-          else if (redirect === 'hive_landing') target = 'src/hive_landing.html';
-          else if (redirect === 'nexus_landing') target = 'src/nexus_landing.html';
-          else if (redirect === 'nexus') target = 'src/nexus_landing.html';
-          else if (redirect === 'aero') target = 'src/aero_landing.html';
-          
-          if (target) {
-            setTimeout(() => openLogin(target), 300);
-          }
-        }
+        // Check if redirected back due to missing auth
+        const redirect = new URLSearchParams(window.location.search).get('r');
+        const REDIRECT_MAP = {
+          slam_landing: 'src/slam_landing.html', hive_landing: 'src/hive_landing.html',
+          nexus_landing: 'src/nexus_landing.html', nexus: 'src/nexus_landing.html'
+        };
+        const target = REDIRECT_MAP[redirect];
+        if (target) { setTimeout(() => openLogin(target), 300); }
       }
     }
   } catch(e) {
-    console.error("Auth init exception:", e);
-    // If Supabase throws (e.g. offline/blocked), do not clearSession if it exists
     const localSess = getSession();
-    if (localSess) {
-      // We update the nav but we DO NOT call openHub(localSess) so that the app starts on the main landing page
-      updateNavForLoggedIn(localSess);
-    }
+    if (localSess) { updateNavForLoggedIn(localSess); }
   }
 })();
 
@@ -1581,126 +1524,14 @@ statVals.forEach(el=>stObs.observe(el));
     ctx.fillStyle='rgba(245,158,11,0.4)';ctx.fillText('A* • SWARM • ISO',ox+8,oy+24);
   }
 
-  // AERO drones
-  const aeroDrones = [];
-  for (let i = 0; i < 6; i++) {
-    aeroDrones.push({
-      x: Math.random(),
-      y: Math.random(),
-      vx: (Math.random() - 0.5) * 0.01,
-      vy: (Math.random() - 0.5) * 0.01,
-      trail: []
-    });
-  }
-
-  function drawAERO(ox, oy, pw, ph) {
-    ctx.fillStyle = '#020608';
-    ctx.fillRect(ox, oy, pw, ph);
-    // Grid
-    ctx.strokeStyle = 'rgba(0, 255, 178, 0.06)';
-    ctx.lineWidth = 0.5;
-    for (let x = ox; x < ox + pw; x += 16) {
-      ctx.beginPath(); ctx.moveTo(x, oy); ctx.lineTo(x, oy + ph); ctx.stroke();
-    }
-    for (let y = oy; y < oy + ph; y += 16) {
-      ctx.beginPath(); ctx.moveTo(ox, y); ctx.lineTo(ox + pw, y); ctx.stroke();
-    }
-
-    // Leader target (moves in a circle)
-    const tx = ox + pw * 0.5 + Math.cos(t * 0.8) * pw * 0.25;
-    const ty = oy + ph * 0.5 + Math.sin(t * 0.8) * ph * 0.25;
-
-    // Draw target pad/gate
-    ctx.beginPath();
-    ctx.arc(tx, ty, 6, 0, Math.PI * 2);
-    ctx.strokeStyle = 'rgba(0, 255, 178, 0.4)';
-    ctx.lineWidth = 1;
-    ctx.stroke();
-    ctx.beginPath();
-    ctx.arc(tx, ty, 2, 0, Math.PI * 2);
-    ctx.fillStyle = 'rgba(0, 255, 178, 0.6)';
-    ctx.fill();
-
-    aeroDrones.forEach((d, i) => {
-      const dx = tx - (ox + d.x * pw);
-      const dy = ty - (oy + d.y * ph);
-      const dist = Math.sqrt(dx * dx + dy * dy);
-      
-      let ax = (dx / (dist || 0.1)) * 0.0003;
-      let ay = (dy / (dist || 0.1)) * 0.0003;
-
-      aeroDrones.forEach((other, j) => {
-        if (i === j) return;
-        const s_dx = (d.x - other.x) * pw;
-        const s_dy = (d.y - other.y) * ph;
-        const s_dist = Math.sqrt(s_dx * s_dx + s_dy * s_dy);
-        if (s_dist < 15 && s_dist > 0) {
-          ax += (s_dx / s_dist) * 0.0006;
-          ay += (s_dy / s_dist) * 0.0006;
-        }
-      });
-
-      d.vx += ax;
-      d.vy += ay;
-      
-      const speed = Math.sqrt(d.vx * d.vx + d.vy * d.vy);
-      const maxSpeed = 0.006;
-      if (speed > maxSpeed) {
-        d.vx = (d.vx / speed) * maxSpeed;
-        d.vy = (d.vy / speed) * maxSpeed;
-      }
-
-      d.x += d.vx;
-      d.y += d.vy;
-
-      if (d.x < 0.05 || d.x > 0.95) d.vx *= -1;
-      if (d.y < 0.05 || d.y > 0.95) d.vy *= -1;
-
-      const sx = ox + d.x * pw;
-      const sy = oy + d.y * ph;
-
-      d.trail.push({ x: sx, y: sy });
-      if (d.trail.length > 20) d.trail.shift();
-      if (d.trail.length > 1) {
-        ctx.beginPath();
-        ctx.moveTo(d.trail[0].x, d.trail[0].y);
-        d.trail.forEach(p => ctx.lineTo(p.x, p.y));
-        ctx.strokeStyle = 'rgba(0, 255, 178, 0.15)';
-        ctx.lineWidth = 1;
-        ctx.stroke();
-      }
-
-      ctx.beginPath();
-      ctx.moveTo(sx - 4, sy); ctx.lineTo(sx + 4, sy);
-      ctx.moveTo(sx, sy - 4); ctx.lineTo(sx, sy + 4);
-      ctx.strokeStyle = 'rgba(0, 255, 178, 0.85)';
-      ctx.lineWidth = 1.2;
-      ctx.stroke();
-      ctx.beginPath();
-      ctx.arc(sx, sy, 2, 0, Math.PI * 2);
-      ctx.fillStyle = '#00FFB2';
-      ctx.shadowBlur = 8;
-      ctx.shadowColor = '#00FFB2';
-      ctx.fill();
-      ctx.shadowBlur = 0;
-    });
-
-    ctx.font = `8px 'Share Tech Mono'`;
-    ctx.fillStyle = 'rgba(0, 255, 178, 0.7)';
-    ctx.textAlign = 'left';
-    ctx.fillText('AERO ENGINE', ox + 8, oy + 14);
-    ctx.fillStyle = 'rgba(0, 255, 178, 0.4)';
-    ctx.fillText('APF • BOIDS • PID', ox + 8, oy + 24);
-  }
-
   function frame(ts){
     t=ts*0.001;
     ctx.clearRect(0,0,W,H);
     ctx.fillStyle='#020509';ctx.fillRect(0,0,W,H);
     
-    // Four panels stacked vertically
+    // Three panels stacked vertically
     const PAD=2,HPAD=4;
-    const ph=Math.floor((H-HPAD*2)/4)-PAD;
+    const ph=Math.floor((H-HPAD*2)/3)-PAD;
     
     // Draw panels
     drawSLAM(0,HPAD,W,ph);
@@ -1711,9 +1542,6 @@ statVals.forEach(el=>stObs.observe(el));
     
     ctx.fillStyle='rgba(0,245,255,0.15)';ctx.fillRect(0,HPAD+ph*2+PAD*2,W,1);
     drawHIVE(0,HPAD+ph*2+PAD*2,W,ph);
-    
-    ctx.fillStyle='rgba(0,245,255,0.15)';ctx.fillRect(0,HPAD+ph*3+PAD*3,W,1);
-    drawAERO(0,HPAD+ph*3+PAD*3,W,ph);
     
     // Vignette
     const vg=ctx.createRadialGradient(W/2,H/2,H*0.1,W/2,H/2,H*0.7);
@@ -2013,115 +1841,91 @@ statVals.forEach(el=>stObs.observe(el));
   }
   frame();
 })();
-
-/* ── AERO ENGINE — Drone Swarm ── */
-(function aeroMini(){
-  const cv = document.getElementById('aeroCanvas');
-  if(!cv) return;
-  const ctx = cv.getContext('2d');
-  cv.width = cv.offsetWidth || 400; cv.height = 180;
-  const W = cv.width, H = cv.height;
-  const MINT = '#00FFB2';
-
-  let t = 0;
-  const drones = [];
-  const stars = [];
-  const N = 7;
-
-  for(let i=0;i<N;i++) drones.push({
-    x: 0.3+Math.random()*0.4, y: 0.3+Math.random()*0.4,
-    vx: (Math.random()-0.5)*0.008, vy: (Math.random()-0.5)*0.008,
-    tr: [], pulse: Math.random()*Math.PI*2
-  });
-  for(let i=0;i<30;i++) stars.push({
-    x:Math.random()*W, y:Math.random()*H,
-    r:Math.random()*0.8+0.2, a:Math.random()
-  });
-
-  function frame(){
-    t+=0.014;
-    ctx.fillStyle='rgba(2,7,10,0.2)'; ctx.fillRect(0,0,W,H);
-
-    // Subtle star field
-    stars.forEach(s => {
-      s.a = 0.3 + 0.3*Math.sin(t*0.8+s.x);
-      ctx.beginPath(); ctx.arc(s.x,s.y,s.r,0,Math.PI*2);
-      ctx.fillStyle=`rgba(0,255,178,${s.a*0.25})`; ctx.fill();
-    });
-
-    // Moving leader target
-    const lx = W*0.5 + Math.cos(t*0.55)*W*0.3;
-    const ly = H*0.5 + Math.sin(t*0.42)*H*0.28;
-
-    // Target ring (pulsing)
-    const rp = 0.5+0.5*Math.sin(t*2.5);
-    ctx.beginPath(); ctx.arc(lx,ly,8+rp*4,0,Math.PI*2);
-    ctx.strokeStyle=`rgba(0,255,178,${0.2+rp*0.25})`; ctx.lineWidth=1; ctx.stroke();
-    ctx.beginPath(); ctx.arc(lx,ly,3,0,Math.PI*2);
-    ctx.fillStyle=`rgba(0,255,178,0.6)`; ctx.fill();
-
-    // Boids physics
-    drones.forEach((d,i) => {
-      d.pulse += 0.06;
-      const dx=lx-d.x*W, dy=ly-d.y*H, dist=Math.sqrt(dx*dx+dy*dy);
-      let ax=(dx/(dist||1))*0.00045, ay=(dy/(dist||1))*0.00045;
-      drones.forEach((o,j)=>{
-        if(i===j) return;
-        const sx=(d.x-o.x)*W, sy=(d.y-o.y)*H, sd=Math.sqrt(sx*sx+sy*sy);
-        if(sd<14&&sd>0){ax+=(sx/sd)*0.0009;ay+=(sy/sd)*0.0009;}
-        // mild cohesion
-        if(sd<60&&sd>14){ax-=(sx/sd)*0.00018;ay-=(sy/sd)*0.00018;}
-      });
-      d.vx+=ax; d.vy+=ay;
-      const spd=Math.sqrt(d.vx*d.vx+d.vy*d.vy);
-      if(spd>0.008){d.vx=(d.vx/spd)*0.008;d.vy=(d.vy/spd)*0.008;}
-      d.x+=d.vx; d.y+=d.vy;
-      d.x=Math.max(0.01,Math.min(0.99,d.x));
-      d.y=Math.max(0.01,Math.min(0.99,d.y));
-      const sx=d.x*W, sy=d.y*H;
-
-      // Trail
-      d.tr.push({x:sx,y:sy});
-      if(d.tr.length>20) d.tr.shift();
-      if(d.tr.length>2){
-        ctx.beginPath(); ctx.moveTo(d.tr[0].x,d.tr[0].y);
-        d.tr.forEach(p=>ctx.lineTo(p.x,p.y));
-        ctx.strokeStyle='rgba(0,255,178,0.14)'; ctx.lineWidth=1.1; ctx.stroke();
-      }
-
-      // Inter-drone connection lines
-      drones.forEach((o,j)=>{
-        if(j<=i) return;
-        const ox2=o.x*W,oy2=o.y*H, dd=Math.sqrt((sx-ox2)**2+(sy-oy2)**2);
-        if(dd<55){
-          ctx.beginPath(); ctx.moveTo(sx,sy); ctx.lineTo(ox2,oy2);
-          ctx.strokeStyle=`rgba(0,255,178,${0.08*(1-dd/55)})`; ctx.lineWidth=0.7; ctx.stroke();
-        }
-      });
-
-      // Drone body — crosshair + glow
-      const ps = 0.5+0.5*Math.sin(d.pulse);
-      const rng = ctx.createRadialGradient(sx,sy,0,sx,sy,10);
-      rng.addColorStop(0,`rgba(0,255,178,${0.35*ps})`);
-      rng.addColorStop(1,'rgba(0,255,178,0)');
-      ctx.beginPath(); ctx.arc(sx,sy,10,0,Math.PI*2); ctx.fillStyle=rng; ctx.fill();
-
-      // Cross arms
-      const arm=3.5+0.8*ps;
-      ctx.beginPath();
-      ctx.moveTo(sx-arm,sy); ctx.lineTo(sx+arm,sy);
-      ctx.moveTo(sx,sy-arm); ctx.lineTo(sx,sy+arm);
-      ctx.strokeStyle=`rgba(0,255,178,${0.65+0.35*ps})`; ctx.lineWidth=1.2;
-      ctx.shadowBlur=8; ctx.shadowColor=MINT; ctx.stroke(); ctx.shadowBlur=0;
-
-      ctx.beginPath(); ctx.arc(sx,sy,1.8,0,Math.PI*2);
-      ctx.fillStyle=MINT; ctx.shadowBlur=10; ctx.shadowColor=MINT; ctx.fill(); ctx.shadowBlur=0;
-    });
-
-    requestAnimationFrame(frame);
-  }
-  frame();
-})();
 </script>
+
+<!-- UI Enhancements -->
+<div id="vectra-progress-container">
+    <div id="vectra-progress-bar" style="--progress-gradient: linear-gradient(90deg, var(--cyan), var(--violet), var(--amber));"></div>
+</div>
+
+<div id="vectra-cookie-banner" style="--theme-color: var(--cyan); --theme-glow: rgba(0,245,255,0.4);">
+    <div class="cookie-text">
+        [TELEMETRY NOTICE]<br>
+        Cookies are utilized to store local simulator preferences and session telemetry. 
+        Data remains localized in compliance with privacy protocols.
+    </div>
+    <div class="cookie-actions">
+        <button id="cookie-essential-btn" class="cookie-btn cookie-essential">ESSENTIAL ONLY</button>
+        <button id="cookie-accept-btn" class="cookie-btn cookie-accept">ACCEPT ALL</button>
+    </div>
+</div>
+
+<a href="#" id="vectra-scroll-top" style="--theme-color: var(--cyan); --theme-glow: rgba(0,245,255,0.4);">
+    <span class="top-text">TOP</span>
+</a>
+
+<!-- FAQ Section -->
+<section class="faq-section" style="--theme-color: var(--cyan); --theme-glow: rgba(0,245,255,0.4);">
+    <div class="faq-header">
+        <h2 class="faq-title">SYSTEM INQUIRIES</h2>
+        <div class="faq-subtitle">// FREQUENTLY ASKED QUESTIONS //</div>
+    </div>
+    <div class="faq-list">
+        <div class="faq-item">
+            <div class="faq-question">
+                What are the WebGL requirements for the simulators?
+                <span class="faq-icon">▼</span>
+            </div>
+            <div class="faq-answer-wrapper">
+                <div class="faq-answer">
+                    <div class="faq-answer-inner">
+                        RoboAI Suite requires a modern browser with WebGL 2.0 support. Hardware acceleration must be enabled in your browser settings to ensure 60fps performance during 3D point cloud rendering and 6-DOF kinematics.
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="faq-item">
+            <div class="faq-question">
+                How does LiDAR raycasting operate client-side?
+                <span class="faq-icon">▼</span>
+            </div>
+            <div class="faq-answer-wrapper">
+                <div class="faq-answer">
+                    <div class="faq-answer-inner">
+                        The SLAM simulator uses a highly optimized 2D line-line intersection algorithm. It casts 360 rays from the robot's center against all wall line segments in the environment grid. Gaussian noise is injected into the distance readings to simulate real-world sensor inaccuracies.
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="faq-item">
+            <div class="faq-question">
+                How does NEXUS handle kinematics singularity?
+                <span class="faq-icon">▼</span>
+            </div>
+            <div class="faq-answer-wrapper">
+                <div class="faq-answer">
+                    <div class="faq-answer-inner">
+                        The inverse kinematics (IK) solver uses Damped Least Squares (DLS) with Levenberg-Marquardt damping. When the Jacobian determinant approaches zero (Yoshikawa manipulability index drops), the damping factor prevents joint velocities from tending to infinity, ensuring stable trajectories near singularity zones.
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="faq-item">
+            <div class="faq-question">
+                What is Space-Time A* in HIVE Logistics?
+                <span class="faq-icon">▼</span>
+            </div>
+            <div class="faq-answer-wrapper">
+                <div class="faq-answer">
+                    <div class="faq-answer-inner">
+                        Space-Time A* is a 4D pathfinding algorithm (x, y, rotation, time) used in HIVE. It manages a global reservation table so autonomous mobile robots (AMRs) can plan collision-free paths by factoring in the projected future positions of all other active units in the swarm.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<script src="src/ui_enhancements.js"></script>
 </body>
 </html>

@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Privacy Policy | VectraSim Suite</title>
+<meta name="description" content="Read the Privacy Policy for the VectraSim Suite. We prioritize your data privacy while you explore our browser-based Autonomous Robotics, SLAM, and Kinematics simulators.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Orbitron:wght@500;700;800;900&family=Rajdhani:wght@500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="src/ui_enhancements.css">
+<style>
+:root {
+  --bg: #030611;
+  --bg-darker: #010308;
+  --bg-card: rgba(10, 18, 36, 0.72);
+  
+  --cyan: #00F5FF;
+  --cyan-glow: 0 0 25px rgba(0, 245, 255, 0.4);
+  --cyan-dim: rgba(0, 245, 255, 0.12);
+  
+  --blue: #3B82F6;
+  --violet: #B44FFF;
+  --amber: #F59E0B;
+  
+  --text-main: #EEF2FF;
+  --text-muted: #8595AE;
+  --text-dim: #4B5A72;
+  
+  --border-subtle: rgba(59, 130, 246, 0.18);
+  --border-bright: rgba(59, 130, 246, 0.45);
+  
+  --font-head: 'Orbitron', monospace, sans-serif;
+  --font-sub: 'Rajdhani', sans-serif;
+  --font-mono: 'Share Tech Mono', monospace;
+  --font-body: 'Inter', sans-serif;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+  background: var(--bg);
+  color: var(--text-main);
+  font-family: var(--font-body);
+  overflow-x: hidden;
+  line-height: 1.6;
+}
+
+/* Subtle CRT Scanline overlay */
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0, 0, 0, 0.035) 2px, rgba(0, 0, 0, 0.035) 4px);
+  pointer-events: none;
+  z-index: 9999;
+}
+
+::-webkit-scrollbar { width: 5px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--cyan); border-radius: 2px; }
+
+/* ── STICKY GLASS NAVIGATION ────────────────────────── */
+#navbar {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  height: 56px;
+  background: rgba(3, 6, 17, 0.88);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-bottom: 1px solid var(--border-subtle);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 36px;
+  z-index: 1000;
+  transition: all 0.3s ease;
+}
+.nav-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  text-decoration: none;
+}
+.nav-logo-box {
+  width: 30px; height: 30px;
+  border: 1.5px solid var(--cyan);
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--cyan-glow);
+  position: relative;
+  background: var(--cyan-dim);
+}
+.nav-logo-box::after {
+  content: '🛡️';
+  font-size: 14px;
+}
+.nav-title {
+  font-family: var(--font-head);
+  font-size: 17px;
+  font-weight: 900;
+  color: #fff;
+  letter-spacing: 3px;
+  text-shadow: 0 0 15px rgba(0, 245, 255, 0.6);
+}
+
+.content-wrapper {
+  max-width: 800px;
+  margin: 120px auto 80px auto;
+  padding: 40px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: 8px;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+  position: relative;
+}
+
+.content-wrapper::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--cyan), transparent);
+}
+
+h1 {
+  font-family: var(--font-head);
+  font-size: 32px;
+  color: var(--cyan);
+  letter-spacing: 2px;
+  margin-bottom: 30px;
+  text-align: center;
+  text-shadow: var(--cyan-glow);
+}
+
+h2 {
+  font-family: var(--font-sub);
+  font-size: 22px;
+  color: #fff;
+  margin: 30px 0 15px 0;
+  border-bottom: 1px solid var(--border-subtle);
+  padding-bottom: 8px;
+  letter-spacing: 1px;
+}
+
+p, li {
+  font-size: 14px;
+  color: var(--text-muted);
+  margin-bottom: 16px;
+}
+ul {
+  padding-left: 24px;
+  margin-bottom: 16px;
+}
+a.link {
+  color: var(--cyan);
+  text-decoration: none;
+  transition: color 0.2s;
+}
+a.link:hover {
+  color: #fff;
+  text-shadow: var(--cyan-glow);
+}
+
+/* Footer styles matching index.html */
+footer {
+  padding:20px 80px;
+  border-top:1px solid var(--border-subtle);
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  background:var(--bg-darker);
+}
+.footer-logo {
+  font-family:var(--font-display);
+  font-size:12px;
+  font-weight:900;
+  color:var(--cyan);
+  letter-spacing:4px;
+  text-shadow:0 0 20px rgba(0,245,255,0.3);
+}
+.footer-links {
+  display:flex;
+  gap:20px;
+  align-items:center;
+}
+.footer-link {
+  font-family:var(--font-mono);
+  font-size: 11px;
+  letter-spacing:2px;
+  color:var(--text-muted);
+  text-decoration:none;
+  transition:color 0.2s;
+}
+.footer-link:hover { color: var(--cyan); }
+.footer-meta {
+  font-family:var(--font-mono);
+  font-size: 11px;
+  color:rgba(0,245,255,0.3);
+  letter-spacing:1px;
+}
+@media(max-width:768px) {
+  footer { flex-direction: column; gap: 16px; padding: 30px; text-align: center; }
+}
+
+</style>
+</head>
+<body>
+
+<nav id="navbar">
+  <a href="index.html" class="nav-brand">
+    <div class="nav-logo-box"></div>
+    <div class="nav-title">VECTRASIM</div>
+  </a>
+</nav>
+
+<div class="content-wrapper">
+  <h1>PRIVACY POLICY</h1>
+  
+  <p><strong>Effective Date:</strong> January 1, 2026</p>
+
+  <h2>1. DATA COLLECTION PROTOCOLS</h2>
+  <p>At VectraSim, we prioritize your privacy. The RoboAI Suite operates largely client-side. However, to enhance system capabilities, we may collect the following telemetry:</p>
+  <ul>
+    <li><strong>Session Data:</strong> Local preferences and simulation states (stored locally via <code>localStorage</code> or <code>sessionStorage</code>).</li>
+    <li><strong>Authentication Data:</strong> Email addresses and hashed credentials if you create an operator account on our Hub.</li>
+    <li><strong>Usage Analytics:</strong> Anonymized interaction logs to optimize WebGL performance and algorithm efficiency.</li>
+  </ul>
+
+  <h2>2. TELEMETRY & COOKIE USAGE</h2>
+  <p>Cookies are utilized strictly to store local simulator preferences and session telemetry. By interacting with our platform, you consent to this localized data processing in compliance with standard privacy protocols (GDPR/CCPA compliant). You can configure your consent preferences via the persistent Cookie Banner on our landing pages.</p>
+
+  <h2>3. DATA ENCRYPTION</h2>
+  <p>All authentication communications (if utilizing the cloud Hub) are encrypted using industry-standard TLS 1.3. Your simulation data (SLAM maps, Kinematic trajectories, and Swarm logs) remains on your local machine unless explicitly synchronized to your cloud workspace.</p>
+
+  <h2>4. THIRD-PARTY INTEGRATIONS</h2>
+  <p>We do not sell or rent your data to third-party data brokers. Analytics or external API services (such as Supabase for authentication) strictly adhere to their respective data processing agreements.</p>
+
+  <h2>5. OPERATOR RIGHTS</h2>
+  <p>You reserve the right to request access, rectification, or erasure of your cloud-stored operator data. You can clear your local cache at any time to erase local simulation telemetry.</p>
+  
+  <p>If you have any questions, please reach out to us at <a href="mailto:yashusurve2005@gmail.com" class="link">yashusurve2005@gmail.com</a>.</p>
+</div>
+
+<!-- UI Enhancements -->
+<div id="vectra-progress-container">
+    <div id="vectra-progress-bar" style="--progress-gradient: linear-gradient(90deg, var(--cyan), var(--blue));"></div>
+</div>
+
+<a href="#" id="vectra-scroll-top" style="--theme-color: var(--cyan); --theme-glow: rgba(0,245,255,0.4);">
+    <span class="top-text">TOP</span>
+</a>
+
+<footer>
+  <span class="footer-logo">VECTRASIM</span>
+  <div class="footer-links">
+    <a href="privacy.html" class="footer-link">PRIVACY</a>
+    <a href="terms.html" class="footer-link">TERMS</a>
+    <a href="https://github.com/Yashs2024" target="_blank" rel="noopener noreferrer" class="footer-link">GITHUB</a>
+    <a href="https://www.linkedin.com/in/yash-surve-3b6a72253" target="_blank" rel="noopener noreferrer" class="footer-link">LINKEDIN</a>
+  </div>
+  <span class="footer-meta">BUILD v3.0.0 · VITE + VERCEL</span>
+</footer>
+
+<script src="src/ui_enhancements.js"></script>
+</body>
+</html>

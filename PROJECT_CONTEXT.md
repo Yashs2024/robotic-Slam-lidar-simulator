@@ -188,9 +188,12 @@ index.html (Landing Page)
 | `DynamicsChartManager.js` | Chart.js velocity (v, ω) time series |
 | `StatsTracker.js` | Exploration %, distance, collisions, time |
 | `JoystickManager.js` | nipplejs mobile virtual joystick |
+| `EKFEstimator` | Extended Kalman Filter (EKF-SLAM) fusing wheel odometry with LiDAR landmark observations; computes analytical 3x3 error covariance matrix $P$ |
+| `EKFCovarianceVisualizer3D` | 3D Three.js ground plane visualizer rendering dynamic 2σ (95.4% confidence) uncertainty covariance ellipses with orientation indicators |
 
 #### Key Features
 - **3 Viewports:** Real World, SLAM Map (with fog-of-war), 3D LiDAR Point Cloud
+- **EKF Sensor Fusion:** Real-time state propagation ($F_x, Q$) and landmark correction ($H, R, K$) with live $2\sigma$ uncertainty telemetry
 - **3 Pathfinding Algorithms:** A*, Dijkstra, Bug2 (wall-following)
 - **3 Drive Models:** Differential (tank), Ackermann (car-like), Holonomic (omni)
 - **6 Environment Presets:** Random, Maze, Warehouse, Office, L-Shape, Open Field
@@ -227,7 +230,9 @@ index.html (Landing Page)
 #### Key Features
 - **6-DOF Robot Arm** with Three.js 3D visualization
 - **Forward Kinematics (FK)** — joint angle sliders driving end-effector position
-- **Inverse Kinematics (IK)** — numerical IK solver
+- **Geometric Jacobian Matrix $\mathbf{J}(\mathbf{q})$** — full $3 \times N$ positional Jacobian with analytical revolute velocity columns $\mathbf{J}_{v, i} = \mathbf{z}_i \times (\mathbf{p}_e - \mathbf{p}_i)$
+- **Yoshikawa Manipulability Index ($w = \sqrt{\det(\mathbf{J}_v\mathbf{J}_v^T)}$)** — cockpit gauge tracking dexterity, matrix determinant, condition number $\kappa$, and singularity warnings
+- **Dual Inverse Kinematics (IK) Solvers** — selectable Damped Least Squares (DLS with Levenberg-Marquardt singularity damping $\lambda^2$) and Singularity-Damped Cyclic Coordinate Descent (CCD)
 - **LSPB Trajectory Planning** — Linear Segment with Parabolic Blend
 - **Dynamic Torque Analysis** — real-time torque charts per joint
 - **Teach Mode** — record waypoints, replay computed trajectories
@@ -255,40 +260,46 @@ Panels: glassmorphism with backdrop-filter
 
 ### 5.3 HIVE Logistics (`hive.html` + `src/hive_landing.html`)
 
-**Purpose:** Multi-robot industrial warehouse logistics simulation.
+**Purpose:** Industrial-grade 3D WebGL multi-robot warehouse swarm logistics simulation inspired by Gazebo Sim & ROS 2 Nav2.
 
 #### Key Features
-- **4 Autonomous Robots** (ATLAS, NEXUS, FORGE, ECHO)
-- **3 Operational Scenarios:**
-  1. **Warehouse** — SKU pick-and-deliver with priority task queue
-  2. **Assembly** — Sequential workstation servicing (conveyor line)
-  3. **Mapping** — Frontier-based exploration with fog-of-war
-- **Isometric 2.5D Rendering Engine** — custom Canvas 2D renderer with depth sorting
-- **A* Pathfinding** — grid-based with diagonal movement, robot avoidance
-- **Battery Management** — energy drain on movement, auto-charging at ≤20%
-- **Collision Avoidance** — dynamic re-routing between robots
-- **Task Assignment** — nearest-idle-robot heuristic with urgency override
-- **Live Analytics:** Battery levels, task distribution, odometer, state timeline, throughput sparkline
-- **Camera Feed Panel** — first-person robot view with CRT scanline effect
-- **Heatmap Tracking** — tile visit frequency visualization
-- **Event Log** — scrolling live log with export capability
-- **Operational Report** — modal with KPIs and stats
-- **Wall Placement** — click-to-place walls on isometric grid
-- **Camera Controls** — pan, zoom (mouse wheel), auto-follow
+- **4 Autonomous Mobile Robots (AMRs)**: R-01 ATLAS, R-02 NEXUS, R-03 FORGE, R-04 ECHO featuring:
+  - Low-profile industrial AGV chassis with drive wheels and safety bumpers
+  - 360° spinning LiDAR puck turret (600 RPM)
+  - Forward-facing stereo RGB-D camera mast
+  - Dual high-beam LED headlights + ground-projected dynamic underglow status LED
+  - **Active 3D Scissor-Lift Mechanism**: Smooth physical scissor elevation to pick inventory crates from shelf tiers and slide them onto the outbound dispatch roller conveyor.
+- **True 3D High-Bay Warehouse Environment (Three.js r184)**:
+  - Industrial concrete floor with perimeter hazard striping
+  - 8 pallet racking aisles (`Aisle A` through `Aisle H`) with steel uprights, orange load beams, 3 decking tiers, wooden Euro-pallets, and colored SKU totes
+  - Outbound dispatch bay with 3 motorized roller conveyor lines and optical barcode scanner laser curtain
+  - Inductive fast-charging stations with 4 circular docking pads, glowing green LED rings, and vertical power pylons
+- **Space-Time A\* Pathfinding ($x, y, t$) & Reservation Table**:
+  - 4D Multi-Agent Path Finding (MAPF) engine with min-heap priority queue
+  - Vertex conflict elimination, anti-swap edge checks, and wait-in-place options
+  - Right-of-way corridor conflict resolver (carrying cargo > urgent task > robot ID)
+- **Dynamic Moving Humans & ISO 3691-4 Safety**:
+  - 3D warehouse workers in safety hardhats and high-visibility neon orange vests walking patrol corridors
+  - Safety braking: Robots detect workers within 3.5m (caution slowdown) and halt/yield within 1.8m (emergency brake + hazard alert + Space-Time A* dynamic detour)
+- **Gazebo & ROS 2 Multi-Camera System**:
+  - `CHASE`: Smooth 3rd-person follower camera with orientation lerping behind active AMR
+  - `SENSOR`: 1st-person forward camera with reticle and YOLO-style AI bounding box detections
+  - `FREE`: 6-DOF OrbitControls warehouse inspection
+  - `TOP`: Overhead macro dispatcher view
+  - `QUAD-CAM`: Floating acrylic drop-down drawer streaming real-time onboard cameras for all 4 AMRs simultaneously with interactive click-to-follow
+  - `PIP`: Floating draggable sensor PiP monitor with CRT scanlines
+- **AeroSpace Mission Cockpit (Refined Utilitarian Design)**:
+  - Maximized 3D hero canvas with collapsible side panels (`◀` / `▶`)
+  - 34px compact live telemetry ticker with expandable multi-line terminal log
+  - Real-time Chart.js Analytics: Battery Levels (%), Task Distribution, Robot Odometer (m), and Fleet State Breakdown
+- **Procedural Web Audio API Sound Engine**:
+  - Drive motor whines, hydraulic scissor lift hiss, barcode confirmation beeps, and safety alert chimes
 
 #### Architecture
-- **Self-contained** in `hive.html` (1,290 lines) — all HTML/CSS/JS inline
-- **Landing page** in `src/hive_landing.html` (689 lines) with animated hero, three scenario preview canvases, scroll animations, stat counters
-- Grid: 36×36 tiles
-- Isometric math: `isoToScreen(gx, gy)` and `screenToGrid(sx, sy)`
-- Robot state machine: IDLE → NAVIGATING → PICKING → CARRYING → DEPOSITING → IDLE (+ CHARGING, AVOIDING, ERROR, EXPLORING, WORKING)
-
-#### Design System
-```
-Fonts: Share Tech Mono (code), Rajdhani (headings)
-Colors: Blue (#1E90FF), Cyan (#00E5FF), Green (#00E676), Amber (#FFB300), Red (#FF1744)
-Background: #0A0C10 (dark industrial)
-```
+- **Self-contained** in `hive.html` (~2,900 lines) — HTML/CSS + Three.js ES module + Web Audio API
+- **Landing page** in `src/hive_landing.html` with scenario previews and launch links
+- Coordinate mapping: Discrete grid cell $(gx, gy) \in [0, 35] \leftrightarrow$ continuous 3D world $(wx, wz)$
+- State machine: IDLE → NAVIGATING → PICKING → CARRYING → DEPOSITING → IDLE (+ CHARGING, YIELDING, ERROR)
 
 ---
 

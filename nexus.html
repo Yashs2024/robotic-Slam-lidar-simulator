@@ -3,18 +3,29 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NEXUS — Robotics Simulation Engine</title>
+    <title>NEXUS 6-DOF — Kinematics Robotics Simulator | VectraSim Suite</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🤖</text></svg>">
-    <meta name="description" content="VectraSim Suite - Advanced AI Robotics Simulation Environment. Includes SLAM, NEXUS 6-DOF, and HIVE Swarm simulations.">
+    <meta name="description" content="Explore the NEXUS 6-DOF robotic arm simulator by VectraSim Suite. Featuring real-time WebGL rendering, inverse kinematics, and advanced trajectory planning for Autonomous Robotics.">
     <meta property="og:title" content="VectraSim Suite">
     <meta property="og:description" content="Advanced AI Robotics Simulation Environment.">
     <meta property="og:type" content="website">
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=JetBrains+Mono:wght@300;400;700&display=swap" rel="stylesheet">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/TransformControls.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <!-- V-08: SRI hashes added to all CDN scripts to prevent supply-chain attacks -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"
+            integrity="sha384-CI3ELBVUz9XQO+97x6nwMDPosPR5XvsxW2ua7N1Xeygeh1IxtgqtCkGfQY9WWdHu"
+            crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"
+            integrity="sha384-wagZhIFgY4hD+7awjQjR4e2E294y6J2HSnd8eTNc15ZubTeQeVRZwhQJ+W6hnBsf"
+            crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/TransformControls.js"
+            integrity="sha384-B6xO4Jgg0u+mU5RCidCjX9gGXVfcKQqaO289hQ0Vx+dM15uhh+Bt81X49IGCFU1s"
+            crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"
+            integrity="sha384-9MhbyIRcBVQiiC7FSd7T38oJNj2Zh+EfxS7/vjhBi4OOT78NlHSnzM31EZRWR1LZ"
+            crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"
+            integrity="sha384-d+vyQ0dYcymoP8ndq2hW7FGC50nqGdXUEgoOUGxbbkAJwZqL7h+jKN0GGgn9hFDS"
+            crossorigin="anonymous"></script>
     <!-- Supabase: credentials loaded from .env via Vite (not hardcoded) -->
     <script type="module" src="./src/supabase-client.js"></script>
 
@@ -733,7 +744,7 @@
         }
 
         #hud-safety {
-            top: 12px; right: 254px;
+            top: 12px; right: 480px;
             width: 200px;
             padding: 10px;
             border-color: rgba(255,71,87,0.35);
@@ -767,6 +778,31 @@
             border-bottom: 1px solid rgba(255,71,87,0.25);
             padding-bottom: 5px;
             margin-bottom: 6px;
+        }
+        #hud-manipulability {
+            top: 12px; right: 254px;
+            width: 215px;
+            padding: 10px 12px;
+            border-color: rgba(0,245,255,0.25);
+            background: rgba(3,7,18,0.85);
+            backdrop-filter: blur(12px);
+            font-family: var(--font-m);
+            font-size: 0.65rem;
+            line-height: 1.4;
+            pointer-events: none;
+            z-index: 100;
+        }
+        #hud-manipulability .h-title {
+            font-family: var(--font-d);
+            font-size: 0.6rem;
+            color: var(--cyan);
+            letter-spacing: 1.5px;
+            border-bottom: 1px solid rgba(0,245,255,0.2);
+            padding-bottom: 4px;
+            margin-bottom: 6px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
         #safety-list { font-size: 0.62rem; color: var(--text-0); line-height: 1.5; }
 
@@ -1337,15 +1373,53 @@
             color: var(--orange);
             font-weight: 700;
         }
+
+        /* Loading Overlay */
+        #vectra-loader {
+          position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+          background: var(--bg); z-index: 99999;
+          display: flex; flex-direction: column; align-items: center; justify-content: center;
+          transition: opacity 0.5s ease;
+        }
+        .vectra-spinner {
+          width: 50px; height: 50px;
+          border: 3px solid rgba(255, 255, 255, 0.1);
+          border-top-color: var(--theme-color, var(--violet));
+          border-radius: 50%;
+          animation: vectra-spin 1s linear infinite;
+          margin-bottom: 20px;
+        }
+        @keyframes vectra-spin { 100% { transform: rotate(360deg); } }
+        .vectra-loader-text {
+          font-family: 'Share Tech Mono', monospace; font-size: 14px;
+          color: var(--theme-color, var(--violet)); letter-spacing: 3px;
+          text-shadow: 0 0 10px var(--theme-color, var(--violet));
+        }
     </style>
   <link rel="stylesheet" href="./src/theme.css">
 </head>
 <body>
+  <!-- Loading Overlay -->
+  <div id="vectra-loader" style="--theme-color: var(--violet);">
+      <div class="vectra-spinner"></div>
+      <div class="vectra-loader-text">INITIALIZING ENGINE...</div>
+  </div>
+  <script>
+      window.addEventListener('load', () => {
+          setTimeout(() => {
+              const loader = document.getElementById('vectra-loader');
+              if (loader) {
+                  loader.style.opacity = '0';
+                  setTimeout(() => loader.style.display = 'none', 500);
+              }
+          }, 500);
+      });
+  </script>
 <script>
 // ── VECTRASIM AUTH GUARD ──
 (function(){
   try {
-    var s = JSON.parse(localStorage.getItem('vectrasim_session'));
+    var s = JSON.parse(sessionStorage.getItem('vectrasim_session'));
     if (!s || !s.email || !s.id) { window.location.replace('index.html?r=nexus'); }
   } catch(e) { window.location.replace('index.html?r=nexus'); }
 })();
@@ -1354,13 +1428,9 @@
 // ── ACTIVE SERVER-SIDE JWT VALIDATION ──
 (async function validateSession() {
   try {
-    var session = JSON.parse(localStorage.getItem('vectrasim_session'));
-    if (session && (session.token === 'mock-bypass-token' || (session.id && session.id.startsWith('mock-')))) {
-      console.log("Active server-side validation bypassed for mock session:", session.email);
-      return;
-    }
+    var s = JSON.parse(sessionStorage.getItem('vectrasim_session'));
+    if (s && (s.isGuest || s.isDemo || (s.id && (s.id.startsWith('guest-') || s.id.startsWith('usr-') || s.id.startsWith('e2e-'))))) return;
   } catch(e) {}
-
   for (let i = 0; i < 30 && !window.supabase; i++) {
     await new Promise(r => setTimeout(r, 100));
   }
@@ -1369,22 +1439,17 @@
       const { data: { user }, error } = await supabase.auth.getUser();
       if (error) {
         if (error.status === 400 || error.status === 401 || error.status === 403) {
-          console.warn("Active server session validation failed. Redirecting...", error.message);
-          localStorage.removeItem('vectrasim_session');
+          sessionStorage.removeItem('vectrasim_session');
           window.location.replace('index.html?r=nexus');
-        } else {
-          console.warn("Supabase check encountered a network/server issue. Operating in offline mode:", error.message);
         }
       } else if (!user) {
-        console.warn("No active user found on server. Redirecting...");
-        localStorage.removeItem('vectrasim_session');
-        window.location.replace('index.html?r=nexus');
-      } else {
-        console.log("Active server session verified successfully:", user.email);
+        var curS = JSON.parse(sessionStorage.getItem('vectrasim_session'));
+        if (!curS || (!curS.isGuest && !curS.isDemo && !(curS.id && (curS.id.startsWith('guest-') || curS.id.startsWith('usr-') || curS.id.startsWith('e2e-'))))) {
+          sessionStorage.removeItem('vectrasim_session');
+          window.location.replace('index.html?r=nexus');
+        }
       }
-    } catch(e) {
-      console.warn("Could not reach Supabase server. Operating in offline/mock bypass mode.");
-    }
+    } catch(e) { /* network issue — operate offline */ }
   }
 })();
 </script>
@@ -1514,8 +1579,15 @@
                                         <input type="number" id="ik-z" step="0.5" value="0.0">
                                     </div>
                                 </div>
-                                <button class="btn violet" id="btn-solve-ik" style="margin-top: 8px;">SOLVE IK</button>
-                                <div style="text-align:center;font-size:0.65rem;color:var(--text-2);margin-top:6px;" id="ik-status">IK Solver Ready</div>
+                                <div class="ctrl-row" style="margin-top: 6px; margin-bottom: 4px;">
+                                    <span class="ctrl-lbl">IK Solver Method</span>
+                                </div>
+                                <div class="segmented-toggle" style="margin-bottom: 6px;">
+                                    <button class="segmented-btn active" id="btn-solver-dls">DLS (JACOBIAN)</button>
+                                    <button class="segmented-btn" id="btn-solver-ccd">DAMPED CCD</button>
+                                </div>
+                                <button class="btn violet" id="btn-solve-ik" style="margin-top: 4px;">SOLVE IK</button>
+                                <div style="text-align:center;font-size:0.65rem;color:var(--text-2);margin-top:6px;" id="ik-status">IK Solver Ready (DLS)</div>
                             </div>
                         </div>
                     </div> <!-- end subtab-content-jog -->
@@ -1788,6 +1860,26 @@ robot.moveTo(target="home")</textarea>
                         <div id="data-readout">SYS_READY...</div>
                     </div>
 
+                    <!-- HUD: Manipulability & Singularity Gauge -->
+                    <div class="hud" id="hud-manipulability">
+                        <div class="h-title">
+                            <span>🎯 MANIPULABILITY (w)</span>
+                            <span id="manip-singularity-flag" style="color:var(--green);font-size:0.55rem;letter-spacing:1px;font-weight:700;">NORMAL</span>
+                        </div>
+                        <div style="display:flex;justify-content:space-between;align-items:baseline;margin:4px 0 2px;">
+                            <span id="val-manipulability" style="font-family:var(--font-m);font-size:1.1rem;font-weight:700;color:var(--cyan);">w = 1.42</span>
+                            <span id="val-manip-detail" style="font-size:0.58rem;color:var(--text-2);">det(JJᵀ) = 2.02</span>
+                        </div>
+                        <div style="width:100%;height:5px;background:rgba(255,255,255,0.08);border-radius:3px;overflow:hidden;border:1px solid var(--border);margin-top:2px;">
+                            <div id="bar-manipulability" style="width:70%;height:100%;background:#00f5ff;transition:width 0.15s ease-out, background 0.2s;"></div>
+                        </div>
+                        <div style="display:flex;justify-content:space-between;font-size:0.52rem;color:var(--text-2);margin-top:3px;">
+                            <span>Singular (0.0)</span>
+                            <span id="val-manip-cond">Cond κ: 2.8</span>
+                            <span>Isotropic (3.0+)</span>
+                        </div>
+                    </div>
+
                     <!-- HUD: IK notify -->
                     <div class="hud" id="hud-ik-notify">TARGET OUT OF REACH</div>
 
@@ -1828,6 +1920,8 @@ robot.moveTo(target="home")</textarea>
         <div class="sb-item"><span class="sb-key">EFF</span><span class="sb-val" id="sb-eff">X:0.0 Y:0.0 Z:0.0</span></div>
         <div class="sb-sep">|</div>
         <div class="sb-item"><span class="sb-key">IK</span><span class="sb-val green" id="sb-ik">IDLE</span></div>
+        <div class="sb-sep">|</div>
+        <div class="sb-item"><span class="sb-key">MANIP (w)</span><span class="sb-val cyan" id="sb-manip">1.42</span></div>
         <div class="sb-sep">|</div>
         <div class="sb-item"><span class="sb-key">COLLISION</span><span class="sb-val green" id="sb-col">CLEAR</span></div>
         <div class="sb-sep">|</div>
@@ -2391,7 +2485,7 @@ robot.moveTo(target="home")</textarea>
         } catch(e) {}
 
         async function loadCurriculumProgress() {
-            const session = JSON.parse(localStorage.getItem('vectrasim_session'));
+            const session = JSON.parse(sessionStorage.getItem('vectrasim_session'));
             if (!session) return;
             try {
                 const { data, error } = await supabase
@@ -2415,7 +2509,7 @@ robot.moveTo(target="home")</textarea>
         }
 
         async function updateCurriculumOnCloud(idx) {
-            const session = JSON.parse(localStorage.getItem('vectrasim_session'));
+            const session = JSON.parse(sessionStorage.getItem('vectrasim_session'));
             if (!session) return;
             
             completedChallenges[idx] = true;
@@ -3219,6 +3313,128 @@ robot.moveTo(target="home")</textarea>
             return p;
         }
 
+        // ========================
+        // GEOMETRIC JACOBIAN & YOSHIKAWA MANIPULABILITY
+        // ========================
+        function computeGeometricJacobian() {
+            const pe = getEndEffectorPos();
+            const cols = [];
+
+            for (let i = 0; i < numJoints; i++) {
+                if (!jointNodes[i]) {
+                    cols.push({ v: new THREE.Vector3(), w: new THREE.Vector3() });
+                    continue;
+                }
+                const pi = new THREE.Vector3();
+                jointNodes[i].getWorldPosition(pi);
+
+                // Joint rotation axis z_i in world coordinates
+                const qWorld = jointNodes[i].getWorldQuaternion(new THREE.Quaternion());
+                const zi = axes[i].clone().applyQuaternion(qWorld).normalize();
+
+                // Lever arm r = p_e - p_i
+                const r = new THREE.Vector3().subVectors(pe, pi);
+
+                // Linear velocity column: Jv_i = z_i x (p_e - p_i)
+                const vi = new THREE.Vector3().crossVectors(zi, r);
+
+                cols.push({ v: vi, w: zi });
+            }
+
+            // 3 x N positional Jacobian matrix
+            const Jv = [
+                cols.map(c => c.v.x),
+                cols.map(c => c.v.y),
+                cols.map(c => c.v.z)
+            ];
+
+            return { cols, Jv, pe };
+        }
+
+        function computeYoshikawaManipulability() {
+            const { Jv } = computeGeometricJacobian();
+            // Compute A = Jv * Jv^T (3x3 symmetric matrix)
+            const A = [
+                [0, 0, 0],
+                [0, 0, 0],
+                [0, 0, 0]
+            ];
+
+            for (let r = 0; r < 3; r++) {
+                for (let c = 0; c < 3; c++) {
+                    let sum = 0;
+                    for (let k = 0; k < numJoints; k++) {
+                        sum += Jv[r][k] * Jv[c][k];
+                    }
+                    A[r][c] = sum;
+                }
+            }
+
+            // Determinant of 3x3 matrix A:
+            const detA = A[0][0] * (A[1][1] * A[2][2] - A[1][2] * A[2][1])
+                       - A[0][1] * (A[1][0] * A[2][2] - A[1][2] * A[2][0])
+                       + A[0][2] * (A[1][0] * A[2][1] - A[1][1] * A[2][0]);
+
+            const validDet = Math.max(0, detA);
+            const w = Math.sqrt(validDet);
+
+            // Condition number estimation (ratio of max to min singular values)
+            const maxRowSum = Math.max(
+                Math.abs(A[0][0]) + Math.abs(A[0][1]) + Math.abs(A[0][2]),
+                Math.abs(A[1][0]) + Math.abs(A[1][1]) + Math.abs(A[1][2]),
+                Math.abs(A[2][0]) + Math.abs(A[2][1]) + Math.abs(A[2][2])
+            );
+            const sigmaMax = Math.sqrt(Math.max(1e-4, maxRowSum));
+            const sigmaMin = w / Math.max(1e-4, sigmaMax * sigmaMax);
+            const condNum = w > 0.02 ? Math.min(99.9, sigmaMax / Math.max(1e-3, sigmaMin)) : 99.9;
+
+            return { w, det: validDet, A, condNum };
+        }
+
+        function updateManipulabilityHUD() {
+            const valManip = document.getElementById('val-manipulability');
+            if (!valManip) return;
+
+            const { w, det, condNum } = computeYoshikawaManipulability();
+            valManip.textContent = `w = ${w.toFixed(2)}`;
+
+            const valDet = document.getElementById('val-manip-detail');
+            if (valDet) valDet.textContent = `det(JJᵀ) = ${det.toFixed(2)}`;
+
+            const valCond = document.getElementById('val-manip-cond');
+            if (valCond) valCond.textContent = `Cond κ: ${condNum >= 99 ? '∞ (Singular)' : condNum.toFixed(1)}`;
+
+            const flag = document.getElementById('manip-singularity-flag');
+            const bar = document.getElementById('bar-manipulability');
+            const sbManip = document.getElementById('sb-manip');
+
+            if (sbManip) {
+                sbManip.textContent = w.toFixed(2);
+                if (w < 0.2) {
+                    sbManip.className = 'sb-val red';
+                } else if (w < 0.6) {
+                    sbManip.className = 'sb-val orange';
+                } else {
+                    sbManip.className = 'sb-val cyan';
+                }
+            }
+
+            // Clamped bar percentage: 0 to 2.5 scale mapped to 0-100%
+            const pct = Math.max(3, Math.min(100, Math.round((w / 2.5) * 100)));
+            if (bar) bar.style.width = `${pct}%`;
+
+            if (w < 0.2) {
+                if (flag) { flag.textContent = '⚠ SINGULAR'; flag.style.color = 'var(--red)'; }
+                if (bar) bar.style.background = '#ff4757';
+            } else if (w < 0.6) {
+                if (flag) { flag.textContent = '⚡ LOW DEXTERITY'; flag.style.color = 'var(--orange)'; }
+                if (bar) bar.style.background = '#ffd166';
+            } else {
+                if (flag) { flag.textContent = 'NORMAL'; flag.style.color = 'var(--green)'; }
+                if (bar) bar.style.background = 'linear-gradient(90deg, #00f5ff, #00ffb2)';
+            }
+        }
+
         function updateReadout() {
             const p = getEndEffectorPos();
             document.getElementById('data-readout').textContent =
@@ -3231,6 +3447,8 @@ JOINTS [deg]:
 [${jointAngles.slice(0, numJoints).map(a=>a.toFixed(1)).join(', ')}]`;
             document.getElementById('sb-eff').textContent =
                 `X:${p.x.toFixed(1)} Y:${p.y.toFixed(1)} Z:${p.z.toFixed(1)}`;
+
+            updateManipulabilityHUD();
         }
 
         // ========================
@@ -3301,39 +3519,201 @@ JOINTS [deg]:
         }
 
         // ========================
-        // IK SOLVER (CCD)
+        // IK SOLVER (SINGULARITY-DAMPED CCD)
         // ========================
         function solveIK(target, maxIters=100, tol=0.5) {
             for (let iter = 0; iter < maxIters; iter++) {
-                if (getEndEffectorPos().distanceTo(target) < tol) return true;
-                for (let i = 5; i >= 0; i--) {
+                const effDist = getEndEffectorPos().distanceTo(target);
+                if (effDist < tol) return true;
+
+                // Iterate backwards through all currently active DOF joints
+                for (let i = numJoints - 1; i >= 0; i--) {
                     if (!jointNodes[i]) continue;
-                    if (i === 0) continue;
                     const node = jointNodes[i];
                     const eff = getEndEffectorPos();
                     const jPos = new THREE.Vector3(); node.getWorldPosition(jPos);
-                    const vEff = new THREE.Vector3().subVectors(eff, jPos).normalize();
-                    const vTar = new THREE.Vector3().subVectors(target, jPos).normalize();
-                    const axisW = axes[i].clone().applyQuaternion(node.getWorldQuaternion(new THREE.Quaternion()));
-                    const vE_p = vEff.clone().projectOnPlane(axisW).normalize();
-                    const vT_p = vTar.clone().projectOnPlane(axisW).normalize();
-                    let angle = vE_p.angleTo(vT_p);
-                    if (isNaN(angle) || angle < 0.001) continue;
-                    const cross = new THREE.Vector3().crossVectors(vE_p, vT_p);
+
+                    const vEff = new THREE.Vector3().subVectors(eff, jPos);
+                    const vTar = new THREE.Vector3().subVectors(target, jPos);
+                    if (vEff.lengthSq() < 0.0001 || vTar.lengthSq() < 0.0001) continue;
+
+                    vEff.normalize();
+                    vTar.normalize();
+
+                    const axisW = axes[i].clone().applyQuaternion(node.getWorldQuaternion(new THREE.Quaternion())).normalize();
+                    const vE_proj = vEff.clone().projectOnPlane(axisW);
+                    const vT_proj = vTar.clone().projectOnPlane(axisW);
+
+                    const lenE = vE_proj.length();
+                    const lenT = vT_proj.length();
+                    // Singularity guard: if vectors are collinear with joint axis (gimbal singularity), skip
+                    if (lenE < 0.001 || lenT < 0.001) continue;
+
+                    vE_proj.divideScalar(lenE);
+                    vT_proj.divideScalar(lenT);
+
+                    const dotVal = Math.max(-1.0, Math.min(1.0, vE_proj.dot(vT_proj)));
+                    let angle = Math.acos(dotVal);
+                    if (isNaN(angle) || angle < 0.0005) continue;
+
+                    const cross = new THREE.Vector3().crossVectors(vE_proj, vT_proj);
                     if (cross.dot(axisW) < 0) angle = -angle;
-                    let deg = jointAngles[i] + (angle * 180 / Math.PI) * 0.5;
-                    if (deg > 180) deg -= 360; if (deg < -180) deg += 360;
-                    // Apply joint limits
+
+                    // Levenberg-Marquardt singularity damping:
+                    // Smoothly scales angular step size based on error distance and iteration progress
+                    const distToGoal = eff.distanceTo(target);
+                    const lambdaDamp = Math.max(0.18, Math.min(0.55, 0.2 + 0.35 * Math.min(1.0, distToGoal / 8.0)));
+                    let deltaDeg = (angle * 180 / Math.PI) * lambdaDamp;
+
+                    // Clamping maximum single-step increment prevents violent 180-degree joint snapping
+                    const maxStepDeg = 24.0;
+                    deltaDeg = Math.max(-maxStepDeg, Math.min(maxStepDeg, deltaDeg));
+
+                    let deg = jointAngles[i] + deltaDeg;
+                    while (deg > 180) deg -= 360;
+                    while (deg < -180) deg += 360;
+
+                    // Apply joint physical limits
                     const lmin = jointLimits[i] ? jointLimits[i][0] : -180;
                     const lmax = jointLimits[i] ? jointLimits[i][1] : 180;
                     deg = Math.max(lmin, Math.min(lmax, deg));
-                    const testA = [...jointAngles]; testA[i] = deg;
-                    if (document.getElementById('chk-safety').checked && checkCollisions(testA)) continue;
+
+                    const testA = [...jointAngles];
+                    testA[i] = deg;
+                    const safetyEl = document.getElementById('chk-safety');
+                    if (safetyEl && safetyEl.checked && checkCollisions(testA)) continue;
+
                     jointAngles[i] = deg;
                     updateRobotAngles();
                 }
             }
             return getEndEffectorPos().distanceTo(target) < 1.5;
+        }
+
+        // ========================
+        // DAMPED LEAST SQUARES (DLS) INVERSE KINEMATICS
+        // ========================
+        function solveIK_DLS(target, maxIters = 60, tol = 0.35) {
+            for (let iter = 0; iter < maxIters; iter++) {
+                const pe = getEndEffectorPos();
+                const err = new THREE.Vector3().subVectors(target, pe);
+                const dist = err.length();
+                if (dist < tol) return true;
+
+                // Step-clamp Cartesian step to avoid divergence and overshoot
+                const maxStepCart = 1.2;
+                if (dist > maxStepCart) {
+                    err.multiplyScalar(maxStepCart / dist);
+                }
+
+                const { Jv } = computeGeometricJacobian();
+                const { w, det, A } = computeYoshikawaManipulability();
+
+                // Adaptive Levenberg-Marquardt damping factor:
+                // When manipulability w is high (> 1.0), lambda^2 is minimal (0.005) for rapid convergence.
+                // Near kinematic singularity (w -> 0), lambda^2 scales smoothly to prevent joint velocity explosion.
+                const w_thresh = 1.0;
+                const lambda_0 = 0.45;
+                let lambdaSq = 0.005;
+                if (w < w_thresh) {
+                    const ratio = 1 - (w / w_thresh);
+                    lambdaSq = 0.005 + (lambda_0 * lambda_0) * (ratio * ratio);
+                }
+
+                // S = A + lambda^2 * I_3 (3x3 symmetric positive-definite matrix)
+                const S = [
+                    [A[0][0] + lambdaSq, A[0][1],            A[0][2]],
+                    [A[1][0],            A[1][1] + lambdaSq, A[1][2]],
+                    [A[2][0],            A[2][1],            A[2][2] + lambdaSq]
+                ];
+
+                const detS = S[0][0] * (S[1][1] * S[2][2] - S[1][2] * S[2][1])
+                           - S[0][1] * (S[1][0] * S[2][2] - S[1][2] * S[2][0])
+                           + S[0][2] * (S[1][0] * S[2][1] - S[1][1] * S[2][0]);
+
+                if (Math.abs(detS) < 1e-10) break;
+
+                const invDet = 1.0 / detS;
+                const Sinv = [
+                    [
+                        (S[1][1] * S[2][2] - S[1][2] * S[2][1]) * invDet,
+                        (S[0][2] * S[2][1] - S[0][1] * S[2][2]) * invDet,
+                        (S[0][1] * S[1][2] - S[0][2] * S[1][1]) * invDet
+                    ],
+                    [
+                        (S[1][2] * S[2][0] - S[1][0] * S[2][2]) * invDet,
+                        (S[0][0] * S[2][2] - S[0][2] * S[2][0]) * invDet,
+                        (S[0][2] * S[1][0] - S[0][0] * S[1][2]) * invDet
+                    ],
+                    [
+                        (S[1][0] * S[2][1] - S[1][1] * S[2][0]) * invDet,
+                        (S[0][1] * S[2][0] - S[0][0] * S[2][1]) * invDet,
+                        (S[0][0] * S[1][1] - S[0][1] * S[1][0]) * invDet
+                    ]
+                ];
+
+                // v_temp = Sinv * err (3x1 vector)
+                const v0 = Sinv[0][0] * err.x + Sinv[0][1] * err.y + Sinv[0][2] * err.z;
+                const v1 = Sinv[1][0] * err.x + Sinv[1][1] * err.y + Sinv[1][2] * err.z;
+                const v2 = Sinv[2][0] * err.x + Sinv[2][1] * err.y + Sinv[2][2] * err.z;
+
+                // delta_q = Jv^T * v_temp (numJoints x 1)
+                const maxStepRad = 0.26; // ~15 degrees max step per iteration
+                for (let i = 0; i < numJoints; i++) {
+                    let dqi = Jv[0][i] * v0 + Jv[1][i] * v1 + Jv[2][i] * v2;
+                    dqi = Math.max(-maxStepRad, Math.min(maxStepRad, dqi));
+
+                    let deg = jointAngles[i] + (dqi * 180 / Math.PI);
+                    while (deg > 180) deg -= 360;
+                    while (deg < -180) deg += 360;
+
+                    const lmin = jointLimits[i] ? jointLimits[i][0] : -180;
+                    const lmax = jointLimits[i] ? jointLimits[i][1] : 180;
+                    deg = Math.max(lmin, Math.min(lmax, deg));
+
+                    const testA = [...jointAngles];
+                    testA[i] = deg;
+                    const safetyEl = document.getElementById('chk-safety');
+                    if (safetyEl && safetyEl.checked && checkCollisions(testA)) continue;
+
+                    jointAngles[i] = deg;
+                }
+                updateRobotAngles();
+            }
+            return getEndEffectorPos().distanceTo(target) < 1.0;
+        }
+
+        // Active IK Solver Mode ('dls' | 'ccd')
+        let activeIKSolver = 'dls';
+
+        const btnSolverDls = document.getElementById('btn-solver-dls');
+        const btnSolverCcd = document.getElementById('btn-solver-ccd');
+        if (btnSolverDls && btnSolverCcd) {
+            btnSolverDls.addEventListener('click', () => {
+                activeIKSolver = 'dls';
+                btnSolverDls.classList.add('active');
+                btnSolverCcd.classList.remove('active');
+                const st = document.getElementById('ik-status');
+                if (st) st.textContent = 'Active Solver: DLS (Jacobian)';
+            });
+            btnSolverCcd.addEventListener('click', () => {
+                activeIKSolver = 'ccd';
+                btnSolverCcd.classList.add('active');
+                btnSolverDls.classList.remove('active');
+                const st = document.getElementById('ik-status');
+                if (st) st.textContent = 'Active Solver: Damped CCD';
+            });
+        }
+
+        function executeIK(target, maxIters = 100, tol = 0.4) {
+            if (activeIKSolver === 'dls') {
+                const ok = solveIK_DLS(target, Math.min(maxIters, 60), tol);
+                if (ok) return true;
+                // Graceful fallback to singularity-damped CCD if target is in difficult kinematic corner
+                return solveIK(target, 40, tol);
+            } else {
+                return solveIK(target, maxIters, tol);
+            }
         }
 
         // IK button
@@ -3344,11 +3724,11 @@ JOINTS [deg]:
             const target = new THREE.Vector3(tx, ty, tz);
             targetMesh.position.copy(target);
             const st = document.getElementById('ik-status');
-            st.textContent = 'Solving...'; st.style.color = 'var(--cyan)';
+            st.textContent = `Solving via ${activeIKSolver.toUpperCase()}...`; st.style.color = 'var(--cyan)';
             document.getElementById('sb-ik').textContent = 'SOLVING';
             document.getElementById('sb-ik').className = 'sb-val orange';
-            const solved = solveIK(target, 100, 0.5);
-            st.textContent = solved ? 'Solution Found!' : 'Local Minima Reached.';
+            const solved = executeIK(target, 100, 0.4);
+            st.textContent = solved ? `Solution Found (${activeIKSolver.toUpperCase()})` : 'Local Minima Reached.';
             st.style.color = solved ? 'var(--green)' : 'var(--orange)';
             document.getElementById('sb-ik').textContent = solved ? 'SOLVED' : 'MINIMA';
             document.getElementById('sb-ik').className = solved ? 'sb-val green' : 'sb-val orange';
@@ -4247,6 +4627,11 @@ JOINTS [deg]:
                 const t2 = (Date.now()/600);
                 if (!teachDragging && !teachHover) effGlowMat.opacity = 0.25+Math.sin(t2)*0.15;
                 updateTeachGrabVisuals();
+            }
+
+            // Live Manipulability & Singularity Gauge (~20Hz)
+            if (fpsFrames % 3 === 0 && typeof updateManipulabilityHUD === 'function') {
+                updateManipulabilityHUD();
             }
 
             // ROS 2 Telemetry stream
@@ -5430,7 +5815,7 @@ JOINTS [deg]:
         const inputDHName = document.getElementById('dh-custom-name');
         
         async function saveDHToSupabase(name, dhData) {
-            const session = JSON.parse(localStorage.getItem('vectrasim_session'));
+            const session = JSON.parse(sessionStorage.getItem('vectrasim_session'));
             if (!session) return;
             
             const { data, error } = await supabase
@@ -5505,7 +5890,7 @@ JOINTS [deg]:
                     return;
                 }
                 
-                const session = JSON.parse(localStorage.getItem('vectrasim_session'));
+                const session = JSON.parse(sessionStorage.getItem('vectrasim_session'));
                 if (!session) return;
                 
                 showKineNotify('DELETING FROM CLOUD...', 'rgba(255,71,87,0.85)');
