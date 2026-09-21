@@ -839,6 +839,149 @@
       color: var(--theme-color, #00F5FF); letter-spacing: 3px;
       text-shadow: 0 0 10px var(--theme-color, #00F5FF);
     }
+    @keyframes wtfPulse {
+      0%, 100% { opacity: 0.4; transform: scale(1); }
+      50% { opacity: 0.9; transform: scale(1.15); }
+    }
+
+    /* ── SLAM COMPARISON MODE ── */
+    #slam-cmp-panel {
+      border: 1px solid rgba(59,130,246,0.22);
+      border-radius: 6px;
+      background: linear-gradient(160deg,rgba(59,130,246,0.06) 0%,rgba(0,245,255,0.03) 100%);
+      padding: 10px 12px;
+      position: relative;
+      overflow: hidden;
+    }
+    #slam-cmp-panel::before {
+      content:'';position:absolute;top:0;left:0;right:0;height:1px;
+      background:linear-gradient(90deg,transparent,rgba(0,245,255,0.4),transparent);
+    }
+    .cmp-title-row {
+      display:flex;align-items:center;justify-content:space-between;margin-bottom:9px;
+    }
+    .cmp-title {
+      font-family:var(--font-display);font-size:9px;font-weight:700;
+      letter-spacing:2px;color:var(--cyan);text-transform:uppercase;
+      display:flex;align-items:center;gap:5px;
+    }
+    .cmp-toggle-btn {
+      background:none;border:none;color:var(--text-muted);cursor:pointer;
+      font-size:11px;padding:2px 4px;line-height:1;border-radius:3px;
+      transition:background .15s;
+    }
+    .cmp-toggle-btn:hover{background:rgba(0,245,255,0.08);color:var(--cyan);}
+
+    /* Pose table */
+    .cmp-pose-table {
+      width:100%;border-collapse:collapse;font-family:var(--font-mono);font-size:9.5px;
+      margin-bottom:10px;
+    }
+    .cmp-pose-table th {
+      color:var(--text-muted);font-weight:400;font-size:8.5px;letter-spacing:1px;
+      padding:2px 4px;text-align:center;border-bottom:1px solid rgba(255,255,255,0.05);
+    }
+    .cmp-pose-table td {
+      padding:3px 4px;text-align:center;font-size:9.5px;
+    }
+    .cmp-row-truth td   { color:#60a5fa; }
+    .cmp-row-odom  td   { color:var(--yellow); }
+    .cmp-row-ekf   td   { color:var(--cyan); }
+    .cmp-row-label {
+      font-size:7.5px;letter-spacing:1px;font-family:var(--font-display);
+      padding-right:4px!important;text-align:left!important;opacity:.8;
+    }
+
+    /* RMSE bars */
+    .cmp-metric-row {
+      display:flex;align-items:center;gap:6px;margin-bottom:6px;
+    }
+    .cmp-metric-label {
+      font-family:var(--font-mono);font-size:8.5px;color:var(--text-muted);
+      width:70px;flex-shrink:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+    }
+    .cmp-bar-track {
+      flex:1;height:6px;background:rgba(255,255,255,0.06);border-radius:3px;overflow:hidden;
+    }
+    .cmp-bar-fill {
+      height:100%;border-radius:3px;transition:width .25s ease,background .3s;
+    }
+    .cmp-bar-fill.good   { background:var(--green); }
+    .cmp-bar-fill.medium { background:var(--yellow); }
+    .cmp-bar-fill.bad    { background:var(--red); }
+    .cmp-metric-val {
+      font-family:var(--font-mono);font-size:9px;width:42px;
+      text-align:right;flex-shrink:0;
+    }
+
+    /* Map entropy meter */
+    .cmp-entropy-row {
+      display:flex;align-items:center;gap:6px;margin-bottom:6px;
+    }
+    .cmp-entropy-track {
+      flex:1;height:6px;background:rgba(255,255,255,0.06);border-radius:3px;overflow:hidden;
+    }
+    .cmp-entropy-fill {
+      height:100%;border-radius:3px;
+      background:linear-gradient(90deg,#00E676,#FFD166,#FF4757);
+      transition:width .4s ease;
+    }
+
+    /* ESS / degeneracy */
+    .cmp-ess-row {
+      display:flex;align-items:center;gap:6px;margin-bottom:8px;
+    }
+    .cmp-ess-track {
+      flex:1;height:6px;background:rgba(255,255,255,0.06);border-radius:3px;overflow:hidden;
+    }
+    .cmp-ess-fill {
+      height:100%;border-radius:3px;transition:width .25s ease,background .3s;
+    }
+    .cmp-ess-fill.healthy    { background:#00E676; }
+    .cmp-ess-fill.degraded   { background:#FFD166; }
+    .cmp-ess-fill.degenerate { background:#FF4757; }
+
+    /* Resampling event badge */
+    .cmp-resample-row {
+      display:flex;align-items:center;justify-content:space-between;
+      margin-bottom:8px;
+    }
+    .cmp-resample-badge {
+      font-family:var(--font-mono);font-size:9px;
+      padding:2px 7px;border-radius:3px;
+      background:rgba(255,71,87,0.15);border:1px solid rgba(255,71,87,0.3);
+      color:var(--red);transition:opacity .3s;
+    }
+    @keyframes cmpFlash {
+      0%,100%{background:rgba(255,71,87,0.15);}
+      50%{background:rgba(255,71,87,0.5);box-shadow:0 0 8px rgba(255,71,87,0.6);}
+    }
+    .cmp-resample-badge.flash { animation:cmpFlash .4s ease; }
+    .cmp-resample-count {
+      font-family:var(--font-mono);font-size:18px;font-weight:700;
+      color:var(--red);line-height:1;
+    }
+
+    /* Sparkline canvas */
+    #cmpSparkline {
+      width:100%;height:44px;display:block;
+      border-radius:3px;
+      background:rgba(0,0,0,0.25);
+      margin-top:2px;
+    }
+    .cmp-sparkline-legend {
+      display:flex;gap:10px;margin-top:4px;justify-content:flex-end;
+    }
+    .cmp-sl-item {
+      display:flex;align-items:center;gap:3px;
+      font-family:var(--font-mono);font-size:7.5px;color:var(--text-muted);
+    }
+    .cmp-sl-dot {
+      width:6px;height:6px;border-radius:50%;flex-shrink:0;
+    }
+    .cmp-divider {
+      height:1px;background:rgba(255,255,255,0.05);margin:7px 0;
+    }
   </style>
 </head>
 
@@ -1104,6 +1247,112 @@
           </div>
         </div>
 
+        <!-- ── SLAM COMPARISON MODE PANEL ── -->
+        <div id="slam-cmp-panel" class="panel-section">
+          <div class="cmp-title-row">
+            <div class="cmp-title">
+              <span>📐</span> Pose Comparison
+            </div>
+            <button class="cmp-toggle-btn" id="cmpToggleBtn"
+              onclick="const b=document.getElementById('slam-cmp-body');const collapsed=b.style.display==='none';b.style.display=collapsed?'block':'none';this.textContent=collapsed?'▾':'▸';"
+              title="Collapse">▾</button>
+          </div>
+          <div id="slam-cmp-body">
+
+            <!-- 3-row Pose Table -->
+            <table class="cmp-pose-table">
+              <thead>
+                <tr>
+                  <th style="text-align:left;">Source</th>
+                  <th>X (px)</th>
+                  <th>Y (px)</th>
+                  <th>θ (°)</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr class="cmp-row-truth">
+                  <td class="cmp-row-label" style="color:#60a5fa;">TRUTH</td>
+                  <td id="cmpTruthX">–</td>
+                  <td id="cmpTruthY">–</td>
+                  <td id="cmpTruthT">–</td>
+                </tr>
+                <tr class="cmp-row-odom">
+                  <td class="cmp-row-label" style="color:var(--yellow);">ODOM</td>
+                  <td id="cmpOdomX">–</td>
+                  <td id="cmpOdomY">–</td>
+                  <td id="cmpOdomT">–</td>
+                </tr>
+                <tr class="cmp-row-ekf">
+                  <td class="cmp-row-label" style="color:var(--cyan);">EKF</td>
+                  <td id="cmpEkfX">–</td>
+                  <td id="cmpEkfY">–</td>
+                  <td id="cmpEkfT">–</td>
+                </tr>
+              </tbody>
+            </table>
+
+            <div class="cmp-divider"></div>
+
+            <!-- RMSE: Odometry vs Truth -->
+            <div class="cmp-metric-row">
+              <div class="cmp-metric-label" title="Root Mean Square Error — Odometry vs Ground Truth (last 120 frames)">RMSE Odom</div>
+              <div class="cmp-bar-track">
+                <div class="cmp-bar-fill good" id="cmpRmseOdomBar" style="width:0%"></div>
+              </div>
+              <div class="cmp-metric-val" id="cmpRmseOdomVal" style="color:var(--yellow);">0.0px</div>
+            </div>
+
+            <!-- RMSE: EKF vs Truth -->
+            <div class="cmp-metric-row">
+              <div class="cmp-metric-label" title="Root Mean Square Error — EKF estimate vs Ground Truth">RMSE EKF</div>
+              <div class="cmp-bar-track">
+                <div class="cmp-bar-fill good" id="cmpRmseEkfBar" style="width:0%"></div>
+              </div>
+              <div class="cmp-metric-val" id="cmpRmseEkfVal" style="color:var(--cyan);">N/A</div>
+            </div>
+
+            <div class="cmp-divider"></div>
+
+            <!-- Map Entropy -->
+            <div class="cmp-entropy-row">
+              <div class="cmp-metric-label" title="Shannon map entropy — higher means more unmapped area remains">Map Entropy</div>
+              <div class="cmp-entropy-track">
+                <div class="cmp-entropy-fill" id="cmpEntropyBar" style="width:100%"></div>
+              </div>
+              <div class="cmp-metric-val" id="cmpEntropyVal" style="color:var(--text-dim);">–</div>
+            </div>
+
+            <!-- Particle ESS / Degeneracy -->
+            <div class="cmp-ess-row">
+              <div class="cmp-metric-label" title="Effective Sample Size — ESS/N; low = particle degeneracy">Particle ESS</div>
+              <div class="cmp-ess-track">
+                <div class="cmp-ess-fill healthy" id="cmpEssBar" style="width:0%"></div>
+              </div>
+              <div class="cmp-metric-val" id="cmpEssVal" style="color:var(--text-muted);">OFF</div>
+            </div>
+
+            <div class="cmp-divider"></div>
+
+            <!-- Resampling Events -->
+            <div class="cmp-resample-row">
+              <div style="display:flex;align-items:center;gap:6px;">
+                <span class="cmp-resample-badge" id="cmpResampleBadge">⟳ RESAMPLE</span>
+                <span style="font-size:8.5px;color:var(--text-muted);font-family:var(--font-mono);">events</span>
+              </div>
+              <span class="cmp-resample-count" id="cmpResampleCount">0</span>
+            </div>
+
+            <!-- Sparkline: RMSE history -->
+            <div style="font-family:var(--font-mono);font-size:8px;color:var(--text-muted);margin-bottom:3px;letter-spacing:1px;">RMSE HISTORY (120 frames)</div>
+            <canvas id="cmpSparkline" width="200" height="44"></canvas>
+            <div class="cmp-sparkline-legend">
+              <div class="cmp-sl-item"><div class="cmp-sl-dot" style="background:#FFD166;"></div>Odom</div>
+              <div class="cmp-sl-item"><div class="cmp-sl-dot" style="background:#00F5FF;"></div>EKF</div>
+            </div>
+
+          </div><!-- /cmp-body -->
+        </div><!-- /slam-cmp-panel -->
+
         <!-- Legend -->
         <div class="panel-section">
           <div class="panel-title">Legend</div>
@@ -1155,6 +1404,52 @@
 
       <!-- RIGHT PANEL -->
       <div id="right-panel">
+
+        <!-- ── WHAT TO TRY FIRST PANEL (SLAM) ── -->
+        <div class="panel-section" id="wtf-panel-slam" style="
+          background: linear-gradient(135deg, rgba(59,130,246,0.08) 0%, rgba(0,245,255,0.05) 100%);
+          border: 1px solid rgba(59,130,246,0.25);
+          border-radius: 6px;
+          padding: 10px 12px;
+          position: relative;
+          overflow: hidden;
+        ">
+          <!-- animated background pulse -->
+          <div style="position:absolute;top:-20px;right:-20px;width:80px;height:80px;background:radial-gradient(circle,rgba(59,130,246,0.12) 0%,transparent 70%);border-radius:50%;pointer-events:none;animation:wtfPulse 3s ease-in-out infinite;"></div>
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+            <div style="display:flex;align-items:center;gap:6px;">
+              <span style="font-size:13px;">🚀</span>
+              <span style="font-family:var(--font-display);font-size:9px;font-weight:700;letter-spacing:2px;color:var(--cyan);text-transform:uppercase;">What to Try First</span>
+            </div>
+            <button onclick="document.getElementById('wtf-slam-body').style.display=document.getElementById('wtf-slam-body').style.display==='none'?'block':'none';this.textContent=this.textContent==='▾'?'▸':'▾';" title="Collapse" style="background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:11px;padding:2px 4px;line-height:1;">▾</button>
+          </div>
+          <div id="wtf-slam-body">
+            <ol style="margin:0;padding-left:16px;display:flex;flex-direction:column;gap:5px;">
+              <li style="font-size:10.5px;color:var(--text-dim);line-height:1.45;">
+                <strong style="color:var(--cyan);">▶ Launch Sim</strong> — Hit the button in the top bar to start the robot &amp; LiDAR
+              </li>
+              <li style="font-size:10.5px;color:var(--text-dim);line-height:1.45;">
+                <strong style="color:var(--yellow);">🎯 Click scene</strong> — Click anywhere on the 3D view to set an autonomous waypoint
+              </li>
+              <li style="font-size:10.5px;color:var(--text-dim);line-height:1.45;">
+                <strong style="color:var(--green);">🔊 Raise Noise %</strong> — Drag the Noise slider to ~15 and watch SLAM accuracy degrade
+              </li>
+              <li style="font-size:10.5px;color:var(--text-dim);line-height:1.45;">
+                <strong style="color:var(--cyan);">📷 Switch Camera</strong> — Press <kbd style="background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);border-radius:3px;padding:1px 4px;font-size:9px;">C</kbd> to cycle Top-Down → Follow → Free
+              </li>
+              <li style="font-size:10.5px;color:var(--text-dim);line-height:1.45;">
+                <strong style="color:var(--blue);">🧮 A* vs Dijkstra</strong> — Switch algorithms in the Pathfinding panel, then click a new waypoint to compare routes
+              </li>
+              <li style="font-size:10.5px;color:var(--text-dim);line-height:1.45;">
+                <strong style="color:var(--text-dim);">🌀 Try Maze map</strong> — Load the Maze preset and enable Frontier Exploration (auto-mapping)
+              </li>
+            </ol>
+            <div style="margin-top:8px;padding:5px 8px;background:rgba(0,230,118,0.06);border-left:2px solid var(--green);border-radius:0 3px 3px 0;">
+              <span style="font-size:9.5px;color:var(--green);">💡 Tip: Enable EKF + MCL together to see sensor fusion battle odometry drift</span>
+            </div>
+          </div>
+        </div>
+
         <div class="panel-section">
           <div class="panel-title">Active Algorithm</div>
           <div class="algo-badge">
@@ -3061,6 +3356,280 @@
     let pfAlgo = 'astar';
     let unreachableFrontiers = [];
 
+    // ── SLAM COMPARISON ENGINE ──
+    let slamComparison;
+
+    class SlamComparison {
+      constructor() {
+        // Ring buffers — 120 frames ≈ 2 s at 60 fps
+        this.RING = 120;
+        this.rmseOdomBuf = new Float32Array(this.RING);
+        this.rmseEkfBuf  = new Float32Array(this.RING);
+        this.bufPtr      = 0;
+        this.filled      = false;
+
+        // Running squared-error accumulators for current window
+        this.sumSqOdom  = 0;
+        this.sumSqEkf   = 0;
+
+        // Map entropy
+        this.entropy     = 0;
+        this.entropyMax  = 1.0;   // log2(2) = 1 bit — fully uncertain cell
+        this.entropyFrame = 0;
+        this.ENTROPY_INTERVAL = 30; // recompute every N frames
+
+        // Resampling
+        this.resampleCount  = 0;
+        this.lastFlashTime  = 0;
+
+        // DOM element cache
+        this._dom = {};
+        this._lastDomUpdate = 0;
+        this._sparkCanvas   = null;
+        this._sparkCtx      = null;
+      }
+
+      _el(id) {
+        if (!this._dom[id]) this._dom[id] = document.getElementById(id);
+        return this._dom[id];
+      }
+
+      // Compute Shannon entropy of the occupancy grid (sampled 1-in-4 cells for speed)
+      _computeMapEntropy(mapper) {
+        const { grid } = mapper;
+        const N = grid.length;
+        let H = 0, count = 0;
+        for (let i = 0; i < N; i += 4) {
+          const l = grid[i];
+          if (l === 0) continue; // unknown cells carry max entropy (counted separately)
+          const p = 1 - 1 / (1 + Math.exp(l)); // Bayesian prob
+          const pc = Math.max(1e-9, Math.min(1 - 1e-9, p));
+          H -= pc * Math.log2(pc) + (1 - pc) * Math.log2(1 - pc);
+          count++;
+        }
+        // unknown cells = 1 bit entropy each
+        const unknownCount = Math.floor((N - count * 4) / 4);
+        H += unknownCount;
+        const totalSampled = Math.ceil(N / 4);
+        return totalSampled > 0 ? H / totalSampled : 1.0;
+      }
+
+      // ESS = 1 / Σ wᵢ²
+      _computeESS(pf) {
+        if (!pf || !pf.enabled || !pf.particles || pf.particles.length === 0) return -1;
+        let sumSq = 0;
+        for (const p of pf.particles) sumSq += p.weight * p.weight;
+        return sumSq > 0 ? 1 / sumSq : pf.particles.length;
+      }
+
+      update(robot, ekf, pf, mapper, frame) {
+        // ── 1. Pose error this frame ──
+        const dx_odom = robot.x - robot.believedX;
+        const dy_odom = robot.y - robot.believedY;
+        const sqOdom  = dx_odom * dx_odom + dy_odom * dy_odom;
+
+        let sqEkf = -1;
+        if (ekf && ekf.enabled) {
+          const dx_ekf = robot.x - ekf.state[0];
+          const dy_ekf = robot.y - ekf.state[1];
+          sqEkf = dx_ekf * dx_ekf + dy_ekf * dy_ekf;
+        }
+
+        // ── 2. Update ring buffer (subtract old value, add new) ──
+        const oldOdom = this.rmseOdomBuf[this.bufPtr];
+        const oldEkf  = this.rmseEkfBuf[this.bufPtr];
+        this.sumSqOdom += sqOdom - oldOdom;
+        this.sumSqEkf  += (sqEkf >= 0 ? sqEkf : 0) - (oldEkf >= 0 ? oldEkf : 0);
+
+        this.rmseOdomBuf[this.bufPtr] = sqOdom;
+        this.rmseEkfBuf[this.bufPtr]  = sqEkf >= 0 ? sqEkf : -1;
+        this.bufPtr = (this.bufPtr + 1) % this.RING;
+        if (this.bufPtr === 0) this.filled = true;
+
+        const windowSize = this.filled ? this.RING : this.bufPtr;
+        const rmseOdom = windowSize > 0 ? Math.sqrt(Math.max(0, this.sumSqOdom) / windowSize) : 0;
+        const rmseEkf  = (ekf && ekf.enabled && windowSize > 0)
+          ? Math.sqrt(Math.max(0, this.sumSqEkf) / windowSize)
+          : -1;
+
+        // ── 3. Map entropy (every ENTROPY_INTERVAL frames) ──
+        this.entropyFrame++;
+        if (this.entropyFrame >= this.ENTROPY_INTERVAL) {
+          this.entropyFrame = 0;
+          this.entropy = this._computeMapEntropy(mapper);
+        }
+
+        // ── 4. Particle ESS ──
+        const ess = this._computeESS(pf);
+        const essRatio = (ess >= 0 && pf && pf.particles.length > 0)
+          ? ess / pf.particles.length : -1;
+
+        // ── 5. Resampling event ── (pf.resample() is called every frame MCL active)
+        if (pf && pf.enabled) {
+          this.resampleCount++;
+          const now = performance.now();
+          if (now - this.lastFlashTime > 800) { // flash at most every 800ms
+            this.lastFlashTime = now;
+            const badge = this._el('cmpResampleBadge');
+            if (badge) {
+              badge.classList.remove('flash');
+              void badge.offsetWidth; // reflow to retrigger animation
+              badge.classList.add('flash');
+            }
+          }
+        }
+
+        // ── 6. Throttled DOM update (100ms) ──
+        const nowMs = performance.now();
+        if (nowMs - this._lastDomUpdate < 100) return;
+        this._lastDomUpdate = nowMs;
+
+        // Pose table
+        const fmt1 = v => v.toFixed(1);
+        const fmtDeg = v => (v * 180 / Math.PI).toFixed(1);
+        const set = (id, v) => { const el = this._el(id); if (el) el.textContent = v; };
+
+        set('cmpTruthX', fmt1(robot.x));
+        set('cmpTruthY', fmt1(robot.y));
+        set('cmpTruthT', fmtDeg(robot.theta));
+        set('cmpOdomX',  fmt1(robot.believedX));
+        set('cmpOdomY',  fmt1(robot.believedY));
+        set('cmpOdomT',  fmtDeg(robot.believedTheta));
+        if (ekf && ekf.enabled) {
+          set('cmpEkfX', fmt1(ekf.state[0]));
+          set('cmpEkfY', fmt1(ekf.state[1]));
+          set('cmpEkfT', fmtDeg(ekf.state[2]));
+        } else {
+          set('cmpEkfX', 'OFF'); set('cmpEkfY', '–'); set('cmpEkfT', '–');
+        }
+
+        // RMSE bars (max display = 80px treated as 100%)
+        const MAX_RMSE = 80;
+        const odomPct  = Math.min(100, (rmseOdom / MAX_RMSE) * 100);
+        const odomCls  = rmseOdom < 5 ? 'good' : rmseOdom < 20 ? 'medium' : 'bad';
+        const odomBar  = this._el('cmpRmseOdomBar');
+        if (odomBar) { odomBar.style.width = odomPct + '%'; odomBar.className = 'cmp-bar-fill ' + odomCls; }
+        const odomVal  = this._el('cmpRmseOdomVal');
+        if (odomVal) {
+          odomVal.textContent = rmseOdom.toFixed(1) + 'px';
+          odomVal.style.color = odomCls === 'good' ? 'var(--green)' : odomCls === 'medium' ? 'var(--yellow)' : 'var(--red)';
+        }
+
+        const ekfBar  = this._el('cmpRmseEkfBar');
+        const ekfVal  = this._el('cmpRmseEkfVal');
+        if (rmseEkf >= 0) {
+          const ekfPct = Math.min(100, (rmseEkf / MAX_RMSE) * 100);
+          const ekfCls = rmseEkf < 5 ? 'good' : rmseEkf < 20 ? 'medium' : 'bad';
+          if (ekfBar) { ekfBar.style.width = ekfPct + '%'; ekfBar.className = 'cmp-bar-fill ' + ekfCls; }
+          if (ekfVal) { ekfVal.textContent = rmseEkf.toFixed(1) + 'px'; ekfVal.style.color = ekfCls === 'good' ? 'var(--green)' : ekfCls === 'medium' ? 'var(--yellow)' : 'var(--red)'; }
+        } else {
+          if (ekfBar) ekfBar.style.width = '0%';
+          if (ekfVal) { ekfVal.textContent = 'OFF'; ekfVal.style.color = 'var(--text-muted)'; }
+        }
+
+        // Map entropy (0=min,1=max uncertainty)
+        const ePct = Math.min(100, this.entropy * 100);
+        const eBar = this._el('cmpEntropyBar');
+        if (eBar) eBar.style.width = ePct + '%';
+        const eVal = this._el('cmpEntropyVal');
+        if (eVal) { eVal.textContent = this.entropy.toFixed(3); }
+
+        // Particle ESS bar
+        const essBar = this._el('cmpEssBar');
+        const essVal = this._el('cmpEssVal');
+        if (essRatio >= 0) {
+          const essPct = Math.min(100, essRatio * 100);
+          const essCls = essRatio > 0.5 ? 'healthy' : essRatio > 0.2 ? 'degraded' : 'degenerate';
+          if (essBar) { essBar.style.width = essPct + '%'; essBar.className = 'cmp-ess-fill ' + essCls; }
+          if (essVal) {
+            essVal.textContent = (essRatio * 100).toFixed(0) + '%';
+            essVal.style.color = essCls === 'healthy' ? 'var(--green)' : essCls === 'degraded' ? 'var(--yellow)' : 'var(--red)';
+          }
+        } else {
+          if (essBar) essBar.style.width = '0%';
+          if (essVal) { essVal.textContent = 'OFF'; essVal.style.color = 'var(--text-muted)'; }
+        }
+
+        // Resampling count
+        const rcEl = this._el('cmpResampleCount');
+        if (rcEl) rcEl.textContent = this.resampleCount;
+
+        // ── 7. Sparkline ──
+        this._drawSparkline(rmseOdom, rmseEkf);
+      }
+
+      _drawSparkline(currentOdom, currentEkf) {
+        if (!this._sparkCanvas) {
+          this._sparkCanvas = document.getElementById('cmpSparkline');
+          if (!this._sparkCanvas) return;
+          this._sparkCtx = this._sparkCanvas.getContext('2d');
+        }
+        const canvas = this._sparkCanvas;
+        const ctx    = this._sparkCtx;
+        const W = canvas.width, H = canvas.height;
+        ctx.clearRect(0, 0, W, H);
+
+        // Background grid lines
+        ctx.strokeStyle = 'rgba(255,255,255,0.04)';
+        ctx.lineWidth = 1;
+        for (let i = 1; i < 4; i++) {
+          ctx.beginPath();
+          ctx.moveTo(0, (H / 4) * i);
+          ctx.lineTo(W, (H / 4) * i);
+          ctx.stroke();
+        }
+
+        const MAX_RMSE = 80;
+        const ring = this.RING;
+        const filled = this.filled;
+        const n = filled ? ring : this.bufPtr;
+        if (n < 2) return;
+
+        const drawLine = (buf, color, isEkf) => {
+          ctx.beginPath();
+          ctx.strokeStyle = color;
+          ctx.lineWidth = 1.5;
+          ctx.shadowColor = color;
+          ctx.shadowBlur = 4;
+          let started = false;
+          for (let i = 0; i < n; i++) {
+            // Walk buffer in chronological order
+            const readIdx = filled ? (this.bufPtr + i) % ring : i;
+            const val = buf[readIdx];
+            if (isEkf && val < 0) { started = false; continue; }
+            const rmse = Math.sqrt(Math.max(0, val));
+            const x = (i / (n - 1)) * W;
+            const y = H - Math.min(H, (rmse / MAX_RMSE) * H);
+            if (!started) { ctx.moveTo(x, y); started = true; }
+            else ctx.lineTo(x, y);
+          }
+          ctx.stroke();
+          ctx.shadowBlur = 0;
+        };
+
+        drawLine(this.rmseOdomBuf, '#FFD166', false);
+        drawLine(this.rmseEkfBuf,  '#00F5FF', true);
+
+        // Axis label top-right: max RMSE
+        ctx.fillStyle = 'rgba(255,255,255,0.2)';
+        ctx.font = '8px monospace';
+        ctx.textAlign = 'right';
+        ctx.fillText(MAX_RMSE + 'px', W - 2, 9);
+        ctx.fillText('0', W - 2, H - 2);
+      }
+
+      reset() {
+        this.rmseOdomBuf.fill(0);
+        this.rmseEkfBuf.fill(0);
+        this.bufPtr = 0; this.filled = false;
+        this.sumSqOdom = 0; this.sumSqEkf = 0;
+        this.resampleCount = 0;
+        this.entropyFrame = 0;
+        this._dom = {}; // clear DOM cache so IDs are re-fetched
+        this._lastDomUpdate = 0;
+      }
+    }
+
     // 3D objects
     let sceneBuilder, cameraCtrl, robotMesh, believedMesh, obstacleMgr;
     let lidarViz, occTexture, voxelMap, trajectoryLine, particleViz, frontierMarker;
@@ -3140,6 +3709,7 @@
       dynamicObstacles = new DynamicObstacles(canvasW, canvasH);
       dynamicHumans = new DynamicHumans(canvasW, canvasH);
       statsTracker = new StatsTracker();
+      slamComparison = new SlamComparison();
       pathfinder = new AStar(mapper);
       currentPath = null; frontierTarget = null; frontierTimer = 0;
       frontierEnabled = false;
@@ -3272,6 +3842,11 @@
       // Stats
       statsTracker.update(robot, mapper, hitWall);
       updateRobotState();
+
+      // Pose comparison metrics
+      if (slamComparison) {
+        slamComparison.update(robot, ekfEstimator, particleFilter, mapper, frameCount);
+      }
 
       // ── 3D RENDERING ──
       // Update robot mesh
@@ -3472,6 +4047,7 @@
       if (ekfEstimator) ekfEstimator.init(spawn.x, spawn.y, 0);
       robot.resetTrails();
       statsTracker.reset();
+      if (slamComparison) slamComparison.reset();
       currentPath = null; frontierTarget = null;
       dynamicObstacles.generate();
       obstacleMgr.buildStaticWalls(environment.baseWalls.concat(environment.customWalls));
@@ -3499,6 +4075,7 @@
       if (ekfEstimator) ekfEstimator.init(spawn.x, spawn.y, 0);
       robot.resetTrails();
       statsTracker.reset();
+      if (slamComparison) slamComparison.reset();
       currentPath = null; frontierTarget = null;
       dynamicObstacles.generate();
       obstacleMgr.buildStaticWalls(environment.baseWalls.concat(environment.customWalls));

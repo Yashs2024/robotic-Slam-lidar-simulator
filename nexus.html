@@ -1396,6 +1396,64 @@
           color: var(--theme-color, var(--violet)); letter-spacing: 3px;
           text-shadow: 0 0 10px var(--theme-color, var(--violet));
         }
+        @keyframes wtfPulse {
+          0%, 100% { opacity: 0.4; transform: scale(1); }
+          50% { opacity: 0.9; transform: scale(1.2); }
+        }
+        @keyframes wtfSlideIn {
+          from { opacity: 0; transform: translateY(20px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        #nexus-wtf-panel {
+          position: fixed;
+          bottom: 120px;
+          right: 20px;
+          width: 260px;
+          background: linear-gradient(135deg, rgba(155,93,229,0.12) 0%, rgba(0,245,255,0.06) 100%);
+          border: 1px solid rgba(155,93,229,0.35);
+          border-radius: 8px;
+          padding: 12px 14px;
+          z-index: 5000;
+          backdrop-filter: blur(16px);
+          box-shadow: 0 8px 32px rgba(155,93,229,0.15), 0 0 0 1px rgba(155,93,229,0.08);
+          animation: wtfSlideIn 0.4s ease-out;
+          overflow: hidden;
+        }
+        #nexus-wtf-panel.collapsed #nexus-wtf-body { display: none; }
+        #nexus-wtf-panel .wtf-orb {
+          position: absolute; top: -15px; right: -15px;
+          width: 70px; height: 70px;
+          background: radial-gradient(circle, rgba(155,93,229,0.2) 0%, transparent 70%);
+          border-radius: 50%; pointer-events: none;
+          animation: wtfPulse 3s ease-in-out infinite;
+        }
+        #nexus-wtf-panel .wtf-header {
+          display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px;
+        }
+        #nexus-wtf-panel .wtf-title {
+          display: flex; align-items: center; gap: 6px;
+          font-family: 'Orbitron', sans-serif; font-size: 8.5px;
+          font-weight: 700; letter-spacing: 2px; color: var(--violet); text-transform: uppercase;
+        }
+        #nexus-wtf-panel .wtf-controls { display: flex; gap: 4px; }
+        #nexus-wtf-panel .wtf-btn {
+          background: none; border: none; color: rgba(155,93,229,0.6);
+          cursor: pointer; font-size: 11px; padding: 2px 5px; line-height: 1;
+          border-radius: 3px; transition: background 0.15s;
+        }
+        #nexus-wtf-panel .wtf-btn:hover { background: rgba(155,93,229,0.15); color: var(--violet); }
+        #nexus-wtf-panel ol {
+          margin: 0; padding-left: 16px;
+          display: flex; flex-direction: column; gap: 5px;
+        }
+        #nexus-wtf-panel li {
+          font-size: 10px; color: rgba(224,230,237,0.75); line-height: 1.4;
+        }
+        #nexus-wtf-panel .wtf-tip {
+          margin-top: 8px; padding: 5px 8px;
+          background: rgba(0,245,255,0.06); border-left: 2px solid rgba(0,245,255,0.4);
+          border-radius: 0 3px 3px 0; font-size: 9px; color: rgba(0,245,255,0.8);
+        }
     </style>
   <link rel="stylesheet" href="./src/theme.css">
 </head>
@@ -1490,6 +1548,29 @@
 
     <!-- APP CONTAINER -->
     <div id="app">
+
+    <!-- ── WHAT TO TRY FIRST PANEL (NEXUS) ── -->
+    <div id="nexus-wtf-panel">
+      <div class="wtf-orb"></div>
+      <div class="wtf-header">
+        <div class="wtf-title"><span>🦾</span> What to Try First</div>
+        <div class="wtf-controls">
+          <button class="wtf-btn" id="nexus-wtf-toggle" title="Collapse" onclick="const p=document.getElementById('nexus-wtf-panel');p.classList.toggle('collapsed');this.textContent=p.classList.contains('collapsed')?'▸':'▾';">▾</button>
+          <button class="wtf-btn" title="Dismiss" onclick="document.getElementById('nexus-wtf-panel').style.display='none';">✕</button>
+        </div>
+      </div>
+      <div id="nexus-wtf-body">
+        <ol>
+          <li><strong style="color:#9B5DE5;">🦾 Drag Joint sliders</strong> — Move J1–J6 sliders to drive Forward Kinematics live</li>
+          <li><strong style="color:#00F5FF;">🎯 IK Target</strong> — Click the "IK" sub-tab, enter XYZ coords and hit Solve to inverse-kinematically reach a pose</li>
+          <li><strong style="color:#FF6B35;">📍 Teach Mode</strong> — Press <kbd style="background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);border-radius:3px;padding:1px 4px;font-size:8px;">T</kbd> or open the PATH tab → record waypoints → play LSPB trajectory</li>
+          <li><strong style="color:#00FFB2;">🔢 Change DOF</strong> — Use the DOF selector (2–6 joints) to reconfigure the arm on the fly</li>
+          <li><strong style="color:#9B5DE5;">⚡ Check Torques</strong> — Open the DYN tab to view per-joint torque estimates during motion</li>
+          <li><strong style="color:#FFD166;">📊 Analytics</strong> — Hit the ANALYTICS button in the nav to see the Yoshikawa manipulability gauge</li>
+        </ol>
+        <div class="wtf-tip">💡 Tip: Near-zero manipulability = singularity — watch the gauge go red!</div>
+      </div>
+    </div>
 
         <!-- ===================== MODULE 1: KINEMATICS ===================== -->
         <div id="mod-kine" class="module active">
