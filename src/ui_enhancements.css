@@ -309,3 +309,11 @@ tr:hover {
     border-color: var(--theme-color, var(--cyan)) !important;
     background: linear-gradient(145deg, rgba(255,255,255,0.05), transparent) !important;
 }
+
+/* 7. Global Accessibility (Focus States) */
+*:focus-visible {
+    outline: 2px solid var(--theme-color, var(--cyan));
+    outline-offset: 4px;
+    box-shadow: 0 0 10px var(--theme-glow, rgba(0, 245, 255, 0.4));
+    border-radius: 2px;
+}
