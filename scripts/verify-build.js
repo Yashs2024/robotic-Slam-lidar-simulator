@@ -90,13 +90,11 @@ if (!distFiles.has('404.html')) {
 
 const vercelJson = JSON.parse(readFileSync(VERCEL, 'utf-8'));
 const rewrites = vercelJson.rewrites || [];
-const has404Rewrite = rewrites.some(r =>
-  r.destination === '/404.html' && r.status === 404 && r.source
-);
-if (!has404Rewrite) {
-  fail('vercel.json missing rewrite { "source": "...", "destination": "/404.html", "status": 404 }');
+const hasInvalidRewriteStatus = rewrites.some(r => 'status' in r);
+if (hasInvalidRewriteStatus) {
+  fail('vercel.json rewrites must not define "status" (invalid schema); Vercel serves dist/404.html natively');
 } else {
-  pass('vercel.json has 404 rewrite with status 404');
+  pass('vercel.json schema valid (dist/404.html served natively by Vercel)');
 }
 
 const notFoundHtml = readFileSync(join(DIST, '404.html'), 'utf-8');
