@@ -29,9 +29,9 @@
 
 <br />
 
-<img src="public/slam%20and%20lidar.png" alt="VectraSim Live 2D LiDAR Raycasting and Exploration Telemetry" width="88%" />
+<img src="public/slam%20and%20lidar.png" alt="VectraSim Suite Platform Hero with Live SLAM, NEXUS 6-DOF, and HIVE 3D Previews" width="90%" />
 
-<p><sub><em>Real-time 2D LiDAR raycasting, obstacle collision telemetry, and progressive autonomous map exploration inside the browser.</em></sub></p>
+<p><sub><em>VectraSim Suite unified platform landing page featuring multi-engine live previews across SLAM Perception, NEXUS 6-DOF Arm, and HIVE 3D Swarm.</em></sub></p>
 
 </div>
 
@@ -57,19 +57,25 @@
 <table>
   <tr>
     <td align="center" width="33.3%">
-      <img src="public/slam_simulator.png" alt="SLAM Engine — LiDAR & Localization" width="100%" /><br />
-      <strong>1. SLAM Engine</strong><br />
-      <sub>3D &amp; 2D LiDAR Mapping &bull; EKF Sensor Fusion &bull; MCL</sub>
+      <a href="https://vectrasim.vercel.app/src/slam_landing.html">
+        <img src="public/slam_simulator.png" alt="SLAM Perception — Interactive Three.js WebGL LiDAR & EKF Preview" width="100%" />
+      </a><br />
+      <strong>1. SLAM Perception</strong><br />
+      <sub>360&deg; Raycasting LiDAR &bull; 2&sigma; EKF Covariance &bull; 500 MCL Particles</sub>
     </td>
     <td align="center" width="33.3%">
-      <img src="public/nexus_simulator.png" alt="NEXUS 6-DOF — Kinematics & Trajectory Profiling" width="100%" /><br />
-      <strong>2. NEXUS 6-DOF</strong><br />
-      <sub>DLS Null-Space IK &bull; RRT &amp; Quintic/LSPB &bull; Newton-Euler</sub>
+      <a href="https://vectrasim.vercel.app/src/nexus_landing.html">
+        <img src="public/nexus_simulator.png" alt="NEXUS 6-DOF Arm — Interactive Three.js DLS IK & Jacobian Preview" width="100%" />
+      </a><br />
+      <strong>2. NEXUS 6-DOF Arm</strong><br />
+      <sub>6-DOF Articulated Arm &bull; &lt;1.2ms DLS IK &bull; 3&times;N Analytical Jacobian</sub>
     </td>
     <td align="center" width="33.3%">
-      <img src="public/hive_simulator.png" alt="HIVE 3D — Swarm Logistics Simulator" width="100%" /><br />
-      <strong>3. HIVE 3D</strong><br />
-      <sub>Space-Time A* Reservations &bull; 4 Dispatch Strategies</sub>
+      <a href="https://vectrasim.vercel.app/src/hive_landing.html">
+        <img src="public/hive_simulator.png" alt="HIVE 3D Swarm — Interactive Three.js Multi-AMR Warehouse Preview" width="100%" />
+      </a><br />
+      <strong>3. HIVE 3D Swarm</strong><br />
+      <sub>4 AMRs &bull; 90m&sup2; Grid &bull; 4D Space-Time A* &amp; Scissor-Lift Telemetry</sub>
     </td>
   </tr>
 </table>
@@ -160,10 +166,10 @@ slam-simulator/
 ├── public/                     # Static assets copied directly to dist/
 │   ├── robots.txt              # Crawler allow rules + sitemap location
 │   ├── sitemap.xml             # Canonical index of 9 public routes
-│   ├── slam_simulator.png      # SLAM Engine showcase artwork
-│   ├── nexus_simulator.png     # NEXUS 6-DOF showcase artwork
-│   ├── hive_simulator.png      # HIVE 3D showcase artwork
-│   ├── slam and lidar.png      # Live 2D LiDAR & exploration screenshot
+│   ├── slam_simulator.png      # SLAM Perception landing & WebGL preview screenshot
+│   ├── nexus_simulator.png     # NEXUS 6-DOF Arm landing & WebGL preview screenshot
+│   ├── hive_simulator.png      # HIVE 3D Swarm landing & WebGL preview screenshot
+│   ├── slam and lidar.png      # VectraSim Suite unified platform hero screenshot
 │   └── donate.jpeg             # Project support QR code
 │
 ├── src/
