@@ -1,0 +1,274 @@
+/* ===================================
+   VECTRASIM 404 PAGE
+   =================================== */
+
+@import './tokens.css';
+
+body {
+  font-family: var(--font-body);
+  background: var(--bg);
+  color: var(--text-main);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 24px;
+  overflow-x: hidden;
+}
+
+.nf-shell {
+  width: 100%;
+  max-width: 760px;
+  text-align: center;
+}
+
+.nf-code {
+  font-family: var(--font-head);
+  font-size: clamp(72px, 18vw, 160px);
+  font-weight: 900;
+  line-height: 1;
+  letter-spacing: 8px;
+  margin: 0 0 8px;
+  background: linear-gradient(135deg, var(--cyan), var(--blue) 55%, var(--violet, #9B5DE5));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  text-shadow: 0 0 60px rgba(0, 245, 255, 0.25);
+}
+
+.nf-title {
+  font-family: var(--font-head);
+  font-size: clamp(20px, 4vw, 30px);
+  font-weight: 700;
+  letter-spacing: 3px;
+  margin: 0 0 16px;
+  color: var(--text-main);
+  text-shadow: var(--cyan-glow);
+}
+
+.nf-title:focus-visible {
+  outline: 2px solid var(--cyan);
+  outline-offset: 6px;
+}
+
+.nf-body {
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+  line-height: 1.8;
+  letter-spacing: 0.5px;
+  margin: 0 auto 28px;
+  max-width: 560px;
+}
+
+.nf-path {
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  color: var(--cyan);
+  background: var(--cyan-dim);
+  border: 1px solid var(--border-cyan);
+  border-radius: 4px;
+  padding: 4px 10px;
+  margin-top: 10px;
+  word-break: break-all;
+  max-width: 100%;
+}
+
+.nf-suggestion {
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  color: var(--amber);
+  margin: 0 0 24px;
+}
+
+.nf-suggestion a {
+  color: var(--amber);
+}
+
+.nf-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  justify-content: center;
+  margin-bottom: 36px;
+}
+
+.nf-btn {
+  font-family: var(--font-sub);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 1.2px;
+  padding: 12px 22px;
+  border-radius: var(--radius);
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  border: 1px solid var(--border-bright);
+  color: var(--text-main);
+  background: var(--bg-card);
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.nf-btn:hover {
+  transform: translateY(-2px);
+  border-color: var(--cyan);
+  box-shadow: var(--cyan-glow);
+}
+
+.nf-btn--primary {
+  background: var(--cyan);
+  border-color: var(--cyan);
+  color: #000;
+  box-shadow: var(--cyan-glow);
+}
+
+.nf-btn--primary:hover {
+  box-shadow: 0 0 35px rgba(0, 245, 255, 0.65);
+}
+
+.nf-search {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.nf-search label {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+.nf-search input {
+  flex: 1 1 280px;
+  max-width: 420px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-bright);
+  border-radius: var(--radius);
+  color: var(--text-main);
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  padding: 12px 16px;
+}
+
+.nf-search input::placeholder {
+  color: var(--text-dim);
+}
+
+.nf-search button {
+  font-family: var(--font-head);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  padding: 12px 24px;
+  border-radius: var(--radius);
+  border: 1px solid var(--cyan);
+  background: transparent;
+  color: var(--cyan);
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.nf-search button:hover {
+  background: var(--cyan);
+  color: #000;
+  box-shadow: var(--cyan-glow);
+}
+
+.nf-results {
+  list-style: none;
+  padding: 0;
+  margin: 0 auto;
+  max-width: 560px;
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.nf-results a {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+  font-family: var(--font-sub);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--text-main);
+  text-decoration: none;
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius);
+  padding: 12px 16px;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.nf-results a:hover {
+  border-color: var(--cyan);
+  transform: translateX(4px);
+}
+
+.nf-results span {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  color: var(--text-dim);
+  white-space: nowrap;
+}
+
+.nf-results-empty {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  color: var(--text-dim);
+  text-align: center;
+  margin: 0;
+}
+
+.nf-footer {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  color: var(--text-dim);
+  margin-top: 40px;
+  display: flex;
+  gap: 20px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.nf-footer a {
+  color: var(--text-muted);
+  text-decoration: none;
+}
+
+.nf-footer a:hover {
+  color: var(--cyan);
+}
+
+.nf-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nf-btn,
+  .nf-results a {
+    transition: none;
+  }
+
+  .nf-btn:hover,
+  .nf-results a:hover {
+    transform: none;
+  }
+}

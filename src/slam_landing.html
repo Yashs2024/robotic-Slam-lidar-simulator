@@ -52,15 +52,25 @@
   --font-body: 'Inter', sans-serif;
 }
 
-* { margin: 0; padding: 0; box-sizing: border-box; }
-html { scroll-behavior: smooth; }
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+html {
+  scroll-behavior: smooth;
+  overflow-x: hidden;
+  max-width: 100%;
+  width: 100%;
+}
 body {
   background: var(--bg);
   color: var(--text-main);
   font-family: var(--font-body);
   overflow-x: hidden;
+  max-width: 100%;
+  width: 100%;
+  position: relative;
   line-height: 1.6;
 }
+/* Suppress horizontal scrollbar globally */
+::-webkit-scrollbar:horizontal { display: none; }
 
 /* Subtle CRT Scanline overlay */
 body::after {
@@ -90,103 +100,110 @@ body::after {
   position: fixed;
   top: 0; left: 0; right: 0;
   height: 56px;
-  background: rgba(3, 6, 17, 0.88);
+  background: rgba(3, 6, 17, 0.9);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
   border-bottom: 1px solid var(--border-subtle);
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 36px;
+  gap: 24px;
+  padding: 0 32px;
   z-index: 1000;
-  transition: all 0.3s ease;
+  transition: background 0.25s ease, border-color 0.25s ease;
 }
 .nav-brand {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
   text-decoration: none;
+  flex-shrink: 0;
+  white-space: nowrap;
 }
 .nav-logo-box {
-  width: 30px; height: 30px;
-  border: 1.5px solid var(--blue);
+  width: 28px; height: 28px;
+  border: 1px solid rgba(59, 130, 246, 0.6);
   border-radius: var(--radius);
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: var(--blue-glow);
   position: relative;
-  background: rgba(59, 130, 246, 0.1);
-}
-.nav-logo-box::after {
-  content: '📡';
-  font-size: 14px;
+  background: rgba(59, 130, 246, 0.08);
+  flex-shrink: 0;
 }
 .nav-title {
   font-family: var(--font-head);
-  font-size: 17px;
-  font-weight: 900;
+  font-size: 15px;
+  font-weight: 800;
   color: #fff;
-  letter-spacing: 3px;
-  text-shadow: 0 0 15px rgba(59, 130, 246, 0.6);
+  letter-spacing: 2px;
+  white-space: nowrap;
 }
 .nav-badge {
   font-family: var(--font-mono);
-  font-size: var(--text-xs);
+  font-size: 10px;
   color: var(--cyan);
-  background: var(--cyan-dim);
-  border: 1px solid var(--border-cyan);
-  padding: 1px 6px;
-  border-radius: var(--radius);
+  background: rgba(0, 245, 255, 0.08);
+  border: 1px solid rgba(0, 245, 255, 0.25);
+  padding: 2px 7px;
+  border-radius: 3px;
   letter-spacing: 1px;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .nav-links {
   display: flex;
-  gap: 26px;
+  align-items: center;
+  gap: 24px;
+  white-space: nowrap;
 }
 .nav-links a {
-  font-family: var(--font-sub);
-  font-size: 14px;
-  font-weight: 600;
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  font-weight: 500;
   color: var(--text-muted);
   text-decoration: none;
-  letter-spacing: 1.2px;
-  transition: all 0.2s;
+  letter-spacing: 1.4px;
+  text-transform: uppercase;
+  white-space: nowrap;
+  transition: color 0.2s ease;
   position: relative;
+  padding: 4px 0;
 }
 .nav-links a:hover {
   color: var(--blue);
-  text-shadow: 0 0 10px rgba(59, 130, 246, 0.5);
 }
 .nav-links a:hover::after {
   content: '';
   position: absolute;
-  bottom: -4px; left: 0; right: 0;
-  height: 2px;
+  bottom: -2px; left: 0; right: 0;
+  height: 1.5px;
   background: var(--blue);
-  box-shadow: 0 0 8px var(--blue);
 }
 
 .nav-actions {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
+  flex-shrink: 0;
+  white-space: nowrap;
 }
 .btn {
   font-family: var(--font-sub);
-  font-size: 13px;
+  font-size: 12.5px;
   font-weight: 700;
-  letter-spacing: 1.2px;
-  padding: 7px 18px;
+  letter-spacing: 1px;
+  padding: 6px 14px;
   border-radius: var(--radius);
   text-decoration: none;
   display: inline-flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   cursor: pointer;
-  transition: all 0.25s;
+  transition: all 0.2s ease;
   border: 1px solid transparent;
+  white-space: nowrap;
 }
 .btn-ghost {
   color: var(--text-muted);
@@ -213,47 +230,20 @@ body::after {
 .btn-primary {
   background: var(--blue);
   color: #fff;
-  box-shadow: var(--blue-glow);
+  box-shadow: 0 0 18px rgba(59, 130, 246, 0.3);
   border-color: var(--blue);
 }
 .btn-primary:hover {
   background: #fff;
   color: #000;
-  box-shadow: 0 0 35px rgba(255, 255, 255, 0.65);
+  box-shadow: 0 0 28px rgba(255, 255, 255, 0.6);
   transform: translateY(-1px);
-}
-
-.header-cta { opacity: 0; pointer-events: none; transition: opacity 0.3s ease; }
-.header-cta.visible { opacity: 1; pointer-events: all; }
-
-/* ── MARQUEE TELEMETRY TICKER ───────────────────────── */
-#ticker-wrap {
-  margin-top: 56px;
-  height: 30px;
-  background: rgba(59, 130, 246, 0.04);
-  border-bottom: 1px solid var(--border-subtle);
-  overflow: hidden;
-  white-space: nowrap;
-  display: flex;
-  align-items: center;
-}
-.ticker-text {
-  display: inline-block;
-  animation: ticker-scroll 34s linear infinite;
-  font-family: var(--font-mono);
-  font-size: var(--text-sm);
-  color: var(--blue);
-  letter-spacing: 2px;
-  padding-left: 100%;
-}
-@keyframes ticker-scroll {
-  from { transform: translateX(0); }
-  to { transform: translateX(-100%); }
 }
 
 /* ── HERO SECTION ───────────────────────────────────── */
 #hero {
-  min-height: calc(100vh - 86px);
+  margin-top: 56px;
+  min-height: calc(100vh - 56px);
   display: grid;
   grid-template-columns: 1.05fr 1.15fr;
   position: relative;
@@ -780,15 +770,18 @@ section.page-section {
 
 /* ── TECHNICAL SPECIFICATIONS ─────────────────────── */
 .specs-table-wrap {
+  width: 100%;
   max-width: 900px;
   margin: 0 auto;
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius);
-  overflow: hidden;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
   background: var(--bg-card);
 }
 .spec-table {
   width: 100%;
+  min-width: 480px;
   border-collapse: collapse;
 }
 .spec-table th {
@@ -966,12 +959,68 @@ footer a:hover { color: var(--blue); }
   .drive-grid { grid-template-columns: 1fr; }
   .lab-container { grid-template-columns: 1fr; }
   section.page-section { padding: 60px 30px; }
+  #footer-cta { padding: 60px 30px; }
+  footer { padding: 24px 30px; }
 }
-@media(max-width: 640px) {
+
+@media(max-width: 1080px) {
   .nav-links { display: none; }
-  .hero-stats-row { grid-template-columns: 1fr 1fr; }
-  .pillars-grid { grid-template-columns: 1fr; }
-  footer { flex-direction: column; gap: 10px; text-align: center; }
+}
+
+@media(max-width: 640px) {
+  #navbar { padding: 0 16px; gap: 12px; }
+  .nav-title { font-size: 14px; letter-spacing: 1.5px; }
+  .nav-brand .nav-badge { display: none; }
+  .nav-actions { gap: 8px; }
+  .nav-actions .btn { font-size: 11.5px; padding: 6px 10px; }
+
+  #hero { padding: 30px 16px; gap: 24px; }
+  .hero-h1 { font-size: clamp(34px, 8vw, 56px); letter-spacing: 2px; }
+  .hero-subtitle { font-size: 14px; letter-spacing: 1px; }
+  .hero-stats-row { grid-template-columns: 1fr 1fr; gap: 8px; }
+  .hero-stat-pill { padding: 6px 10px; }
+  .hero-right { height: 340px; }
+
+  .hud-pill-bot {
+    white-space: normal;
+    width: 90%;
+    max-width: 280px;
+    text-align: center;
+    font-size: 10px;
+    padding: 4px 8px;
+    bottom: 8px;
+  }
+  .hud-telemetry-panel { padding: 6px 10px; font-size: 10px; }
+  .hero-mode-switcher { bottom: 8px; left: 8px; gap: 4px; }
+  .mode-chip { font-size: 10px; padding: 3px 6px; }
+
+  section.page-section { padding: 40px 16px; }
+  .pillars-grid { grid-template-columns: 1fr; gap: 14px; }
+  .pillar-card { padding: 20px 16px; }
+
+  .lab-card { padding: 18px 14px; }
+  .control-row { flex-wrap: wrap; gap: 6px; }
+  .control-row input[type="range"] { max-width: 100%; margin: 6px 0; width: 100%; flex: 1 1 100%; }
+
+  .drive-card { padding: 18px 14px; }
+  .spec-row { flex-wrap: wrap; gap: 4px; }
+
+  #footer-cta { padding: 40px 16px; }
+  .cta-box { padding: 32px 16px; }
+  .cta-box h2 { font-size: 26px; letter-spacing: 1.5px; }
+  .cta-btns { flex-direction: column; width: 100%; }
+  .cta-btns a { width: 100%; justify-content: center; }
+
+  footer { flex-direction: column; gap: 12px; text-align: center; padding: 20px 16px; }
+}
+
+@media(max-width: 380px) {
+  .nav-brand .nav-title { font-size: 13px; letter-spacing: 1px; }
+  .nav-actions .btn-ghost { display: none; }
+  .hero-h1 { font-size: 30px; letter-spacing: 1px; }
+  .hero-cta-group { flex-direction: column; width: 100%; }
+  .btn-hero-launch, .btn-hero-sec { width: 100%; justify-content: center; }
+  .hero-stats-row { grid-template-columns: 1fr; }
 }
 </style>
 </head>
@@ -980,9 +1029,19 @@ footer a:hover { color: var(--blue); }
   <!-- ── STICKY NAVIGATION BAR ────────────────────────── -->
   <header id="navbar">
     <a href="../index.html#hub" class="nav-brand">
-      <div class="nav-logo-box"></div>
+      <div class="nav-logo-box">
+        <svg class="nav-logo-svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--cyan)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M12 2a10 10 0 0 1 10 10"/>
+          <path d="M12 6a6 6 0 0 1 6 6"/>
+          <path d="M12 10a2 2 0 0 1 2 2"/>
+          <circle cx="12" cy="12" r="1.5" fill="var(--cyan)"/>
+          <line x1="12" y1="12" x2="21" y2="3"/>
+          <path d="M2 12a10 10 0 0 0 10 10" stroke-opacity="0.4"/>
+          <path d="M6 12a6 6 0 0 0 6 6" stroke-opacity="0.4"/>
+        </svg>
+      </div>
       <div class="nav-title">SLAM</div>
-      <span class="nav-badge">LIDAR MAPPING</span>
+      <span class="nav-badge">LIDAR</span>
     </a>
 
     <nav class="nav-links">
@@ -993,19 +1052,10 @@ footer a:hover { color: var(--blue); }
     </nav>
 
     <div class="nav-actions">
-      <a href="#" class="btn btn-donate" id="btnDonate">⚡ DONATE</a>
-      <a href="../index.html#hub" class="btn btn-ghost">← HUB</a>
-      <a href="../slam.html" class="btn btn-primary header-cta">▶ Launch Simulator</a>
+      <a href="../index.html#hub" class="btn btn-ghost"><svg class="btn-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>HUB</a>
+      <a href="../slam.html" class="btn btn-primary header-cta"><svg class="btn-icon" width="13" height="13" viewBox="0 0 24 24" fill="currentColor" stroke="none" style="fill:currentColor;stroke:none;" aria-hidden="true"><polygon points="6 3 20 12 6 21 6 3"/></svg>Launch Sim</a>
     </div>
   </header>
-
-  <!-- ── MARQUEE TELEMETRY TICKER ─────────────────────── -->
-  <div id="ticker-wrap">
-    <div class="ticker-text">
-      ● SLAM SYSTEM ONLINE &nbsp;|&nbsp; 360° RAYCASTING LIDAR ACTIVE &nbsp;|&nbsp; BAYESIAN LOG-ODDS OCCUPANCY GRID ESTIMATING &nbsp;|&nbsp; EKF 3x3 ERROR COVARIANCE P DYNAMIC ELLIPSE ONLINE &nbsp;|&nbsp; MONTE CARLO MCL 500 PARTICLES FILTERING &nbsp;|&nbsp; SCAN-MATCHING LOOP CLOSURE DETECTING &nbsp;|&nbsp; A* PROXIMITY PATHFINDING NOMINAL &nbsp;|&nbsp; 60 FPS WEBGL POINT CLOUD RENDERER &nbsp;&nbsp;&nbsp;&nbsp;
-      ● SLAM SYSTEM ONLINE &nbsp;|&nbsp; 360° RAYCASTING LIDAR ACTIVE &nbsp;|&nbsp; BAYESIAN LOG-ODDS OCCUPANCY GRID ESTIMATING &nbsp;|&nbsp; EKF 3x3 ERROR COVARIANCE P DYNAMIC ELLIPSE ONLINE &nbsp;|&nbsp; MONTE CARLO MCL 500 PARTICLES FILTERING &nbsp;|&nbsp; SCAN-MATCHING LOOP CLOSURE DETECTING &nbsp;|&nbsp; A* PROXIMITY PATHFINDING NOMINAL &nbsp;|&nbsp; 60 FPS WEBGL POINT CLOUD RENDERER &nbsp;&nbsp;&nbsp;&nbsp;
-    </div>
-  </div>
 
   <!-- ── HERO SECTION WITH 3D WEBGL LIDAR AGV STAGE ────── -->
   <section id="hero">
@@ -1018,7 +1068,7 @@ footer a:hover { color: var(--blue); }
       </p>
 
       <div class="hero-cta-group">
-        <a href="../slam.html" class="btn-hero-launch">▶ Launch Simulator</a>
+        <a href="../slam.html" class="btn-hero-launch"><svg class="btn-icon" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" stroke="none" style="fill:currentColor;stroke:none;" aria-hidden="true"><polygon points="6 3 20 12 6 21 6 3"/></svg>Launch Simulator</a>
         <a href="#interactive-lab" class="btn-hero-sec">EXPLORE LAB</a>
       </div>
 
@@ -1095,7 +1145,19 @@ footer a:hover { color: var(--blue); }
       <!-- Pillar 1: Bayesian Occupancy Grid -->
       <div class="pillar-card">
         <div class="pillar-num">01 // SPATIAL MAPPING</div>
-        <span class="pillar-icon">🗺️</span>
+        <span class="pillar-icon">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--cyan)" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <rect x="3" y="3" width="18" height="18" rx="2" stroke="var(--blue)"/>
+            <line x1="3" y1="9" x2="21" y2="9" stroke="rgba(59, 130, 246, 0.4)"/>
+            <line x1="3" y1="15" x2="21" y2="15" stroke="rgba(59, 130, 246, 0.4)"/>
+            <line x1="9" y1="3" x2="9" y2="21" stroke="rgba(59, 130, 246, 0.4)"/>
+            <line x1="15" y1="3" x2="15" y2="21" stroke="rgba(59, 130, 246, 0.4)"/>
+            <rect x="9" y="3" width="6" height="6" fill="var(--blue)" fill-opacity="0.55"/>
+            <rect x="3" y="15" width="6" height="6" fill="var(--cyan)" fill-opacity="0.65"/>
+            <rect x="15" y="9" width="6" height="6" fill="var(--blue)" fill-opacity="0.35"/>
+            <rect x="15" y="15" width="6" height="6" fill="rgba(0, 245, 255, 0.25)"/>
+          </svg>
+        </span>
         <div class="pillar-title">Bayesian Occupancy Grid</div>
         <p class="pillar-desc">
           Evaluates cell occupancy using recursive log-odds updates: $L(m_i | z_{1:t}) = L(m_i | z_{1:t-1}) + L(m_i | z_t) - L_0$. Uses Bresenham line ray voting with fog-of-war revelation.
@@ -1106,7 +1168,15 @@ footer a:hover { color: var(--blue); }
       <!-- Pillar 2: EKF-SLAM Covariance Ellipses -->
       <div class="pillar-card">
         <div class="pillar-num">02 // SENSOR FUSION</div>
-        <span class="pillar-icon">📐</span>
+        <span class="pillar-icon">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <ellipse cx="12" cy="12" rx="10" ry="6" transform="rotate(-28 12 12)" stroke="var(--cyan)" stroke-dasharray="2 2" stroke-opacity="0.45"/>
+            <ellipse cx="12" cy="12" rx="7" ry="4" transform="rotate(-28 12 12)" stroke="var(--green)" fill="rgba(16, 185, 129, 0.15)"/>
+            <line x1="12" y1="2" x2="12" y2="22" stroke="var(--cyan)" stroke-opacity="0.3" stroke-dasharray="1 2"/>
+            <line x1="2" y1="12" x2="22" y2="12" stroke="var(--cyan)" stroke-opacity="0.3" stroke-dasharray="1 2"/>
+            <circle cx="12" cy="12" r="2" fill="var(--green)" stroke="var(--green)"/>
+          </svg>
+        </span>
         <div class="pillar-title">EKF 2σ Uncertainty Ellipses</div>
         <p class="pillar-desc">
           Propagates state covariance $\mathbf{P}_{t|t-1} = \mathbf{F}\mathbf{P}\mathbf{F}^T + \mathbf{Q}$ and corrects on landmark observations via Kalman gain $\mathbf{K}$. Renders live $2\sigma$ error confidence ellipses.
@@ -1117,7 +1187,19 @@ footer a:hover { color: var(--blue); }
       <!-- Pillar 3: Monte Carlo Particle Filter -->
       <div class="pillar-card">
         <div class="pillar-num">03 // LOCALIZATION</div>
-        <span class="pillar-icon">👥</span>
+        <span class="pillar-icon">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--cyan)" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="12" cy="12" r="9.5" stroke="var(--blue)" stroke-dasharray="3 3" stroke-opacity="0.5"/>
+            <circle cx="12" cy="12" r="2.5" fill="var(--cyan)" stroke="var(--cyan)"/>
+            <circle cx="14.5" cy="10" r="1.5" fill="var(--cyan)" fill-opacity="0.8" stroke="none"/>
+            <circle cx="9.5" cy="13.5" r="1.5" fill="var(--cyan)" fill-opacity="0.8" stroke="none"/>
+            <circle cx="11" cy="8.5" r="1.2" fill="var(--cyan)" fill-opacity="0.6" stroke="none"/>
+            <circle cx="6" cy="7" r="1" fill="var(--blue)" fill-opacity="0.5" stroke="none"/>
+            <circle cx="18" cy="8" r="1" fill="var(--blue)" fill-opacity="0.5" stroke="none"/>
+            <circle cx="17" cy="16" r="1" fill="var(--blue)" fill-opacity="0.5" stroke="none"/>
+            <circle cx="7" cy="16" r="1" fill="var(--blue)" fill-opacity="0.5" stroke="none"/>
+          </svg>
+        </span>
         <div class="pillar-title">Monte Carlo Localization (MCL)</div>
         <p class="pillar-desc">
           Maintains 50 to 500 hypotheses across the state space. Weights particles against LiDAR range likelihoods and executes low-variance resampling to resolve kidnapped robot scenarios.
@@ -1128,7 +1210,15 @@ footer a:hover { color: var(--blue); }
       <!-- Pillar 4: Loop Closure & Scan Matching -->
       <div class="pillar-card">
         <div class="pillar-num">04 // DRIFT ELIMINATION</div>
-        <span class="pillar-icon">🔄</span>
+        <span class="pillar-icon">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--cyan)" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M21 12A9 9 0 0 0 6 5.3L3 8" stroke="var(--cyan)"/>
+            <path d="M3 12a9 9 0 0 0 15 6.7l3-2.7" stroke="var(--cyan)"/>
+            <polyline points="3 3 3 8 8 8" stroke="var(--cyan)"/>
+            <polyline points="21 21 21 16 16 16" stroke="var(--cyan)"/>
+            <circle cx="12" cy="12" r="2.5" fill="var(--blue)" stroke="var(--cyan)" stroke-width="1.5"/>
+          </svg>
+        </span>
         <div class="pillar-title">Scan-Matching Loop Closure</div>
         <p class="pillar-desc">
           Maintains keyframe scan fingerprints. Compares historical observation footprints to detect visited topologies, snapping accumulated odometric drift back into global alignment.
@@ -1324,8 +1414,8 @@ footer a:hover { color: var(--blue); }
       <h2>READY TO MAP THE UNKNOWN?</h2>
       <p>Launch the SLAM Perception &amp; Mapping Simulator directly in your browser. Pilot the robot manually, draw custom obstacles, or trigger autonomous frontier mapping.</p>
       <div class="cta-btns">
-        <a href="../slam.html" class="btn-hero-launch" style="font-size:15px;padding:14px 38px;">▶ LAUNCH SLAM SIMULATOR</a>
-        <a href="#" class="btn btn-donate" id="btnDonateFooter" style="font-size:15px;padding:14px 28px;">⚡ SUPPORT / DONATE</a>
+        <a href="../slam.html" class="btn-hero-launch" style="font-size:15px;padding:14px 38px;"><svg class="btn-icon" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" stroke="none" style="fill:currentColor;stroke:none;" aria-hidden="true"><polygon points="6 3 20 12 6 21 6 3"/></svg>LAUNCH SLAM SIMULATOR</a>
+        <a href="#" class="btn btn-donate" id="btnDonateFooter" style="font-size:15px;padding:14px 28px;"><svg class="btn-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>SUPPORT / DONATE</a>
       </div>
     </div>
   </section>
@@ -1344,7 +1434,7 @@ footer a:hover { color: var(--blue); }
   <!-- ── DONATE MODAL ─────────────────────────────────── -->
   <div id="donateModal">
     <div class="donate-modal-card">
-      <button class="donate-close-btn" id="donateClose">&times;</button>
+      <button class="donate-close-btn" id="donateClose" aria-label="Close modal"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
       <div class="donate-title">SUPPORT VECTRASIM</div>
       <div class="donate-subtitle">SCAN QR TO DONATE</div>
       <div class="donate-qr-box">
@@ -1802,7 +1892,8 @@ footer a:hover { color: var(--blue); }
     </div>
 </div>
 
-<a href="#" id="vectra-scroll-top" style="--theme-color: var(--blue); --theme-glow: rgba(59,130,246,0.4);">
+<a href="#" id="vectra-scroll-top" style="--theme-color: var(--blue); --theme-glow: rgba(59,130,246,0.4);" aria-label="Scroll to top">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="margin-bottom:2px;"><polyline points="18 15 12 9 6 15"/></svg>
     <span class="top-text">TOP</span>
 </a>
 
@@ -1816,7 +1907,7 @@ footer a:hover { color: var(--blue); }
         <div class="faq-item">
             <div class="faq-question">
                 What are the WebGL requirements for the simulators?
-                <span class="faq-icon">▼</span>
+                <span class="faq-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg></span>
             </div>
             <div class="faq-answer-wrapper">
                 <div class="faq-answer">
@@ -1829,7 +1920,7 @@ footer a:hover { color: var(--blue); }
         <div class="faq-item">
             <div class="faq-question">
                 How does LiDAR raycasting operate client-side?
-                <span class="faq-icon">▼</span>
+                <span class="faq-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg></span>
             </div>
             <div class="faq-answer-wrapper">
                 <div class="faq-answer">
@@ -1842,7 +1933,7 @@ footer a:hover { color: var(--blue); }
         <div class="faq-item">
             <div class="faq-question">
                 How does NEXUS handle kinematics singularity?
-                <span class="faq-icon">▼</span>
+                <span class="faq-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg></span>
             </div>
             <div class="faq-answer-wrapper">
                 <div class="faq-answer">
@@ -1855,7 +1946,7 @@ footer a:hover { color: var(--blue); }
         <div class="faq-item">
             <div class="faq-question">
                 What is Space-Time A* in HIVE Logistics?
-                <span class="faq-icon">▼</span>
+                <span class="faq-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg></span>
             </div>
             <div class="faq-answer-wrapper">
                 <div class="faq-answer">

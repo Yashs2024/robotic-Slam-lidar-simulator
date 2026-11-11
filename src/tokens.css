@@ -1,0 +1,49 @@
+/* ===================================
+   VECTRASIM SHARED TOKENS
+   Single source of truth for pages that
+   are not part of the simulator app shell
+   (error pages, utility pages).
+   =================================== */
+
+:root {
+  --bg: #030611;
+  --bg-darker: #010308;
+  --bg-card: rgba(10, 18, 36, 0.72);
+  --bg-glass: rgba(14, 24, 48, 0.85);
+
+  --blue: #3B82F6;
+  --blue-glow: 0 0 30px rgba(59, 130, 246, 0.45);
+  --blue-dim: rgba(59, 130, 246, 0.14);
+
+  --cyan: #00F5FF;
+  --cyan-glow: 0 0 25px rgba(0, 245, 255, 0.4);
+  --cyan-dim: rgba(0, 245, 255, 0.12);
+
+  --green: #00FFB2;
+  --green-glow: 0 0 20px rgba(0, 255, 178, 0.4);
+
+  --amber: #F59E0B;
+  --amber-glow: 0 0 25px rgba(245, 158, 11, 0.4);
+  --red: #FF4757;
+
+  --text-main: #EEF2FF;
+  --text-muted: #8595AE;
+  --text-dim: #4B5A72;
+
+  --border-subtle: rgba(59, 130, 246, 0.18);
+  --border-bright: rgba(59, 130, 246, 0.45);
+  --border-cyan: rgba(0, 245, 255, 0.35);
+
+  --font-head: 'Orbitron', monospace, sans-serif;
+  --font-sub: 'Inter', sans-serif;
+  --font-body: 'Inter', sans-serif;
+  --font-mono: 'Share Tech Mono', monospace;
+
+  --text-xs: 12px;
+  --text-sm: 14px;
+  --text-md: 16px;
+  --text-lg: 18px;
+  --text-xl: 24px;
+
+  --radius: 6px;
+}

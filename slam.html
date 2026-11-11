@@ -67,11 +67,17 @@
     body {
       width: 100%;
       height: 100%;
+      max-width: 100vw;
       overflow: hidden;
+      overflow-x: hidden;
       background: var(--bg);
       font-family: var(--font-body);
       color: var(--text);
     }
+
+    /* ── SUPPRESS HORIZONTAL SCROLLBAR GLOBALLY ── */
+    ::-webkit-scrollbar:horizontal { display: none; }
+    * { scrollbar-width: thin; }
 
     /* Scrollbar */
     ::-webkit-scrollbar {

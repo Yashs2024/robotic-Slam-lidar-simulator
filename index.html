@@ -6,7 +6,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="canonical" href="https://vectrasim.vercel.app/" />
 <title>VectraSim Suite — Unified Robotics Simulation Platform</title>
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🤖</text></svg>">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%23020509'/><circle cx='16' cy='16' r='11' fill='none' stroke='%2300F5FF' stroke-width='2'/><circle cx='16' cy='16' r='6' fill='none' stroke='%233b82f6' stroke-width='1.5' stroke-dasharray='3 2'/><circle cx='16' cy='16' r='2' fill='%2300F5FF'/><line x1='16' y1='3' x2='16' y2='8' stroke='%2300F5FF' stroke-width='2'/><line x1='16' y1='24' x2='16' y2='29' stroke='%2300F5FF' stroke-width='2'/><line x1='3' y1='16' x2='8' y2='16' stroke='%2300F5FF' stroke-width='2'/><line x1='24' y1='16' x2='29' y2='16' stroke='%2300F5FF' stroke-width='2'/></svg>">
 <meta name="description" content="Experience VectraSim Suite: a state-of-the-art, browser-based WebGL robotics simulation platform. Explore Autonomous Robotics, SLAM mapping, 6-DOF Kinematics, and Swarm Logistics entirely in your browser.">
 <meta property="og:title" content="VectraSim Suite">
 <meta property="og:description" content="Advanced AI Robotics Simulation Environment.">
@@ -33,7 +33,8 @@
 }
 
 /* ── LOGIN MODAL ── */
-#login-overlay{position:fixed;inset:0;z-index:9000;display:flex;align-items:flex-start;justify-content:flex-end;background:rgba(2,5,9,0.5);backdrop-filter:blur(4px);opacity:0;pointer-events:none;transition:opacity 0.4s ease;}
+#login-overlay{position:fixed;inset:0;z-index:9000;display:flex;align-items:flex-start;justify-content:flex-end;background:rgba(2,5,9,0.5);backdrop-filter:blur(4px);opacity:0;pointer-events:none;transition:opacity 0.4s ease;overflow:hidden;max-width:100%;}
+#login-overlay:not(.open){visibility:hidden;}
 #login-overlay.open{opacity:1;pointer-events:all;}
 .login-box{background:var(--bg2);border-left:1px solid var(--border);width:100%;max-width:420px;height:100vh;padding:48px 40px;position:relative;transform:translateX(100%);transition:transform 0.4s cubic-bezier(0.16,1,0.3,1);}
 #login-overlay.open .login-box{transform:translateX(0);}
@@ -64,7 +65,7 @@
 .login-corner.br{bottom:6px;right:6px;border-bottom:1px solid var(--cyan);border-right:1px solid var(--cyan);}
 
 /* ── HUB OVERLAY ── */
-#hub-overlay{position:fixed;inset:0;z-index:8500;background:var(--bg);overflow-y:auto;opacity:0;pointer-events:none;transition:opacity 0.5s ease;}
+#hub-overlay{position:fixed;inset:0;z-index:8500;background:var(--bg);overflow-y:auto;overflow-x:hidden;max-width:100%;width:100%;opacity:0;pointer-events:none;transition:opacity 0.5s ease;}
 #hub-overlay.open{opacity:1;pointer-events:all;}
 .hub-inner{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:60px 40px;}
 .hub-header{text-align:center;margin-bottom:56px;}
@@ -118,14 +119,24 @@
 .auth-switch-link:hover{opacity:0.8;}
 
 /* body base — dark background is required for the whole dark glassmorphism theme */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
 html, body {
   background: var(--bg);
   color: var(--text);
   font-family: var(--font-body);
   min-height: 100vh;
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
 }
 /* cursor:none scoped to this page — custom JS cursor defined below */
 body { cursor: none; }
+/* Suppress horizontal scrollbar globally */
+::-webkit-scrollbar:horizontal { display: none; }
 
 /* ANIMATED DOT GRID BG */
 .dot-grid{
@@ -183,6 +194,8 @@ body { cursor: none; }
   position:relative;
   overflow:hidden;
   background: var(--bg);
+  width:100%;
+  max-width:100%;
 }
 
 /* HERO BG PULSE ORBS */
@@ -299,7 +312,7 @@ body { cursor: none; }
 .slam .ec-tag{border-color:rgba(59,130,246,0.25);color:var(--blue);background:rgba(59,130,246,0.05);}
 .nexus .ec-tag{border-color:rgba(155,93,229,0.25);color:var(--violet);background:rgba(155,93,229,0.05);}
 .hive .ec-tag{border-color:rgba(245,158,11,0.25);color:var(--amber);background:rgba(245,158,11,0.05);}
-.ec-launch{display:flex;align-items:center;justify-content:space-between;padding-top:16px;border-top:1px solid var(--border);}
+.ec-launch{display:flex;align-items:center;justify-content:space-between;padding-top:16px;border-top:1px solid var(--border);flex-wrap:wrap;gap:8px;}
 .ec-launch-btn{font-family:var(--font-display);font-size: var(--text-sm);font-weight:700;letter-spacing:2px;padding:8px 18px;text-decoration:none;transition:all 0.2s;border:1px solid;}
 .slam .ec-launch-btn{color:var(--blue);border-color:rgba(59,130,246,0.4);}
 .slam .ec-launch-btn:hover{background:var(--blue);color:#000;box-shadow:var(--blue-glow);}
@@ -346,7 +359,7 @@ body { cursor: none; }
 .stack-row{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin-bottom:12px;}
 .stack-chip{display:inline-flex;align-items:center;gap:7px;font-family:var(--font-mono);font-size: var(--text-sm);letter-spacing:1.5px;padding:8px 16px;border:1px solid var(--border);background:var(--bg3);color:var(--text);transition:all 0.2s;position:relative;}
 .stack-chip:hover{border-color:var(--cyan);color:var(--cyan);background:rgba(0,245,255,0.04);box-shadow:var(--cyan-glow);transform:translateY(-2px);}
-.stack-chip .si{font-size:14px;}
+.stack-chip .si{font-size:14px;display:inline-flex;align-items:center;justify-content:center;line-height:1;}
 
 /* CIRCUIT LINE */
 .circuit{display:flex;align-items:center;margin:48px auto;width:80%;max-width:800px;}
@@ -397,7 +410,75 @@ footer{padding:20px 80px;border-top:1px solid var(--border);display:flex;align-i
 .hero-pills{animation-delay:0.8s;}
 @keyframes heroIn{to{opacity:1;transform:none}}
 
+
+.site-footer {
+  padding: 24px 32px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+  background: var(--bg2);
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
+}
+.site-footer > div {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+/* ── RESPONSIVE NAVIGATION & LAYOUT BREAKPOINTS ── */
+
+/* Tier 2: Medium Laptops (1151px - 1280px) — Compact Desktop Nav */
+@media (max-width: 1280px) and (min-width: 1151px) {
+  #nav {
+    padding: 0 24px;
+  }
+  .nav-sep {
+    margin: 0 16px;
+  }
+  .nav-links {
+    gap: 14px;
+  }
+  .nav-links a {
+    padding: 4px 8px;
+    font-size: 11px;
+    letter-spacing: 1px;
+  }
+  .nav-r {
+    gap: 10px;
+  }
+  .nav-r .btn-sm {
+    padding: 6px 10px;
+    font-size: 11px;
+  }
+}
+
+/* Tier 3: Tablets & Small Desktops (<= 1150px, including 1024px iPad landscape) */
+@media (max-width: 1150px) {
+  .nav-links,
+  .nav-sep {
+    display: none;
+  }
+  #nav {
+    padding: 0 24px;
+    justify-content: space-between;
+    overflow: visible; /* Prevent clipping of button glows and focus rings */
+  }
+  .nav-r {
+    gap: 12px;
+  }
+}
+
 @media(max-width:1024px){
+  #nav {
+    padding: 0 20px;
+  }
   #hero{grid-template-columns:1fr;}
   .hero-content{padding:100px 32px 40px;}
   .hero-viz{height:350px;}
@@ -409,6 +490,103 @@ footer{padding:20px 80px;border-top:1px solid var(--border);display:flex;align-i
   #stack{padding:60px 32px;}
   #meta{grid-template-columns:1fr;padding:60px 32px;}
   footer{padding:20px 32px;flex-direction:column;gap:8px;text-align:center;}
+}
+
+/* Tier 4: Tablet Portrait & Large Mobile (<= 768px) */
+@media (max-width: 768px) {
+  .nav-links,
+  .nav-sep {
+    display: none;
+  }
+  #nav {
+    padding: 0 16px;
+    justify-content: space-between;
+  }
+  .nav-r {
+    gap: 8px;
+  }
+  #btnDonate {
+    display: none;
+  }
+  .contact-card {
+    padding: 20px 14px;
+  }
+  .site-footer {
+    flex-direction: column;
+    padding: 24px 16px;
+    text-align: center;
+  }
+  #contact > div > div:nth-child(4) {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .hero-content {
+    padding: 80px 16px 32px;
+    max-width: 100%;
+    min-width: 0;
+  }
+  .hero-title, .hero-title::before, .hero-title::after {
+    font-size: clamp(34px, 10vw, 54px);
+    letter-spacing: 2px;
+  }
+  .glitch-wrap {
+    max-width: 100%;
+    overflow: hidden;
+  }
+  #stats {
+    grid-template-columns: repeat(2, 1fr);
+    max-width: 100%;
+  }
+  .stat-item {
+    padding: 16px 8px;
+  }
+  .stat-lbl {
+    font-size: 11px;
+    letter-spacing: 1px;
+    word-break: break-word;
+  }
+  #engines {
+    padding: 50px 16px;
+  }
+  .algo-grid {
+    grid-template-columns: 1fr;
+  }
+  .ac-loc {
+    word-break: break-all;
+    max-width: 100%;
+  }
+  #contact {
+    padding: 50px 16px;
+  }
+  .hub-inner {
+    padding: 40px 16px;
+  }
+  .login-box {
+    padding: 36px 20px;
+  }
+}
+
+@media (max-width: 480px) {
+  #nav-signin {
+    display: none;
+  }
+  .nav-logo {
+    font-size: 12px;
+    letter-spacing: 3px;
+  }
+  #nav-enter {
+    padding: 5px 10px;
+    font-size: 11px;
+    letter-spacing: 1px;
+  }
+}
+
+@media (max-width: 360px) {
+  #stats {
+    grid-template-columns: 1fr;
+  }
 }
 </style>
   <link rel="stylesheet" href="./src/theme.css">
@@ -473,8 +651,8 @@ footer{padding:20px 80px;border-top:1px solid var(--border);display:flex;align-i
     <div class="hero-tagline">Suite — Three Engines. One Platform.</div>
     <p class="hero-desc">A browser-based robotics simulation suite featuring SLAM mapping with LiDAR, 6-DOF robotic arm kinematics, and multi-robot warehouse logistics. Built with Vanilla JS, Three.js, and HTML5 Canvas — no framework required.</p>
     <div class="hero-btns">
-      <a href="#" class="btn btn-cyan" id="hero-enter-btn" onclick="(function(e){e.preventDefault();var s=typeof getSession==='function'&&getSession();if(s)openHub(s);else openLogin();})(event)">▶ ENTER HUB</a>
-      <a href="#engines" class="btn btn-tertiary">↓ Explore Engines</a>
+      <a href="#" class="btn btn-cyan" id="hero-enter-btn" onclick="(function(e){e.preventDefault();var s=typeof getSession==='function'&&getSession();if(s)openHub(s);else openLogin();})(event)"><svg class="btn-icon" width="14" height="14" viewBox="0 0 24 24" fill="currentColor" stroke="none" aria-hidden="true"><polygon points="6 3 20 12 6 21 6 3"/></svg>ENTER HUB</a>
+      <a href="#engines" class="btn btn-tertiary"><svg class="btn-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="12" y1="5" x2="12" y2="19"/><polyline points="19 12 12 19 5 12"/></svg>Explore Engines</a>
     </div>
     <div class="hero-pills">
       <span class="pill"><span class="dot dot-green"></span>3 Engines Live</span>
@@ -549,7 +727,7 @@ footer{padding:20px 80px;border-top:1px solid var(--border);display:flex;align-i
           <span class="ec-tag">MCL</span>
         </div>
         <div class="ec-launch">
-          <a href="#" onclick="authGate('src/slam_landing.html');return false;" class="ec-launch-btn">▶ LAUNCH SLAM</a>
+          <a href="#" onclick="authGate('src/slam_landing.html');return false;" class="ec-launch-btn"><svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" stroke="none" style="display:inline-block;vertical-align:middle;margin-right:6px;" aria-hidden="true"><polygon points="6 3 20 12 6 21 6 3"/></svg>LAUNCH SLAM</a>
           <span class="ec-status">LOGIN REQUIRED</span>
         </div>
       </div>
@@ -575,7 +753,7 @@ footer{padding:20px 80px;border-top:1px solid var(--border);display:flex;align-i
           <span class="ec-tag">THREE.JS</span>
         </div>
         <div class="ec-launch">
-          <a href="#" onclick="authGate('src/nexus_landing.html');return false;" class="ec-launch-btn">▶ LAUNCH NEXUS</a>
+          <a href="#" onclick="authGate('src/nexus_landing.html');return false;" class="ec-launch-btn"><svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" stroke="none" style="display:inline-block;vertical-align:middle;margin-right:6px;" aria-hidden="true"><polygon points="6 3 20 12 6 21 6 3"/></svg>LAUNCH NEXUS</a>
           <span class="ec-status">LOGIN REQUIRED</span>
         </div>
       </div>
@@ -601,7 +779,7 @@ footer{padding:20px 80px;border-top:1px solid var(--border);display:flex;align-i
           <span class="ec-tag">HEATMAP</span>
         </div>
         <div class="ec-launch">
-          <a href="#" onclick="authGate('src/hive_landing.html');return false;" class="ec-launch-btn">▶ LAUNCH HIVE</a>
+          <a href="#" onclick="authGate('src/hive_landing.html');return false;" class="ec-launch-btn"><svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" stroke="none" style="display:inline-block;vertical-align:middle;margin-right:6px;" aria-hidden="true"><polygon points="6 3 20 12 6 21 6 3"/></svg>LAUNCH HIVE</a>
           <span class="ec-status">LOGIN REQUIRED</span>
         </div>
       </div>
@@ -645,20 +823,20 @@ footer{padding:20px 80px;border-top:1px solid var(--border);display:flex;align-i
   </div>
 
   <div class="stack-row reveal">
-    <span class="stack-chip"><span class="si">🌐</span>HTML5</span>
-    <span class="stack-chip"><span class="si">🎨</span>CSS3</span>
-    <span class="stack-chip"><span class="si">⚡</span>Vanilla JS</span>
-    <span class="stack-chip"><span class="si">🎮</span>Canvas 2D API</span>
-    <span class="stack-chip"><span class="si">🧊</span>Three.js r183</span>
-    <span class="stack-chip"><span class="si">📊</span>Chart.js 3.9.1</span>
+    <span class="stack-chip"><span class="si"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg></span>HTML5</span>
+    <span class="stack-chip"><span class="si"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83Z"/><path d="m22 17.65-9.17 4.16a2 2 0 0 1-1.66 0L2 17.65"/><path d="m22 12.65-9.17 4.16a2 2 0 0 1-1.66 0L2 12.65"/></svg></span>CSS3</span>
+    <span class="stack-chip"><span class="si"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg></span>Vanilla JS</span>
+    <span class="stack-chip"><span class="si"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M3 9h18M9 21V9"/></svg></span>Canvas 2D API</span>
+    <span class="stack-chip"><span class="si"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.29 7 12 12 20.71 7"/><line x1="12" y1="22" x2="12" y2="12"/></svg></span>Three.js r183</span>
+    <span class="stack-chip"><span class="si"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg></span>Chart.js 3.9.1</span>
   </div>
   <div class="stack-row reveal rd1">
-    <span class="stack-chip"><span class="si">⚙</span>Vite 7.3.1</span>
-    <span class="stack-chip"><span class="si">🎬</span>GSAP 3.12.2</span>
-    <span class="stack-chip"><span class="si">🕹</span>nipplejs</span>
-    <span class="stack-chip"><span class="si">🔊</span>Web Audio API</span>
-    <span class="stack-chip"><span class="si">🧪</span>Playwright E2E</span>
-    <span class="stack-chip"><span class="si">🚀</span>Vercel Deploy</span>
+    <span class="stack-chip"><span class="si"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg></span>Vite 7.3.1</span>
+    <span class="stack-chip"><span class="si"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg></span>GSAP 3.12.2</span>
+    <span class="stack-chip"><span class="si"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg></span>nipplejs</span>
+    <span class="stack-chip"><span class="si"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07M19.07 4.93a10 10 0 0 1 0 14.14"/></svg></span>Web Audio API</span>
+    <span class="stack-chip"><span class="si"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 2v7.31L4.2 18.5a2 2 0 0 0 1.66 3h12.28a2 2 0 0 0 1.66-3L14 9.31V2"/><line x1="8.5" y1="2" x2="15.5" y2="2"/></svg></span>Playwright E2E</span>
+    <span class="stack-chip"><span class="si"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2L2 20h20L12 2z"/></svg></span>Vercel Deploy</span>
   </div>
 
   <div class="circuit reveal rd2">
@@ -676,24 +854,24 @@ footer{padding:20px 80px;border-top:1px solid var(--border);display:flex;align-i
     <h2>READY<br>TO RUN?</h2>
     <p>Open the Hub, authenticate with any credentials, and choose your simulation engine. No setup required — the entire platform runs in your browser.</p>
     <div class="meta-links">
-      <a href="#" class="meta-link">▶ LAUNCH HUB</a>
-      <a href="https://github.com/Yashs2024/Slam-lidar-simulator" class="meta-link" target="_blank" rel="noopener noreferrer">⌥ GITHUB</a>
-      <a href="https://www.linkedin.com/in/yash-surve-3b6a72253" class="meta-link" target="_blank" rel="noopener noreferrer">↗ LINKEDIN</a>
+      <a href="#" class="meta-link" onclick="(function(e){e.preventDefault();var s=typeof getSession==='function'&&getSession();if(s)openHub(s);else openLogin();})(event)"><svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" stroke="none" style="display:inline-block;vertical-align:middle;margin-right:6px;" aria-hidden="true"><polygon points="6 3 20 12 6 21 6 3"/></svg>LAUNCH HUB</a>
+      <a href="https://github.com/Yashs2024/Slam-lidar-simulator" class="meta-link" target="_blank" rel="noopener noreferrer"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;margin-right:6px;" aria-hidden="true"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/></svg>GITHUB</a>
+      <a href="https://www.linkedin.com/in/yash-surve-3b6a72253" class="meta-link" target="_blank" rel="noopener noreferrer"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;margin-right:6px;" aria-hidden="true"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>LINKEDIN</a>
     </div>
     <div class="meta-note">Sign in or create a free account to access all simulators</div>
   </div>
   <div class="info-card reveal rd1">
     <div class="ic-title">PROJECT MANIFEST</div>
-    <div class="kv"><span class="k">Platform</span><span class="v c">VectraSim Suite v3.0</span><span class="ac-go">→</span></div>
-    <div class="kv"><span class="k">Engine 01</span><span class="v b">SLAM Simulator</span><span class="ac-go">→</span></div>
-    <div class="kv"><span class="k">Engine 02</span><span class="v vi">NEXUS Arm Engine</span><span class="ac-go">→</span></div>
-    <div class="kv"><span class="k">Engine 03</span><span class="v a">HIVE Logistics</span><span class="ac-go">→</span></div>
-    <div class="kv"><span class="k">Build Tool</span><span class="v">Vite 7.3.1</span><span class="ac-go">→</span></div>
-    <div class="kv"><span class="k">Renderer</span><span class="v">Canvas 2D + Three.js</span><span class="ac-go">→</span></div>
-    <div class="kv"><span class="k">Auth</span><span class="v">Mock (sessionStorage)</span><span class="ac-go">→</span></div>
-    <div class="kv"><span class="k">Deploy</span><span class="v">Vercel Static</span><span class="ac-go">→</span></div>
-    <div class="kv"><span class="k">Author</span><span class="v c">Yash Surve</span><span class="ac-go">→</span></div>
-    <div class="kv"><span class="k">Status</span><span class="v g">OPERATIONAL</span><span class="ac-go">→</span></div>
+    <div class="kv"><span class="k">Platform</span><span class="v c">VectraSim Suite v3.0</span></div>
+    <div class="kv"><span class="k">Engine 01</span><span class="v b">SLAM Simulator</span></div>
+    <div class="kv"><span class="k">Engine 02</span><span class="v vi">NEXUS Arm Engine</span></div>
+    <div class="kv"><span class="k">Engine 03</span><span class="v a">HIVE Logistics</span></div>
+    <div class="kv"><span class="k">Build Tool</span><span class="v">Vite 7.3.1</span></div>
+    <div class="kv"><span class="k">Renderer</span><span class="v">Canvas 2D + Three.js</span></div>
+    <div class="kv"><span class="k">Auth</span><span class="v">Mock (sessionStorage)</span></div>
+    <div class="kv"><span class="k">Deploy</span><span class="v">Vercel Static</span></div>
+    <div class="kv"><span class="k">Author</span><span class="v c">Yash Surve</span></div>
+    <div class="kv"><span class="k">Status</span><span class="v g">OPERATIONAL</span></div>
   </div>
 </section>
 
@@ -702,7 +880,7 @@ footer{padding:20px 80px;border-top:1px solid var(--border);display:flex;align-i
   <div class="login-box">
     <div class="login-corner tl"></div><div class="login-corner tr"></div>
     <div class="login-corner bl"></div><div class="login-corner br"></div>
-    <button class="login-close" id="login-close-btn">✕</button>
+    <button class="login-close" id="login-close-btn" aria-label="Close modal"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
 
     <div class="login-logo">VECTRASIM</div>
 
@@ -730,9 +908,9 @@ footer{padding:20px 80px;border-top:1px solid var(--border);display:flex;align-i
         </div>
       </div>
       <div class="login-err" id="si-err"></div>
-      <button class="login-btn" id="si-submit">▶ SIGN IN</button>
-      <button type="button" class="login-btn" id="btn-guest-access" style="margin-top:10px;background:rgba(0,245,255,0.12);color:var(--cyan);border:1px solid rgba(0,245,255,0.4);">⚡ QUICK DEMO / GUEST ACCESS</button>
-      <div class="login-note">No account? <span class="auth-switch-link" onclick="switchTab('signup')">Create one →</span><span class="ac-go">→</span></div>
+      <button class="login-btn" id="si-submit"><svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" stroke="none" style="display:inline-block;vertical-align:middle;margin-right:6px;" aria-hidden="true"><polygon points="6 3 20 12 6 21 6 3"/></svg>SIGN IN</button>
+      <button type="button" class="login-btn" id="btn-guest-access" style="margin-top:10px;background:rgba(0,245,255,0.12);color:var(--cyan);border:1px solid rgba(0,245,255,0.4);"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:6px;display:inline-block;vertical-align:middle;" aria-hidden="true"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>QUICK DEMO / GUEST ACCESS</button>
+      <div class="login-note">No account? <span class="auth-switch-link" onclick="switchTab('signup')">Create one &rarr;</span></div>
     </div>
 
     <!-- Sign Up Form -->
@@ -765,8 +943,8 @@ footer{padding:20px 80px;border-top:1px solid var(--border);display:flex;align-i
         </div>
       </div>
       <div class="login-err" id="su-err"></div>
-      <button class="login-btn" id="su-submit">▶ CREATE ACCOUNT</button>
-      <div class="login-note">Already registered? <span class="auth-switch-link" onclick="switchTab('signin')">Sign in →</span><span class="ac-go">→</span></div>
+      <button class="login-btn" id="su-submit"><svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" stroke="none" style="display:inline-block;vertical-align:middle;margin-right:6px;" aria-hidden="true"><polygon points="6 3 20 12 6 21 6 3"/></svg>CREATE ACCOUNT</button>
+      <div class="login-note">Already registered? <span class="auth-switch-link" onclick="switchTab('signin')">Sign in &rarr;</span></div>
     </div>
   </div>
 </div>
@@ -782,30 +960,30 @@ footer{padding:20px 80px;border-top:1px solid var(--border);display:flex;align-i
     <div class="hub-cards">
       <a href="src/slam_landing.html" class="hub-card hc-slam">
         <div class="hc-bar"></div>
-        <div class="hc-icon">🗺</div>
+        <div class="hc-icon" style="color:var(--blue);display:flex;align-items:center;justify-content:center;"><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10" stroke-opacity="0.3"/><circle cx="12" cy="12" r="6" stroke-dasharray="3 2"/><circle cx="12" cy="12" r="2" fill="currentColor"/><path d="M12 2v4M12 18v4M2 12h4M18 12h4"/><path d="M12 12l6-6" stroke="currentColor" stroke-width="2"/><path d="m19 5 2-2"/></svg></div>
         <div class="hc-num">ENGINE 01</div>
         <div class="hc-name">SLAM</div>
         <p class="hc-desc">LiDAR mapping, Monte Carlo localization, frontier exploration, and three pathfinding algorithms.</p>
-        <span class="hc-go">▶ LAUNCH SLAM</span>
+        <span class="hc-go"><svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" stroke="none" style="display:inline-block;vertical-align:middle;margin-right:6px;" aria-hidden="true"><polygon points="6 3 20 12 6 21 6 3"/></svg>LAUNCH SLAM</span>
       </a>
       <a href="src/nexus_landing.html" class="hub-card hc-nexus">
         <div class="hc-bar"></div>
-        <div class="hc-icon">🦾</div>
+        <div class="hc-icon" style="color:var(--violet);display:flex;align-items:center;justify-content:center;"><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="19" width="16" height="3" rx="1"/><circle cx="12" cy="16" r="3"/><line x1="12" y1="13" x2="12" y2="9"/><circle cx="12" cy="8" r="2.5"/><line x1="14.5" y1="8" x2="19" y2="5"/><circle cx="19.5" cy="4.5" r="2"/><path d="M19 2l3 3M21 2l-3 3"/></svg></div>
         <div class="hc-num">ENGINE 02</div>
         <div class="hc-name">NEXUS</div>
         <p class="hc-desc">6-DOF robot arm with forward/inverse kinematics, LSPB trajectory planning, and Teach Mode.</p>
-        <span class="hc-go">▶ LAUNCH NEXUS</span>
+        <span class="hc-go"><svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" stroke="none" style="display:inline-block;vertical-align:middle;margin-right:6px;" aria-hidden="true"><polygon points="6 3 20 12 6 21 6 3"/></svg>LAUNCH NEXUS</span>
       </a>
       <a href="src/hive_landing.html" class="hub-card hc-hive">
         <div class="hc-bar"></div>
-        <div class="hc-icon">🏭</div>
+        <div class="hc-icon" style="color:var(--amber);display:flex;align-items:center;justify-content:center;"><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5M12 22V12"/><circle cx="12" cy="7" r="1.5" fill="currentColor"/><circle cx="7" cy="14" r="1.5" fill="currentColor"/><circle cx="17" cy="14" r="1.5" fill="currentColor"/></svg></div>
         <div class="hc-num">ENGINE 03</div>
         <div class="hc-name">HIVE</div>
         <p class="hc-desc">Multi-robot warehouse logistics with isometric 2.5D rendering, battery sim, and task scheduling.</p>
-        <span class="hc-go">▶ LAUNCH HIVE</span>
+        <span class="hc-go"><svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" stroke="none" style="display:inline-block;vertical-align:middle;margin-right:6px;" aria-hidden="true"><polygon points="6 3 20 12 6 21 6 3"/></svg>LAUNCH HIVE</span>
       </a>
     </div>
-    <button class="hub-signout" id="hub-signout">⎋ SIGN OUT</button>
+    <button class="hub-signout" id="hub-signout"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:6px;display:inline-block;vertical-align:middle;" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>SIGN OUT</button>
   </div>
 </div>
 
@@ -840,7 +1018,7 @@ footer{padding:20px 80px;border-top:1px solid var(--border);display:flex;align-i
         <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--violet)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
         <div>
           <div style="font-family:var(--font-display);font-size: var(--text-sm);font-weight:700;letter-spacing:2px;color:var(--violet);margin-bottom:4px;">CONTACT</div>
-          <div style="font-family:var(--font-mono);font-size: var(--text-sm);letter-spacing:1px;color:var(--muted);">yashusurve2005@gmail.com</div>
+          <div style="font-family:var(--font-mono);font-size: var(--text-sm);letter-spacing:1px;color:var(--muted);word-break:break-all;overflow-wrap:anywhere;">yashusurve2005@gmail.com</div>
         </div>
       </a>
     </div>
@@ -859,7 +1037,7 @@ footer{padding:20px 80px;border-top:1px solid var(--border);display:flex;align-i
 }
 </style>
 
-<footer style="padding:20px 80px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:var(--bg2);">
+<footer class="site-footer">
   <span style="font-family:var(--font-display);font-size:var(--text-md);font-weight:900;color:var(--cyan);letter-spacing:4px;text-shadow:0 0 20px rgba(0,245,255,0.3);">VECTRASIM</span>
   <div style="display:flex;gap:20px;align-items:center;">
     <a href="privacy.html" style="font-family:var(--font-mono);font-size: var(--text-sm);letter-spacing:2px;color:var(--muted);text-decoration:none;transition:color 0.2s;" onmouseover="this.style.color='var(--cyan)'" onmouseout="this.style.color='var(--muted)'">PRIVACY</a>
@@ -897,7 +1075,7 @@ function _recordSigninFailure(errEl) {
     const tick = () => {
       const rem = Math.ceil((_siLockedUntil - Date.now()) / 1000);
       if (rem > 0) {
-        errEl.textContent = `⚠ TOO MANY ATTEMPTS — WAIT ${rem}s`;
+        errEl.textContent = `[RATE_LIMIT] TOO MANY ATTEMPTS — WAIT ${rem}s`;
         _siLockTimer = setTimeout(tick, 1000);
       } else {
         _siFailCount = 0;
@@ -963,8 +1141,8 @@ function _consumeAuthTarget() {
 function updateNavForLoggedIn(user) {
   const btn = document.getElementById('nav-enter');
   const si = document.getElementById('nav-signin');
-  if(btn) { btn.textContent = '⬡ HUB'; btn.onclick = (e) => { e.preventDefault(); openHub(user); }; }
-  if(si) { si.textContent = '⎋ SIGN OUT'; si.onclick = (e) => { e.preventDefault(); doSignOut(); }; }
+  if(btn) { btn.textContent = 'HUB'; btn.onclick = (e) => { e.preventDefault(); openHub(user); }; }
+  if(si) { si.textContent = 'SIGN OUT'; si.onclick = (e) => { e.preventDefault(); doSignOut(); }; }
 }
 async function doSignOut() {
   try {
@@ -973,7 +1151,7 @@ async function doSignOut() {
   clearSession();
   const btn = document.getElementById('nav-enter');
   const si = document.getElementById('nav-signin');
-  if(btn) { btn.textContent = '▶ ENTER HUB'; btn.onclick = null; }
+  if(btn) { btn.textContent = 'ENTER HUB'; btn.onclick = null; }
   if(si) { si.textContent = 'SIGN IN'; si.onclick = null; }
   closeHub();
 }
@@ -1053,10 +1231,10 @@ document.getElementById('si-submit').addEventListener('click', async () => {
   const pass  = document.getElementById('si-pass').value;
   const err   = document.getElementById('si-err');
   if (_isSigninLocked()) return; // already showing countdown
-  if (!email) { err.textContent = '⚠ EMAIL REQUIRED'; return; }
-  if (!pass)  { err.textContent = '⚠ PASSWORD REQUIRED'; return; }
+  if (!email) { err.textContent = '[ERR] EMAIL REQUIRED'; return; }
+  if (!pass)  { err.textContent = '[ERR] PASSWORD REQUIRED'; return; }
 
-  err.textContent = '⚡ AUTHENTICATING...';
+  err.textContent = '[AUTH] AUTHENTICATING...';
   err.style.color = '';
 
   try {
@@ -1083,7 +1261,7 @@ document.getElementById('si-submit').addEventListener('click', async () => {
         return;
       }
       _recordSigninFailure(err);
-      if (!_isSigninLocked()) err.textContent = '⚠ INVALID CREDENTIALS';
+      if (!_isSigninLocked()) err.textContent = '[ERR] INVALID CREDENTIALS';
       return;
     }
 
@@ -1116,13 +1294,13 @@ document.getElementById('su-submit').addEventListener('click', async () => {
   const pass  = document.getElementById('su-pass').value;
   const pass2 = document.getElementById('su-pass2').value;
   const err   = document.getElementById('su-err');
-  if (!name)                                        { err.textContent = '⚠ NAME REQUIRED'; return; }
-  if (!email)                                       { err.textContent = '⚠ EMAIL REQUIRED'; return; }
-  if (!/^[^@]+@[^@]+\.[^@]+$/.test(email))         { err.textContent = '⚠ INVALID EMAIL FORMAT'; return; }
-  if (pass.length < 6)                              { err.textContent = '⚠ PASSWORD MIN 6 CHARACTERS'; return; }
-  if (pass !== pass2)                               { err.textContent = '⚠ PASSWORDS DO NOT MATCH'; return; }
+  if (!name)                                        { err.textContent = '[ERR] NAME REQUIRED'; return; }
+  if (!email)                                       { err.textContent = '[ERR] EMAIL REQUIRED'; return; }
+  if (!/^[^@]+@[^@]+\.[^@]+$/.test(email))         { err.textContent = '[ERR] INVALID EMAIL FORMAT'; return; }
+  if (pass.length < 6)                              { err.textContent = '[ERR] PASSWORD MIN 6 CHARACTERS'; return; }
+  if (pass !== pass2)                               { err.textContent = '[ERR] PASSWORDS DO NOT MATCH'; return; }
 
-  err.textContent = '⚡ CREATING ACCOUNT...';
+  err.textContent = '[AUTH] CREATING ACCOUNT...';
   err.style.color = '';
 
   try {
@@ -1130,7 +1308,7 @@ document.getElementById('su-submit').addEventListener('click', async () => {
       const user = { id: 'usr-' + Date.now(), name, email, isGuest: false };
       saveSession(user);
       err.style.color = 'var(--green)';
-      err.textContent = '✔ ACCOUNT CREATED — SIGNING IN...';
+      err.textContent = '[OK] ACCOUNT CREATED — SIGNING IN...';
       setTimeout(() => {
         err.style.color = '';
         const target = _consumeAuthTarget();
@@ -1150,7 +1328,7 @@ document.getElementById('su-submit').addEventListener('click', async () => {
         const user = { id: 'usr-' + Date.now(), name, email, isGuest: false };
         saveSession(user);
         err.style.color = 'var(--green)';
-        err.textContent = '✔ ACCOUNT CREATED — SIGNING IN...';
+        err.textContent = '[OK] ACCOUNT CREATED — SIGNING IN...';
         setTimeout(() => {
           err.style.color = '';
           const target = _consumeAuthTarget();
@@ -1162,11 +1340,11 @@ document.getElementById('su-submit').addEventListener('click', async () => {
       // V-15: Never expose raw API error messages — map to safe strings only
       const safeMsg = (() => {
         const m = (error.message || '').toLowerCase();
-        if (m.includes('already registered') || m.includes('already exists')) return '⚠ EMAIL ALREADY IN USE';
-        if (m.includes('password') && m.includes('short'))   return '⚠ PASSWORD TOO SHORT';
-        if (m.includes('invalid email'))                      return '⚠ INVALID EMAIL ADDRESS';
-        if (m.includes('rate limit') || m.includes('too many')) return '⚠ TOO MANY ATTEMPTS — PLEASE WAIT';
-        return '⚠ SIGN UP FAILED — PLEASE TRY AGAIN';
+        if (m.includes('already registered') || m.includes('already exists')) return '[ERR] EMAIL ALREADY IN USE';
+        if (m.includes('password') && m.includes('short'))   return '[ERR] PASSWORD TOO SHORT';
+        if (m.includes('invalid email'))                      return '[ERR] INVALID EMAIL ADDRESS';
+        if (m.includes('rate limit') || m.includes('too many')) return '[ERR] TOO MANY ATTEMPTS — PLEASE WAIT';
+        return '[ERR] SIGN UP FAILED — PLEASE TRY AGAIN';
       })();
       err.textContent = safeMsg;
       return;
@@ -1175,7 +1353,7 @@ document.getElementById('su-submit').addEventListener('click', async () => {
     const user = { id: data.user?.id || ('usr-' + Date.now()), name, email: data.user?.email || email };
     saveSession(user);
     err.style.color = 'var(--green)';
-    err.textContent = '✔ ACCOUNT CREATED — SIGNING IN...';
+    err.textContent = '[OK] ACCOUNT CREATED — SIGNING IN...';
     setTimeout(() => {
       err.style.color = '';
       const target = _consumeAuthTarget();
@@ -1187,7 +1365,7 @@ document.getElementById('su-submit').addEventListener('click', async () => {
     const user = { id: 'usr-' + Date.now(), name, email, isGuest: false };
     saveSession(user);
     err.style.color = 'var(--green)';
-    err.textContent = '✔ ACCOUNT CREATED — SIGNING IN...';
+    err.textContent = '[OK] ACCOUNT CREATED — SIGNING IN...';
     setTimeout(() => {
       err.style.color = '';
       const target = _consumeAuthTarget();
@@ -1885,7 +2063,7 @@ statVals.forEach(el=>stObs.observe(el));
         <div class="faq-item">
             <div class="faq-question">
                 What are the WebGL requirements for the simulators?
-                <span class="faq-icon">▼</span>
+                <span class="faq-icon" aria-hidden="true"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></span>
             </div>
             <div class="faq-answer-wrapper">
                 <div class="faq-answer">
@@ -1898,7 +2076,7 @@ statVals.forEach(el=>stObs.observe(el));
         <div class="faq-item">
             <div class="faq-question">
                 How does LiDAR raycasting operate client-side?
-                <span class="faq-icon">▼</span>
+                <span class="faq-icon" aria-hidden="true"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></span>
             </div>
             <div class="faq-answer-wrapper">
                 <div class="faq-answer">
@@ -1911,7 +2089,7 @@ statVals.forEach(el=>stObs.observe(el));
         <div class="faq-item">
             <div class="faq-question">
                 How does NEXUS handle kinematics singularity?
-                <span class="faq-icon">▼</span>
+                <span class="faq-icon" aria-hidden="true"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></span>
             </div>
             <div class="faq-answer-wrapper">
                 <div class="faq-answer">
@@ -1924,7 +2102,7 @@ statVals.forEach(el=>stObs.observe(el));
         <div class="faq-item">
             <div class="faq-question">
                 What is Space-Time A* in HIVE Logistics?
-                <span class="faq-icon">▼</span>
+                <span class="faq-icon" aria-hidden="true"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></span>
             </div>
             <div class="faq-answer-wrapper">
                 <div class="faq-answer">

@@ -6,7 +6,7 @@
     bottom: 24px;
     left: 24px;
     width: 380px;
-    max-width: calc(100vw - 48px);
+    max-width: min(380px, calc(100% - 32px));
     background: rgba(11, 15, 26, 0.85);
     backdrop-filter: blur(16px);
     -webkit-backdrop-filter: blur(16px);
@@ -39,6 +39,7 @@
     display: flex;
     gap: 12px;
     justify-content: flex-end;
+    flex-wrap: wrap;
 }
 
 .cookie-btn {
@@ -217,12 +218,69 @@
 .faq-icon {
     font-size: 14px;
     color: var(--theme-color, var(--cyan));
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 14px;
+    height: 14px;
+    flex-shrink: 0;
     transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.faq-icon svg {
+    width: 14px;
+    height: 14px;
+    stroke: currentColor;
+    fill: none;
+    transition: transform 0.25s ease;
 }
 
 .faq-item.active .faq-icon {
     transform: rotate(180deg);
 }
+
+/* ── UNIFIED SVG ICON UTILITY SYSTEM ─────────────────── */
+.icon-svg, .btn-icon, .pillar-svg {
+    display: inline-block;
+    vertical-align: middle;
+    flex-shrink: 0;
+    transition: transform 0.25s ease, stroke 0.25s ease, filter 0.25s ease;
+}
+
+.btn-icon {
+    width: 16px;
+    height: 16px;
+    margin-right: 6px;
+    stroke: currentColor;
+    fill: none;
+}
+
+.nav-logo-svg {
+    display: block;
+    width: 18px;
+    height: 18px;
+    flex-shrink: 0;
+}
+
+.pillar-icon svg {
+    display: block;
+    width: 32px;
+    height: 32px;
+    stroke-width: 1.75;
+}
+
+.status-beacon-svg {
+    display: inline-block;
+    vertical-align: middle;
+    flex-shrink: 0;
+}
+
+/* Sizing Utility Classes */
+.icon-xs { width: 12px; height: 12px; stroke-width: 2.5px; }
+.icon-sm { width: 14px; height: 14px; stroke-width: 2px; }
+.icon-md { width: 16px; height: 16px; stroke-width: 2px; }
+.icon-lg { width: 20px; height: 20px; stroke-width: 1.75px; }
+.icon-xl { width: 28px; height: 28px; stroke-width: 1.75px; }
 
 .faq-answer-wrapper {
     display: grid;
@@ -316,4 +374,26 @@ tr:hover {
     outline-offset: 4px;
     box-shadow: 0 0 10px var(--theme-glow, rgba(0, 245, 255, 0.4));
     border-radius: 2px;
+}
+
+@media (max-width: 640px) {
+  #vectra-cookie-banner {
+    left: 16px;
+    right: 16px;
+    bottom: 16px;
+    width: auto;
+    max-width: calc(100% - 32px);
+    padding: 16px;
+  }
+  .faq-section {
+    padding: 0 16px;
+    margin: 40px auto;
+  }
+  .faq-question {
+    padding: 14px 16px;
+    font-size: 15px;
+  }
+  .faq-item.active .faq-answer {
+    padding: 0 16px 16px 16px;
+  }
 }

@@ -7,7 +7,11 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "vercel-build": "vite build"
+    "vercel-build": "vite build",
+    "test:404": "playwright test smoke/404.spec.js",
+    "verify:build": "node scripts/verify-build.js",
+    "verify:viewports": "node scripts/verify-viewports.js",
+    "verify": "npm run build && npm run verify:build && npm run verify:viewports"
   },
   "devDependencies": {
     "@playwright/test": "^1.58.2",

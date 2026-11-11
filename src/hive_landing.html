@@ -50,15 +50,25 @@
   --font-body: 'Inter', sans-serif;
 }
 
-* { margin: 0; padding: 0; box-sizing: border-box; }
-html { scroll-behavior: smooth; }
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+html {
+  scroll-behavior: smooth;
+  overflow-x: hidden;
+  width: 100%;
+  max-width: 100%;
+}
 body {
   background: var(--bg);
   color: var(--text-main);
   font-family: var(--font-body);
   overflow-x: hidden;
+  width: 100%;
+  max-width: 100%;
+  position: relative;
   line-height: 1.6;
 }
+/* Suppress horizontal scrollbar globally */
+::-webkit-scrollbar:horizontal { display: none; }
 
 /* Subtle CRT Scanline effect */
 body::after {
@@ -88,37 +98,40 @@ body::after {
   position: fixed;
   top: 0; left: 0; right: 0;
   height: 56px;
-  background: rgba(3, 5, 8, 0.88);
+  background: rgba(3, 5, 8, 0.9);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
   border-bottom: 1px solid var(--border-subtle);
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 36px;
+  gap: 24px;
+  padding: 0 32px;
   z-index: 1000;
-  transition: all 0.3s ease;
+  transition: background 0.25s ease, border-color 0.25s ease;
 }
 .nav-brand {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
   text-decoration: none;
+  flex-shrink: 0;
+  white-space: nowrap;
 }
 .nav-logo-box {
-  width: 30px; height: 30px;
-  border: 1.5px solid var(--cyan);
+  width: 28px; height: 28px;
+  border: 1px solid rgba(0, 240, 255, 0.55);
   border-radius: var(--radius);
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 0 12px rgba(0, 240, 255, 0.3);
   position: relative;
-  background: rgba(0, 240, 255, 0.08);
+  background: rgba(0, 240, 255, 0.07);
+  flex-shrink: 0;
 }
 .nav-logo-box::after {
   content: '';
-  width: 8px; height: 8px;
+  width: 7px; height: 7px;
   background: var(--cyan);
   border-radius: 50%;
   box-shadow: 0 0 8px var(--cyan);
@@ -126,73 +139,81 @@ body::after {
 }
 @keyframes pulse-dot {
   0%, 100% { opacity: 1; transform: scale(1); }
-  50% { opacity: 0.3; transform: scale(0.65); }
+  50% { opacity: 0.35; transform: scale(0.7); }
 }
 .nav-title {
   font-family: var(--font-head);
-  font-size: 17px;
-  font-weight: 900;
+  font-size: 15px;
+  font-weight: 800;
   color: #fff;
   letter-spacing: 2px;
-  text-shadow: 0 0 15px rgba(0, 240, 255, 0.6);
+  white-space: nowrap;
 }
 .nav-badge {
   font-family: var(--font-mono);
-  font-size: 9px;
+  font-size: 10px;
   color: var(--cyan);
-  background: var(--cyan-dim);
-  border: 1px solid var(--border-bright);
-  padding: 1px 6px;
+  background: rgba(0, 240, 255, 0.08);
+  border: 1px solid rgba(0, 240, 255, 0.25);
+  padding: 2px 7px;
   border-radius: 3px;
   letter-spacing: 1px;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .nav-links {
   display: flex;
-  gap: 26px;
+  align-items: center;
+  gap: 24px;
+  white-space: nowrap;
 }
 .nav-links a {
-  font-family: var(--font-sub);
-  font-size: 14px;
-  font-weight: 600;
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  font-weight: 500;
   color: var(--text-muted);
   text-decoration: none;
-  letter-spacing: 1.2px;
-  transition: all 0.2s;
+  letter-spacing: 1.4px;
+  text-transform: uppercase;
+  white-space: nowrap;
+  transition: color 0.2s ease;
   position: relative;
+  padding: 4px 0;
 }
 .nav-links a:hover {
   color: var(--cyan);
-  text-shadow: 0 0 10px rgba(0, 240, 255, 0.5);
 }
 .nav-links a:hover::after {
   content: '';
   position: absolute;
-  bottom: -4px; left: 0; right: 0;
-  height: 2px;
+  bottom: -2px; left: 0; right: 0;
+  height: 1.5px;
   background: var(--cyan);
-  box-shadow: 0 0 8px var(--cyan);
 }
 
 .nav-actions {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
+  flex-shrink: 0;
+  white-space: nowrap;
 }
 .btn {
   font-family: var(--font-sub);
-  font-size: 13px;
+  font-size: 12.5px;
   font-weight: 700;
-  letter-spacing: 1.2px;
-  padding: 7px 18px;
+  letter-spacing: 1px;
+  padding: 6px 14px;
   border-radius: var(--radius);
   text-decoration: none;
   display: inline-flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   cursor: pointer;
-  transition: all 0.25s;
+  transition: all 0.2s ease;
   border: 1px solid transparent;
+  white-space: nowrap;
 }
 .btn-ghost {
   color: var(--text-muted);
@@ -219,47 +240,20 @@ body::after {
 .btn-primary {
   background: var(--cyan);
   color: #000;
-  box-shadow: var(--cyan-glow);
+  box-shadow: 0 0 18px rgba(0, 240, 255, 0.25);
   border-color: var(--cyan);
 }
 .btn-primary:hover {
   background: #fff;
   color: #000;
-  box-shadow: 0 0 35px rgba(0, 240, 255, 0.7);
+  box-shadow: 0 0 28px rgba(0, 240, 255, 0.55);
   transform: translateY(-1px);
-}
-
-.header-cta { opacity: 0; pointer-events: none; transition: opacity 0.3s ease; }
-.header-cta.visible { opacity: 1; pointer-events: all; }
-
-/* ── MARQUEE TELEMETRY TICKER ───────────────────────── */
-#marquee-ticker {
-  margin-top: 56px;
-  height: 30px;
-  background: rgba(0, 240, 255, 0.04);
-  border-bottom: 1px solid var(--border-subtle);
-  overflow: hidden;
-  white-space: nowrap;
-  display: flex;
-  align-items: center;
-}
-.marquee-content {
-  display: inline-block;
-  animation: marquee-scroll 34s linear infinite;
-  font-family: var(--font-mono);
-  font-size: var(--text-sm);
-  color: var(--cyan);
-  letter-spacing: 2px;
-  padding-left: 100%;
-}
-@keyframes marquee-scroll {
-  from { transform: translateX(0); }
-  to { transform: translateX(-100%); }
 }
 
 /* ── HERO SECTION ───────────────────────────────────── */
 #hero {
-  min-height: calc(100vh - 86px);
+  margin-top: 56px;
+  min-height: calc(100vh - 56px);
   display: grid;
   grid-template-columns: 1.1fr 1.1fr;
   position: relative;
@@ -292,12 +286,14 @@ body::after {
 }
 .hero-h1 {
   font-family: var(--font-head);
-  font-size: clamp(52px, 6.5vw, 84px);
+  font-size: clamp(34px, 6vw, 84px);
   font-weight: 900;
-  line-height: 0.95;
-  letter-spacing: 4px;
+  line-height: 1.05;
+  letter-spacing: 2px;
   color: #fff;
   margin-bottom: 12px;
+  overflow-wrap: break-word;
+  word-break: break-word;
 }
 .hero-h1 span.glow {
   color: var(--cyan);
@@ -630,9 +626,49 @@ section.page-section {
   margin-bottom: 12px;
 }
 .pillar-icon {
-  font-size: 32px;
-  margin-bottom: 16px;
+  width: 52px;
+  height: 52px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 18px;
+  border-radius: var(--radius);
+  background: rgba(255, 184, 0, 0.08);
+  border: 1px solid rgba(255, 184, 0, 0.25);
+  color: var(--amber);
+  transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.pillar-card:hover .pillar-icon {
+  color: #fff;
+  background: rgba(255, 184, 0, 0.22);
+  border-color: var(--amber);
+  box-shadow: 0 0 20px rgba(255, 184, 0, 0.45);
+  transform: translateY(-2px);
+}
+.pillar-icon svg,
+.pillar-svg {
+  width: 32px;
+  height: 32px;
   display: block;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 1.75;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  transition: transform 0.25s ease, stroke 0.25s ease, filter 0.25s ease;
+}
+.btn-icon {
+  display: inline-block;
+  vertical-align: middle;
+  flex-shrink: 0;
+  stroke: currentColor;
+  fill: none;
+}
+.status-beacon-svg {
+  display: inline-block;
+  vertical-align: middle;
+  flex-shrink: 0;
+  margin-right: 6px;
 }
 .pillar-title {
   font-family: var(--font-head);
@@ -861,14 +897,17 @@ section.page-section {
 /* ── TECH SPECS TABLE ───────────────────────────────── */
 .specs-table-wrap {
   max-width: 920px;
+  width: 100%;
   margin: 0 auto;
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius);
-  overflow: hidden;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
   background: var(--bg-card);
 }
 .spec-table {
   width: 100%;
+  min-width: 560px;
   border-collapse: collapse;
 }
 .spec-table th {
@@ -1047,13 +1086,152 @@ footer a:hover { color: var(--cyan); }
   .cam-feature-wrap { grid-template-columns: 1fr; }
   .lab-container { grid-template-columns: 1fr; }
   section.page-section { padding: 60px 30px; }
+  #footer-cta { padding: 60px 30px; }
+  footer { padding: 24px 30px; }
 }
-@media(max-width: 640px) {
+
+@media(max-width: 1080px) {
   .nav-links { display: none; }
-  .hero-stats-row { grid-template-columns: 1fr 1fr; }
-  .pillars-grid { grid-template-columns: 1fr; }
-  .fleet-grid { grid-template-columns: 1fr; }
-  footer { flex-direction: column; gap: 10px; text-align: center; }
+}
+
+@media(max-width: 640px) {
+  #navbar {
+    padding: 0 16px;
+    gap: 12px;
+  }
+  .nav-title {
+    font-size: 14px;
+    letter-spacing: 1.5px;
+  }
+  .nav-badge {
+    display: none;
+  }
+  .nav-actions {
+    gap: 8px;
+  }
+  .nav-actions .btn {
+    padding: 6px 10px;
+    font-size: 11.5px;
+  }
+
+  #hero {
+    padding: 30px 16px;
+    gap: 24px;
+  }
+  .hero-stats-row {
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+  .hero-stat-pill {
+    padding: 6px 10px;
+    min-width: 0;
+  }
+  .hero-cta-group {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .hero-cta-group a {
+    justify-content: center;
+    width: 100%;
+  }
+
+  /* ========================================================================== */
+  /* HUD & Hero 3D Box Responsive Adaptations (Eliminates <=320px Text Clipping) */
+  /* ========================================================================== */
+  .hero-right {
+    height: 360px;
+  }
+  .hud-pill-bot {
+    white-space: normal;
+    width: 90%;
+    max-width: 280px;
+    text-align: center;
+    font-size: 10px;
+    padding: 4px 8px;
+    bottom: 40px;
+  }
+  .hud-telemetry-panel {
+    padding: 6px 10px;
+    font-size: 10px;
+    min-width: 140px;
+  }
+  .hero-robot-switcher {
+    bottom: 8px;
+    left: 8px;
+    gap: 4px;
+  }
+  .r-chip {
+    font-size: 10px;
+    padding: 3px 6px;
+  }
+  .hero-lift-btn {
+    bottom: 8px;
+    right: 8px;
+    padding: 4px 8px;
+    font-size: 10px;
+  }
+
+  section.page-section {
+    padding: 40px 16px;
+  }
+  .pillars-grid {
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+  .pillar-card {
+    padding: 20px 16px;
+  }
+  .fleet-grid {
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+  .cam-feature-wrap {
+    padding: 20px 14px;
+  }
+
+  /* Critical Fix: Eliminate Footer CTA blowout */
+  #footer-cta {
+    padding: 40px 16px;
+  }
+  .cta-box {
+    padding: 28px 16px;
+    width: 100%;
+    max-width: 100%;
+  }
+  .cta-box h2 {
+    font-size: 24px;
+    letter-spacing: 1.5px;
+  }
+  .cta-btns {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .cta-btns a {
+    width: 100%;
+    justify-content: center;
+  }
+
+  footer {
+    padding: 24px 16px;
+    flex-direction: column;
+    gap: 12px;
+    text-align: center;
+    overflow-wrap: break-word;
+    word-break: break-word;
+  }
+}
+
+@media(max-width: 380px) {
+  .nav-brand .nav-title { font-size: 13px; letter-spacing: 1px; }
+  .nav-actions .btn-ghost { display: none; }
+  .hero-h1 { font-size: 30px; letter-spacing: 1px; }
+  .hero-stats-row { grid-template-columns: 1fr; }
+  .hero-lift-btn span {
+    display: none;
+  }
+  .hero-lift-btn {
+    padding: 4px 6px;
+  }
 }
 </style>
 </head>
@@ -1064,31 +1242,22 @@ footer a:hover { color: var(--cyan); }
     <a href="../index.html#hub" class="nav-brand">
       <div class="nav-logo-box"></div>
       <div class="nav-title">HIVE 3D</div>
-      <span class="nav-badge">ROS 2 NAV2</span>
+      <span class="nav-badge">NAV2</span>
     </a>
 
     <nav class="nav-links">
-      <a href="#pillars">MAPF &amp; SAFETY</a>
-      <a href="#interactive-lab">SIMULATION LAB</a>
-      <a href="#fleet">FLEET LINEUP</a>
+      <a href="#pillars">MAPF</a>
+      <a href="#interactive-lab">SIM LAB</a>
+      <a href="#fleet">FLEET</a>
       <a href="#multicam">QUAD-CAM</a>
       <a href="#specs">SPECS</a>
     </nav>
 
     <div class="nav-actions">
-      <a href="#" class="btn btn-donate" id="btnDonate">⚡ DONATE</a>
-      <a href="../index.html#hub" class="btn btn-ghost">← HUB</a>
-      <a href="../hive.html" class="btn btn-primary header-cta">▶ Launch 3D Sim</a>
+      <a href="../index.html#hub" class="btn btn-ghost"><svg class="btn-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg><span>HUB</span></a>
+      <a href="../hive.html" class="btn btn-primary header-cta"><svg class="btn-icon" width="13" height="13" viewBox="0 0 24 24" fill="currentColor" stroke="none" aria-hidden="true"><polygon points="6 4 20 12 6 20 6 4"/></svg><span>Launch 3D Sim</span></a>
     </div>
   </header>
-
-  <!-- ── MARQUEE TELEMETRY TICKER ─────────────────────── -->
-  <div id="marquee-ticker">
-    <div class="marquee-content">
-      ● HIVE 3D SYSTEM ONLINE &nbsp;|&nbsp; THREE.JS WEBGL R184 SIMULATION &nbsp;|&nbsp; 4 AUTONOMOUS AMRS READY &nbsp;|&nbsp; SPACE-TIME A* (MAPF) 4D RESERVATIONS ACTIVE &nbsp;|&nbsp; ISO 3691-4 PEDESTRIAN SAFETY NOMINAL &nbsp;|&nbsp; QUAD-CAM 4-UP FLEET STREAMING LOADED &nbsp;|&nbsp; ACTIVE 3D SCISSOR-LIFT KINEMATICS &nbsp;|&nbsp; 60 FPS SIMULATION INTEGRATOR &nbsp;|&nbsp; ZERO BACKEND PURE CLIENT WEBGL &nbsp;&nbsp;&nbsp;&nbsp;
-      ● HIVE 3D SYSTEM ONLINE &nbsp;|&nbsp; THREE.JS WEBGL R184 SIMULATION &nbsp;|&nbsp; 4 AUTONOMOUS AMRS READY &nbsp;|&nbsp; SPACE-TIME A* (MAPF) 4D RESERVATIONS ACTIVE &nbsp;|&nbsp; ISO 3691-4 PEDESTRIAN SAFETY NOMINAL &nbsp;|&nbsp; QUAD-CAM 4-UP FLEET STREAMING LOADED &nbsp;|&nbsp; ACTIVE 3D SCISSOR-LIFT KINEMATICS &nbsp;|&nbsp; 60 FPS SIMULATION INTEGRATOR &nbsp;|&nbsp; ZERO BACKEND PURE CLIENT WEBGL &nbsp;&nbsp;&nbsp;&nbsp;
-    </div>
-  </div>
 
   <!-- ── HERO SECTION WITH 3D WEBGL STAGE ────────────── -->
   <section id="hero">
@@ -1101,7 +1270,7 @@ footer a:hover { color: var(--cyan); }
       </p>
 
       <div class="hero-cta-group">
-        <a href="../hive.html" class="btn-hero-launch">▶ Launch 3D Simulator</a>
+        <a href="../hive.html" class="btn-hero-launch"><svg class="btn-icon" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" stroke="none" aria-hidden="true"><polygon points="6 4 20 12 6 20 6 4"/></svg><span>Launch 3D Simulator</span></a>
         <a href="#pillars" class="btn-hero-sec">EXPLORE ARCHITECTURE</a>
       </div>
 
@@ -1135,7 +1304,10 @@ footer a:hover { color: var(--cyan); }
         <div class="corner-bracket br"></div>
 
         <div class="hud-pill-top">
-          <span style="color:var(--green)">●</span>
+          <svg class="status-beacon-svg" width="8" height="8" viewBox="0 0 8 8" fill="none" aria-hidden="true">
+            <circle cx="4" cy="4" r="3.5" fill="var(--green)" opacity="0.3"/>
+            <circle cx="4" cy="4" r="2" fill="var(--green)"/>
+          </svg>
           <span id="hero-amr-label">AMR-01 ATLAS [ACTIVE]</span>
         </div>
 
@@ -1161,7 +1333,14 @@ footer a:hover { color: var(--cyan); }
 
         <!-- Scissor Lift Elevation Toggle -->
         <button class="hero-lift-btn" id="btnToggleLift" onclick="toggleHeroScissorLift()">
-          <span>🏗️ TOGGLE SCISSOR LIFT</span>
+          <svg class="btn-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <line x1="3" y1="5" x2="21" y2="5"/>
+            <line x1="6" y1="19" x2="18" y2="7"/>
+            <line x1="18" y1="19" x2="6" y2="7"/>
+            <circle cx="12" cy="13" r="1.5" fill="currentColor"/>
+            <line x1="3" y1="20" x2="21" y2="20"/>
+          </svg>
+          <span>TOGGLE SCISSOR LIFT</span>
         </button>
       </div>
     </div>
@@ -1182,7 +1361,15 @@ footer a:hover { color: var(--cyan); }
       <!-- Pillar 1: Space-Time A* -->
       <div class="pillar-card">
         <div class="pillar-num">01 // PATHFINDING</div>
-        <span class="pillar-icon">🛡️</span>
+        <span class="pillar-icon">
+          <svg class="pillar-svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+            <circle cx="8" cy="14" r="1.5" fill="currentColor"/>
+            <circle cx="16" cy="10" r="1.5" fill="currentColor"/>
+            <path d="M8 14c2-4 4-2 8-4"/>
+            <path d="M12 7v5"/>
+          </svg>
+        </span>
         <div class="pillar-title">4D Space-Time A* MAPF</div>
         <p class="pillar-desc">
           Evaluates $(x, y, t)$ coordinates with a 4D reservation table. Eliminates vertex collisions, head-on corridor deadlocks, and edge swaps using hierarchical right-of-way priority yielding.
@@ -1193,7 +1380,19 @@ footer a:hover { color: var(--cyan); }
       <!-- Pillar 2: Scissor Lift -->
       <div class="pillar-card">
         <div class="pillar-num">02 // KINEMATICS</div>
-        <span class="pillar-icon">🏗️</span>
+        <span class="pillar-icon">
+          <svg class="pillar-svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <rect x="7" y="2" width="10" height="4" rx="1"/>
+            <line x1="3" y1="7" x2="21" y2="7" stroke-width="2"/>
+            <line x1="5" y1="8" x2="19" y2="14"/>
+            <line x1="19" y1="8" x2="5" y2="14"/>
+            <circle cx="12" cy="11" r="1.5" fill="currentColor"/>
+            <line x1="5" y1="14" x2="19" y2="20"/>
+            <line x1="19" y1="14" x2="5" y2="20"/>
+            <circle cx="12" cy="17" r="1.5" fill="currentColor"/>
+            <line x1="2" y1="21" x2="22" y2="21" stroke-width="2"/>
+          </svg>
+        </span>
         <div class="pillar-title">Active 3D Scissor Lift</div>
         <p class="pillar-desc">
           Models physical elevation cycles: AMRs raise their platform to high-bay rack shelf tiers, pick inventory crates, lock onto transport decks, and eject payloads onto outbound motorized conveyors.
@@ -1204,7 +1403,18 @@ footer a:hover { color: var(--cyan); }
       <!-- Pillar 3: ISO 3691-4 Safety -->
       <div class="pillar-card">
         <div class="pillar-num">03 // SAFETY</div>
-        <span class="pillar-icon">👷</span>
+        <span class="pillar-icon">
+          <svg class="pillar-svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="12" cy="12" r="10" stroke-dasharray="3 3"/>
+            <circle cx="12" cy="12" r="5.5"/>
+            <circle cx="12" cy="12" r="2" fill="currentColor"/>
+            <path d="M12 2v4"/>
+            <path d="M12 18v4"/>
+            <path d="M2 12h4"/>
+            <path d="M18 12h4"/>
+            <circle cx="17" cy="7" r="1.5" fill="var(--amber)"/>
+          </svg>
+        </span>
         <div class="pillar-title">ISO 3691-4 Pedestrian Safety</div>
         <p class="pillar-desc">
           Warehouse workers walk patrol paths. AMRs enforce dual-zone envelopes: 3.5m caution deceleration and 1.8m emergency safety halt with flashing hazard underglow and dynamic Space-Time detours.
@@ -1215,7 +1425,18 @@ footer a:hover { color: var(--cyan); }
       <!-- Pillar 4: Multi-Cam Pipeline -->
       <div class="pillar-card">
         <div class="pillar-num">04 // SENSORS</div>
-        <span class="pillar-icon">📹</span>
+        <span class="pillar-icon">
+          <svg class="pillar-svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <rect x="3" y="3" width="8" height="8" rx="1.5"/>
+            <rect x="13" y="3" width="8" height="8" rx="1.5"/>
+            <rect x="3" y="13" width="8" height="8" rx="1.5"/>
+            <rect x="13" y="13" width="8" height="8" rx="1.5"/>
+            <circle cx="7" cy="7" r="1.5" fill="currentColor"/>
+            <circle cx="17" cy="7" r="1.5" fill="currentColor"/>
+            <circle cx="7" cy="17" r="1.5" fill="currentColor"/>
+            <circle cx="17" cy="17" r="1.5" fill="currentColor"/>
+          </svg>
+        </span>
         <div class="pillar-title">Quad-Cam Fleet Streaming</div>
         <p class="pillar-desc">
           Floating acrylic drawer streams real-time forward cameras for all 4 AMRs simultaneously without duplicating the scene graph. Supports 3rd-person Chase and 1st-person Sensor Eye with YOLO AI reticles.
@@ -1471,8 +1692,8 @@ footer a:hover { color: var(--cyan); }
       <h2>READY TO COMMAND THE SWARM?</h2>
       <p>Launch the HIVE 3D Autonomous Swarm Logistics Simulator directly in your browser. Inspect the high-bay warehouse, track live AMRs, and test multi-agent logistics.</p>
       <div class="cta-btns">
-        <a href="../hive.html" class="btn-hero-launch" style="font-size:15px;padding:14px 38px;">▶ Launch Hive 3D Simulator</a>
-        <a href="#" class="btn btn-donate" id="btnDonateFooter" style="font-size:15px;padding:14px 28px;">⚡ SUPPORT / DONATE</a>
+        <a href="../hive.html" class="btn-hero-launch" style="font-size:15px;padding:14px 38px;"><svg class="btn-icon" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" stroke="none" aria-hidden="true"><polygon points="6 4 20 12 6 20 6 4"/></svg><span>Launch Hive 3D Simulator</span></a>
+        <a href="#" class="btn btn-donate" id="btnDonateFooter" style="font-size:15px;padding:14px 28px;"><svg class="btn-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg><span>SUPPORT / DONATE</span></a>
       </div>
     </div>
   </section>
@@ -1491,7 +1712,7 @@ footer a:hover { color: var(--cyan); }
   <!-- ── DONATE MODAL ─────────────────────────────────── -->
   <div id="donateModal">
     <div class="donate-modal-card">
-      <button class="donate-close-btn" id="donateClose">&times;</button>
+      <button class="donate-close-btn" id="donateClose" aria-label="Close donation modal"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
       <div class="donate-title">SUPPORT VECTRASIM</div>
       <div class="donate-subtitle">SCAN QR TO DONATE</div>
       <div class="donate-qr-box">
@@ -1994,7 +2215,8 @@ footer a:hover { color: var(--cyan); }
     </div>
 </div>
 
-<a href="#" id="vectra-scroll-top" style="--theme-color: var(--amber); --theme-glow: rgba(245,158,11,0.4);">
+<a href="#" id="vectra-scroll-top" style="--theme-color: var(--amber); --theme-glow: rgba(245,158,11,0.4);" aria-label="Scroll to top">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="18 15 12 9 6 15"></polyline></svg>
     <span class="top-text">TOP</span>
 </a>
 
@@ -2008,7 +2230,7 @@ footer a:hover { color: var(--cyan); }
         <div class="faq-item">
             <div class="faq-question">
                 What are the WebGL requirements for the simulators?
-                <span class="faq-icon">▼</span>
+                <span class="faq-icon"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"></polyline></svg></span>
             </div>
             <div class="faq-answer-wrapper">
                 <div class="faq-answer">
@@ -2021,7 +2243,7 @@ footer a:hover { color: var(--cyan); }
         <div class="faq-item">
             <div class="faq-question">
                 How does LiDAR raycasting operate client-side?
-                <span class="faq-icon">▼</span>
+                <span class="faq-icon"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"></polyline></svg></span>
             </div>
             <div class="faq-answer-wrapper">
                 <div class="faq-answer">
@@ -2034,7 +2256,7 @@ footer a:hover { color: var(--cyan); }
         <div class="faq-item">
             <div class="faq-question">
                 How does NEXUS handle kinematics singularity?
-                <span class="faq-icon">▼</span>
+                <span class="faq-icon"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"></polyline></svg></span>
             </div>
             <div class="faq-answer-wrapper">
                 <div class="faq-answer">
@@ -2047,7 +2269,7 @@ footer a:hover { color: var(--cyan); }
         <div class="faq-item">
             <div class="faq-question">
                 What is Space-Time A* in HIVE Logistics?
-                <span class="faq-icon">▼</span>
+                <span class="faq-icon"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"></polyline></svg></span>
             </div>
             <div class="faq-answer-wrapper">
                 <div class="faq-answer">

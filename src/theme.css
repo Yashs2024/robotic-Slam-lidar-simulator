@@ -4,11 +4,12 @@
 
 /* ── BASE & RESETS ── */
 * { margin: 0; padding: 0; box-sizing: border-box; }
-html { scroll-behavior: smooth; }
-body { overflow-x: hidden; }
+html { scroll-behavior: smooth; overflow-x: hidden; width: 100%; max-width: 100%; }
+body { overflow-x: hidden; width: 100%; max-width: 100%; }
 
 /* ── CUSTOM SCROLLBAR ── */
 ::-webkit-scrollbar { width: 3px; }
+::-webkit-scrollbar:horizontal { display: none; }
 ::-webkit-scrollbar-track { background: var(--bg, #020509); }
 ::-webkit-scrollbar-thumb { background: linear-gradient(180deg, var(--blue, #3b82f6), var(--violet, #9B5DE5)); }
 
