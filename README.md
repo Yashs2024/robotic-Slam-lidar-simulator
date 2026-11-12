@@ -29,6 +29,12 @@
 
 <br />
 
+
+
+https://github.com/user-attachments/assets/ba1f28ce-0d1f-4e8c-9746-2a8cce212a01
+
+
+
 <img src="public/slam%20and%20lidar.png" alt="VectraSim Suite Platform Hero with Live SLAM, NEXUS 6-DOF, and HIVE 3D Previews" width="90%" />
 
 <p><sub><em>VectraSim Suite unified platform landing page featuring multi-engine live previews across SLAM Perception, NEXUS 6-DOF Arm, and HIVE 3D Swarm.</em></sub></p>
